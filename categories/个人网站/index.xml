@@ -13,8 +13,7 @@
         <pubDate>Tue, 23 Jul 2024 00:00:00 +0000</pubDate>
         
         <guid>http://localhost:1313/p/%E6%90%AD%E5%BB%BA%E8%87%AA%E5%B7%B1%E7%9A%84%E5%8D%9A%E5%AE%A2/</guid>
-        <description>&lt;h1 id=&#34;heading&#34;&gt;
-&lt;/h1&gt;&lt;ul&gt;
+        <description>&lt;ul&gt;
 &lt;li&gt;
 &lt;h2 id=&#34;建站方式&#34;&gt;建站方式
 &lt;/h2&gt;&lt;p&gt;选择建站方式，是使用动态建站（如WordPress、halo），还是使用静态建站（Jekyll、hexo、hugo）。&lt;/p&gt;
@@ -143,9 +142,11 @@
 &lt;/h2&gt;&lt;p&gt;市面上的markdown工具还是蛮多的，各种开发用的ide，或者专门用于markdown的编辑器。我使用的是MarkText(&lt;a class=&#34;link&#34; href=&#34;https://github.com/marktext/marktext&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
     &gt;GitHub - marktext/marktext: 📝A simple and elegant markdown editor, available for Linux, macOS and Windows.&lt;/a&gt;)，建议直接安装&lt;a class=&#34;link&#34; href=&#34;https://marktext.weero.net/&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
     &gt;中文版markText&lt;/a&gt;。&lt;/p&gt;
-&lt;p&gt;MarkText的图床功能存在bug，无法检测到picgo存在，以及无法上传剪贴板的图片。&lt;/p&gt;
-&lt;p&gt;其中，无法上传剪贴板图片的bug是由于项目中fileSystem.js中path.join方法参数类型错误导致的；&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://cdn.jsdelivr.net/gh/qisiii/imagehost@main/imgpicgo/picgo-clipboard-images/20240729208bc060c8dcf212fefdd5b7d6012bbc.png&#34;
+&lt;p&gt;MarkText的图床功能存在bug：&lt;/p&gt;
+&lt;h3 id=&#34;uploader为github时上传失败&#34;&gt;uploader为github时上传失败
+&lt;/h3&gt;&lt;p&gt;原因是GithubApi要求content是base64格式的，所以需要额外做一下处理，参考&lt;a class=&#34;link&#34; href=&#34;https://github.com/marktext/marktext/pull/3589&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
+    &gt;pr&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/qisiii/imagehost/main/2024/07/30-00-10-06-image.png&#34;
 	
 	
 	
@@ -153,8 +154,10 @@
 	
 	
 &gt;&lt;/p&gt;
-&lt;p&gt;但无法检测到picgo我在本地启动没有复现，仅在中文版的app中存在，但由于我本人是m系列芯片，在打包的时候各种报错，所以如果您是intel芯片，可以自己修改后重新打包。&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://cdn.jsdelivr.net/gh/qisiii/imagehost@main/imgpicgo/picgo-clipboard-images/2024072917c066dfd0ddbdbe07ce183528406eda.png&#34;
+&lt;h3 id=&#34;无法上传剪贴板的图片&#34;&gt;无法上传剪贴板的图片。
+&lt;/h3&gt;&lt;p&gt;其中，无法上传剪贴板图片的bug是由于项目中fileSystem.js中path.join方法参数类型错误导致的；参考&lt;a class=&#34;link&#34; href=&#34;https://github.com/marktext/marktext/pull/3366&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
+    &gt;Fix Failure when uploading clipboard images with PicGo （#3360） by Jakentop · Pull Request #3366 · marktext/marktext · GitHub&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/qisiii/imagehost/main/2024/07/30-00-06-41-image.png&#34;
 	
 	
 	
@@ -162,6 +165,8 @@
 	
 	
 &gt;&lt;/p&gt;
+&lt;h3 id=&#34;无法检测到picgo存在&#34;&gt;无法检测到picgo存在
+&lt;/h3&gt;&lt;p&gt;无法检测到picgo我在本地启动没有复现，只有在打包之后才会出现这个问题，目前定位不到原因&lt;/p&gt;
 &lt;/li&gt;
 &lt;/ul&gt;
 </description>
