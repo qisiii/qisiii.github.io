@@ -24,6 +24,14 @@
         <description></description>
         </item>
         <item>
+        <title>博客</title>
+        <link>http://localhost:1313/tags/%E5%8D%9A%E5%AE%A2/</link>
+        <pubDate>Tue, 23 Jul 2024 00:00:00 +0000</pubDate>
+        
+        <guid>http://localhost:1313/tags/%E5%8D%9A%E5%AE%A2/</guid>
+        <description></description>
+        </item>
+        <item>
         <title>Agent</title>
         <link>http://localhost:1313/tags/agent/</link>
         <pubDate>Sun, 10 Sep 2023 00:00:00 +0000</pubDate>
