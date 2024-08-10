@@ -2,17 +2,17 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
     <channel>
         <title>起司的博客</title>
-        <link>http://localhost:1313/post/tech/lang/</link>
+        <link>https://qisiii.github.io/post/tech/lang/</link>
         <description>Recent content on 起司的博客</description>
         <generator>Hugo -- gohugo.io</generator>
         <language>zh-cn</language>
         <copyright>起司</copyright>
-        <lastBuildDate>Fri, 02 Aug 2024 19:10:52 +0800</lastBuildDate><atom:link href="http://localhost:1313/post/tech/lang/index.xml" rel="self" type="application/rss+xml" /><item>
+        <lastBuildDate>Fri, 02 Aug 2024 19:10:52 +0800</lastBuildDate><atom:link href="https://qisiii.github.io/post/tech/lang/index.xml" rel="self" type="application/rss+xml" /><item>
         <title>Jstack使用</title>
-        <link>http://localhost:1313/post/tech/lang/jstack/</link>
+        <link>https://qisiii.github.io/post/tech/lang/jstack/</link>
         <pubDate>Sun, 28 Jul 2024 17:14:47 +0800</pubDate>
         
-        <guid>http://localhost:1313/post/tech/lang/jstack/</guid>
+        <guid>https://qisiii.github.io/post/tech/lang/jstack/</guid>
         <description>&lt;h2 id=&#34;jstack应用&#34;&gt;Jstack应用
 &lt;/h2&gt;&lt;p&gt;jstack是java提供的工具，一般用于分析栈-线程相关的问题，常见的比如死锁问题，cpu过高问题。&lt;/p&gt;
 &lt;p&gt;jstack 命令使用方式如下：&lt;/p&gt;
@@ -589,10 +589,10 @@
         </item>
         <item>
         <title>Java安全机制之一——SecurityManager和AccessController</title>
-        <link>http://localhost:1313/post/tech/lang/java_security/</link>
+        <link>https://qisiii.github.io/post/tech/lang/java_security/</link>
         <pubDate>Wed, 08 Nov 2023 00:00:00 +0000</pubDate>
         
-        <guid>http://localhost:1313/post/tech/lang/java_security/</guid>
+        <guid>https://qisiii.github.io/post/tech/lang/java_security/</guid>
         <description>&lt;h2 id=&#34;前言&#34;&gt;前言：
 &lt;/h2&gt;&lt;p&gt;在看socket相关代码的时候，AbstractPlainSocketImpl中的一段代码吸引了我，其实之前见过很多次类似的代码，但一直不想去看，只知道肯定和权限什么的相关，这次既然又碰到了就研究一下，毕竟也不能对java基本代码一无所知。&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
@@ -889,10 +889,10 @@
         </item>
         <item>
         <title>JavaAgent技术</title>
-        <link>http://localhost:1313/post/tech/lang/javaagent/</link>
+        <link>https://qisiii.github.io/post/tech/lang/javaagent/</link>
         <pubDate>Sun, 10 Sep 2023 00:00:00 +0000</pubDate>
         
-        <guid>http://localhost:1313/post/tech/lang/javaagent/</guid>
+        <guid>https://qisiii.github.io/post/tech/lang/javaagent/</guid>
         <description>&lt;blockquote&gt;
 &lt;p&gt;在定位公司问题的时候，需要了解一下skywalking的相关知识，而agent就提上了日程。&lt;/p&gt;
 &lt;/blockquote&gt;

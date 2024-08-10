@@ -2,17 +2,17 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
     <channel>
         <title>Agent on 起司的博客</title>
-        <link>http://localhost:1313/tags/agent/</link>
+        <link>https://qisiii.github.io/tags/agent/</link>
         <description>Recent content in Agent on 起司的博客</description>
         <generator>Hugo -- gohugo.io</generator>
         <language>zh-cn</language>
         <copyright>起司</copyright>
-        <lastBuildDate>Sun, 10 Sep 2023 00:00:00 +0000</lastBuildDate><atom:link href="http://localhost:1313/tags/agent/index.xml" rel="self" type="application/rss+xml" /><item>
+        <lastBuildDate>Sun, 10 Sep 2023 00:00:00 +0000</lastBuildDate><atom:link href="https://qisiii.github.io/tags/agent/index.xml" rel="self" type="application/rss+xml" /><item>
         <title>JavaAgent技术</title>
-        <link>http://localhost:1313/post/tech/lang/javaagent/</link>
+        <link>https://qisiii.github.io/post/tech/lang/javaagent/</link>
         <pubDate>Sun, 10 Sep 2023 00:00:00 +0000</pubDate>
         
-        <guid>http://localhost:1313/post/tech/lang/javaagent/</guid>
+        <guid>https://qisiii.github.io/post/tech/lang/javaagent/</guid>
         <description>&lt;blockquote&gt;
 &lt;p&gt;在定位公司问题的时候，需要了解一下skywalking的相关知识，而agent就提上了日程。&lt;/p&gt;
 &lt;/blockquote&gt;

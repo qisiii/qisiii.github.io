@@ -2,17 +2,17 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
     <channel>
         <title>Tool on 起司的博客</title>
-        <link>http://localhost:1313/tags/tool/</link>
+        <link>https://qisiii.github.io/tags/tool/</link>
         <description>Recent content in Tool on 起司的博客</description>
         <generator>Hugo -- gohugo.io</generator>
         <language>zh-cn</language>
         <copyright>起司</copyright>
-        <lastBuildDate>Sun, 28 Jul 2024 17:14:47 +0800</lastBuildDate><atom:link href="http://localhost:1313/tags/tool/index.xml" rel="self" type="application/rss+xml" /><item>
+        <lastBuildDate>Sun, 28 Jul 2024 17:14:47 +0800</lastBuildDate><atom:link href="https://qisiii.github.io/tags/tool/index.xml" rel="self" type="application/rss+xml" /><item>
         <title>Jstack使用</title>
-        <link>http://localhost:1313/post/tech/lang/jstack/</link>
+        <link>https://qisiii.github.io/post/tech/lang/jstack/</link>
         <pubDate>Sun, 28 Jul 2024 17:14:47 +0800</pubDate>
         
-        <guid>http://localhost:1313/post/tech/lang/jstack/</guid>
+        <guid>https://qisiii.github.io/post/tech/lang/jstack/</guid>
         <description>&lt;h2 id=&#34;jstack应用&#34;&gt;Jstack应用
 &lt;/h2&gt;&lt;p&gt;jstack是java提供的工具，一般用于分析栈-线程相关的问题，常见的比如死锁问题，cpu过高问题。&lt;/p&gt;
 &lt;p&gt;jstack 命令使用方式如下：&lt;/p&gt;

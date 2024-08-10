@@ -2,17 +2,17 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
     <channel>
         <title>起司的博客</title>
-        <link>http://localhost:1313/post/site/</link>
+        <link>https://qisiii.github.io/post/site/</link>
         <description>Recent content on 起司的博客</description>
         <generator>Hugo -- gohugo.io</generator>
         <language>zh-cn</language>
         <copyright>起司</copyright>
-        <lastBuildDate>Sat, 10 Aug 2024 16:32:55 +0800</lastBuildDate><atom:link href="http://localhost:1313/post/site/index.xml" rel="self" type="application/rss+xml" /><item>
+        <lastBuildDate>Sat, 10 Aug 2024 16:32:55 +0800</lastBuildDate><atom:link href="https://qisiii.github.io/post/site/index.xml" rel="self" type="application/rss+xml" /><item>
         <title>Hugo&amp;Stack主题的使用记录</title>
-        <link>http://localhost:1313/post/site/hugo_stack_record/</link>
+        <link>https://qisiii.github.io/post/site/hugo_stack_record/</link>
         <pubDate>Sat, 10 Aug 2024 16:32:55 +0800</pubDate>
         
-        <guid>http://localhost:1313/post/site/hugo_stack_record/</guid>
+        <guid>https://qisiii.github.io/post/site/hugo_stack_record/</guid>
         <description>&lt;img src="https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/11-00-35-18-image.png" alt="Featured image of post Hugo&amp;Stack主题的使用记录" /&gt;&lt;p&gt;&lt;a class=&#34;link&#34; href=&#34;https://gohugo.io/about/&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
     &gt;hugo官网&lt;/a&gt;|&lt;a class=&#34;link&#34; href=&#34;https://stack.jimmycai.com/config/&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
     &gt;Stack官网&lt;/a&gt;&lt;/p&gt;
@@ -263,10 +263,10 @@
         </item>
         <item>
         <title>搭建自己的博客</title>
-        <link>http://localhost:1313/post/site/personsite/</link>
+        <link>https://qisiii.github.io/post/site/personsite/</link>
         <pubDate>Tue, 23 Jul 2024 00:00:00 +0000</pubDate>
         
-        <guid>http://localhost:1313/post/site/personsite/</guid>
+        <guid>https://qisiii.github.io/post/site/personsite/</guid>
         <description>&lt;h2 id=&#34;建站方式&#34;&gt;建站方式
 &lt;/h2&gt;&lt;p&gt;选择建站方式，是使用动态建站（如WordPress、halo），还是使用静态建站（Jekyll、hexo、hugo）。&lt;/p&gt;
 &lt;p&gt;前者更偏向于传统的CMS管理系统，有后台管理页面，可以在管理页面发布，修改文章。除了需要服务器之外，需要同时了解前端、后端、数据库相关的知识，当然现有的项目完全可以简单配置后就可以开箱使用。&lt;/p&gt;

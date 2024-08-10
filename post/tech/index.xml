@@ -2,11 +2,11 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
     <channel>
         <title>起司的博客</title>
-        <link>http://localhost:1313/post/tech/</link>
+        <link>https://qisiii.github.io/post/tech/</link>
         <description>Recent content on 起司的博客</description>
         <generator>Hugo -- gohugo.io</generator>
         <language>zh-cn</language>
         <copyright>起司</copyright>
-        <lastBuildDate>Fri, 09 Aug 2024 18:01:30 +0800</lastBuildDate><atom:link href="http://localhost:1313/post/tech/index.xml" rel="self" type="application/rss+xml" />
+        <lastBuildDate>Fri, 09 Aug 2024 18:01:30 +0800</lastBuildDate><atom:link href="https://qisiii.github.io/post/tech/index.xml" rel="self" type="application/rss+xml" />
     </channel>
 </rss>

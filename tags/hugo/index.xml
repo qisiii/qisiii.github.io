@@ -2,17 +2,17 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
     <channel>
         <title>Hugo on 起司的博客</title>
-        <link>http://localhost:1313/tags/hugo/</link>
+        <link>https://qisiii.github.io/tags/hugo/</link>
         <description>Recent content in Hugo on 起司的博客</description>
         <generator>Hugo -- gohugo.io</generator>
         <language>zh-cn</language>
         <copyright>起司</copyright>
-        <lastBuildDate>Sat, 10 Aug 2024 16:32:55 +0800</lastBuildDate><atom:link href="http://localhost:1313/tags/hugo/index.xml" rel="self" type="application/rss+xml" /><item>
+        <lastBuildDate>Sat, 10 Aug 2024 16:32:55 +0800</lastBuildDate><atom:link href="https://qisiii.github.io/tags/hugo/index.xml" rel="self" type="application/rss+xml" /><item>
         <title>Hugo&amp;Stack主题的使用记录</title>
-        <link>http://localhost:1313/post/site/hugo_stack_record/</link>
+        <link>https://qisiii.github.io/post/site/hugo_stack_record/</link>
         <pubDate>Sat, 10 Aug 2024 16:32:55 +0800</pubDate>
         
-        <guid>http://localhost:1313/post/site/hugo_stack_record/</guid>
+        <guid>https://qisiii.github.io/post/site/hugo_stack_record/</guid>
         <description>&lt;img src="https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/11-00-35-18-image.png" alt="Featured image of post Hugo&amp;Stack主题的使用记录" /&gt;&lt;p&gt;&lt;a class=&#34;link&#34; href=&#34;https://gohugo.io/about/&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
     &gt;hugo官网&lt;/a&gt;|&lt;a class=&#34;link&#34; href=&#34;https://stack.jimmycai.com/config/&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
     &gt;Stack官网&lt;/a&gt;&lt;/p&gt;
