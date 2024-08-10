@@ -9,10 +9,10 @@
         <copyright>起司</copyright>
         <lastBuildDate>Sun, 28 Jul 2024 17:14:47 +0800</lastBuildDate><atom:link href="http://localhost:1313/tags/java/index.xml" rel="self" type="application/rss+xml" /><item>
         <title>Jstack使用</title>
-        <link>http://localhost:1313/p/jstack%E4%BD%BF%E7%94%A8/</link>
+        <link>http://localhost:1313/post/tech/lang/jstack/</link>
         <pubDate>Sun, 28 Jul 2024 17:14:47 +0800</pubDate>
         
-        <guid>http://localhost:1313/p/jstack%E4%BD%BF%E7%94%A8/</guid>
+        <guid>http://localhost:1313/post/tech/lang/jstack/</guid>
         <description>&lt;h2 id=&#34;jstack应用&#34;&gt;Jstack应用
 &lt;/h2&gt;&lt;p&gt;jstack是java提供的工具，一般用于分析栈-线程相关的问题，常见的比如死锁问题，cpu过高问题。&lt;/p&gt;
 &lt;p&gt;jstack 命令使用方式如下：&lt;/p&gt;
@@ -589,10 +589,10 @@
         </item>
         <item>
         <title>Java安全机制之一——SecurityManager和AccessController</title>
-        <link>http://localhost:1313/p/java%E5%AE%89%E5%85%A8%E6%9C%BA%E5%88%B6%E4%B9%8B%E4%B8%80securitymanager%E5%92%8Caccesscontroller/</link>
+        <link>http://localhost:1313/post/tech/lang/java_security/</link>
         <pubDate>Wed, 08 Nov 2023 00:00:00 +0000</pubDate>
         
-        <guid>http://localhost:1313/p/java%E5%AE%89%E5%85%A8%E6%9C%BA%E5%88%B6%E4%B9%8B%E4%B8%80securitymanager%E5%92%8Caccesscontroller/</guid>
+        <guid>http://localhost:1313/post/tech/lang/java_security/</guid>
         <description>&lt;h2 id=&#34;前言&#34;&gt;前言：
 &lt;/h2&gt;&lt;p&gt;在看socket相关代码的时候，AbstractPlainSocketImpl中的一段代码吸引了我，其实之前见过很多次类似的代码，但一直不想去看，只知道肯定和权限什么的相关，这次既然又碰到了就研究一下，毕竟也不能对java基本代码一无所知。&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
@@ -889,10 +889,10 @@
         </item>
         <item>
         <title>JavaAgent技术</title>
-        <link>http://localhost:1313/p/javaagent%E6%8A%80%E6%9C%AF/</link>
+        <link>http://localhost:1313/post/tech/lang/javaagent/</link>
         <pubDate>Sun, 10 Sep 2023 00:00:00 +0000</pubDate>
         
-        <guid>http://localhost:1313/p/javaagent%E6%8A%80%E6%9C%AF/</guid>
+        <guid>http://localhost:1313/post/tech/lang/javaagent/</guid>
         <description>&lt;blockquote&gt;
 &lt;p&gt;在定位公司问题的时候，需要了解一下skywalking的相关知识，而agent就提上了日程。&lt;/p&gt;
 &lt;/blockquote&gt;

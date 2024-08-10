@@ -9,10 +9,10 @@
         <copyright>起司</copyright>
         <lastBuildDate>Sun, 10 Sep 2023 00:00:00 +0000</lastBuildDate><atom:link href="http://localhost:1313/tags/agent/index.xml" rel="self" type="application/rss+xml" /><item>
         <title>JavaAgent技术</title>
-        <link>http://localhost:1313/p/javaagent%E6%8A%80%E6%9C%AF/</link>
+        <link>http://localhost:1313/post/tech/lang/javaagent/</link>
         <pubDate>Sun, 10 Sep 2023 00:00:00 +0000</pubDate>
         
-        <guid>http://localhost:1313/p/javaagent%E6%8A%80%E6%9C%AF/</guid>
+        <guid>http://localhost:1313/post/tech/lang/javaagent/</guid>
         <description>&lt;blockquote&gt;
 &lt;p&gt;在定位公司问题的时候，需要了解一下skywalking的相关知识，而agent就提上了日程。&lt;/p&gt;
 &lt;/blockquote&gt;

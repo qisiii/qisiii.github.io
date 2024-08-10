@@ -9,10 +9,10 @@
         <copyright>起司</copyright>
         <lastBuildDate>Sun, 28 Jul 2024 17:14:47 +0800</lastBuildDate><atom:link href="http://localhost:1313/tags/tool/index.xml" rel="self" type="application/rss+xml" /><item>
         <title>Jstack使用</title>
-        <link>http://localhost:1313/p/jstack%E4%BD%BF%E7%94%A8/</link>
+        <link>http://localhost:1313/post/tech/lang/jstack/</link>
         <pubDate>Sun, 28 Jul 2024 17:14:47 +0800</pubDate>
         
-        <guid>http://localhost:1313/p/jstack%E4%BD%BF%E7%94%A8/</guid>
+        <guid>http://localhost:1313/post/tech/lang/jstack/</guid>
         <description>&lt;h2 id=&#34;jstack应用&#34;&gt;Jstack应用
 &lt;/h2&gt;&lt;p&gt;jstack是java提供的工具，一般用于分析栈-线程相关的问题，常见的比如死锁问题，cpu过高问题。&lt;/p&gt;
 &lt;p&gt;jstack 命令使用方式如下：&lt;/p&gt;

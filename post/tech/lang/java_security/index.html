@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="zh-cn" dir="ltr">
+    <head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset='utf-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1'><meta name='description' content="前言： 在看socket相关代码的时候，AbstractPlainSocketImpl中的一段代码吸引了我，其实之前见过很多次类似的代码，但一">
+<title>Java安全机制之一——SecurityManager和AccessController</title>
+
+<link rel='canonical' href='http://localhost:1313/post/tech/lang/java_security/'>
+
+<link rel="stylesheet" href="/scss/style.min.0304c6baf04e01a8fe70693791cb744d56a3578a3120a8796cefc66825aa39c7.css"><meta property='og:title' content="Java安全机制之一——SecurityManager和AccessController">
+<meta property='og:description' content="前言： 在看socket相关代码的时候，AbstractPlainSocketImpl中的一段代码吸引了我，其实之前见过很多次类似的代码，但一">
+<meta property='og:url' content='http://localhost:1313/post/tech/lang/java_security/'>
+<meta property='og:site_name' content='起司的博客'>
+<meta property='og:type' content='article'><meta property='article:section' content='Post' /><meta property='article:tag' content='java' /><meta property='article:published_time' content='2023-11-08T00:00:00&#43;00:00'/><meta property='article:modified_time' content='2023-11-08T00:00:00&#43;00:00'/>
+<meta name="twitter:title" content="Java安全机制之一——SecurityManager和AccessController">
+<meta name="twitter:description" content="前言： 在看socket相关代码的时候，AbstractPlainSocketImpl中的一段代码吸引了我，其实之前见过很多次类似的代码，但一"><link rel="alternate" type="application/json" href="http://localhost:1313/post/tech/lang/java_security/index.json">
+  
+
+
+    </head>
+    <body class="
+    article-page
+    ">
+    <script>
+        (function() {
+            const colorSchemeKey = 'StackColorScheme';
+            if(!localStorage.getItem(colorSchemeKey)){
+                localStorage.setItem(colorSchemeKey, "auto");
+            }
+        })();
+    </script><script>
+    (function() {
+        const colorSchemeKey = 'StackColorScheme';
+        const colorSchemeItem = localStorage.getItem(colorSchemeKey);
+        const supportDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches === true;
+
+        if (colorSchemeItem == 'dark' || colorSchemeItem === 'auto' && supportDarkMode) {
+            
+
+            document.documentElement.dataset.scheme = 'dark';
+        } else {
+            document.documentElement.dataset.scheme = 'light';
+        }
+    })();
+</script>
+<div class="container main-container flex on-phone--column extended"><aside class="sidebar left-sidebar sticky ">
+    <button class="hamburger hamburger--spin" type="button" id="toggle-menu" aria-label="切换菜单">
+        <span class="hamburger-box">
+            <span class="hamburger-inner"></span>
+        </span>
+    </button>
+
+    <header>
+        
+            
+            <figure class="site-avatar">
+                <a href="/">
+                
+                    
+                    
+                    
+                        
+                        <img src="/img/avatar_huf89847f5290877d03a6309f0caaa56f1_43584_300x0_resize_box_3.png" width="300"
+                            height="300" class="site-logo" loading="lazy" alt="Avatar">
+                    
+                
+                </a>
+                
+            </figure>
+            
+        
+        
+        <div class="site-meta">
+            <h1 class="site-name"><a href="/">起司的博客</a></h1>
+            <h2 class="site-description"></h2>
+        </div>
+    </header><ol class="menu-social">
+            
+                <li>
+                    <a 
+                        href='https://www.cnblogs.com/qisi'
+                        target="_blank"
+                        title="cnblog"
+                        rel="me"
+                    >
+                        
+                        
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-rss" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="5" cy="19" r="1" />
+  <path d="M4 4a16 16 0 0 1 16 16" />
+  <path d="M4 11a9 9 0 0 1 9 9" />
+</svg>
+
+
+
+                        
+                    </a>
+                </li>
+            
+                <li>
+                    <a 
+                        href='https://github.com/qisiii'
+                        target="_blank"
+                        title="GitHub"
+                        rel="me"
+                    >
+                        
+                        
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-brand-github" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+  <path d="M9 19c-4.3 1.4 -4.3 -2.5 -6 -3m12 5v-3.5c0 -1 .1 -1.4 -.5 -2c2.8 -.3 5.5 -1.4 5.5 -6a4.6 4.6 0 0 0 -1.3 -3.2a4.2 4.2 0 0 0 -.1 -3.2s-1.1 -.3 -3.5 1.3a12.3 12.3 0 0 0 -6.2 0c-2.4 -1.6 -3.5 -1.3 -3.5 -1.3a4.2 4.2 0 0 0 -.1 3.2a4.6 4.6 0 0 0 -1.3 3.2c0 4.6 2.7 5.7 5.5 6c-.6 .6 -.6 1.2 -.5 2v3.5" />
+</svg>
+
+
+
+                        
+                    </a>
+                </li>
+            
+        </ol><ol class="menu" id="main-menu">
+        
+        
+        <li class="menu-bottom-section">
+            <ol class="menu">
+
+                
+                    <li id="dark-mode-toggle">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-toggle-left" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="8" cy="12" r="2" />
+  <rect x="2" y="6" width="20" height="12" rx="6" />
+</svg>
+
+
+
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-toggle-right" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="16" cy="12" r="2" />
+  <rect x="2" y="6" width="20" height="12" rx="6" />
+</svg>
+
+
+
+                        <span>暗色模式</span>
+                    </li>
+                
+            </ol>
+        </li>
+    </ol>
+</aside>
+
+    <aside class="sidebar right-sidebar sticky">
+        
+            
+                
+    <section class="widget archives">
+        <div class="widget-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-hash" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <line x1="5" y1="9" x2="19" y2="9" />
+  <line x1="5" y1="15" x2="19" y2="15" />
+  <line x1="11" y1="4" x2="7" y2="20" />
+  <line x1="17" y1="4" x2="13" y2="20" />
+</svg>
+
+
+
+        </div>
+        <h2 class="widget-title section-title">目录</h2>
+        
+        <div class="widget--toc">
+            <nav id="TableOfContents">
+  <ol>
+    <li><a href="#前言">前言：</a></li>
+    <li><a href="#一些概念">一些概念:</a></li>
+    <li><a href="#accesscontroller">AccessController</a>
+      <ol>
+        <li><a href="#checkpermission校验是否存在权限">checkPermission(校验是否存在权限)</a></li>
+        <li><a href="#doprivileged临时授权">doPrivileged(临时授权)</a></li>
+      </ol>
+    </li>
+    <li><a href="#protectdomain">ProtectDomain</a></li>
+    <li><a href="#codesource">CodeSource</a></li>
+    <li><a href="#permission">Permission</a></li>
+    <li><a href="#securitymanager">SecurityManager</a>
+      <ol>
+        <li><a href="#开启方式">开启方式：</a></li>
+      </ol>
+    </li>
+    <li><a href="#policy">Policy</a></li>
+  </ol>
+</nav>
+        </div>
+    </section>
+
+            
+        
+    </aside>
+
+
+            <main class="main full-width">
+    <article class="main-article">
+    <header class="article-header">
+
+    <div class="article-details">
+    
+    <header class="article-category">
+        
+            <a href="/categories/%E6%8A%80%E6%9C%AF%E6%96%87%E6%A1%A3/" >
+                技术文档
+            </a>
+        
+    </header>
+    
+
+    <div class="article-title-wrapper">
+        <h2 class="article-title">
+            <a href="/post/tech/lang/java_security/">Java安全机制之一——SecurityManager和AccessController</a>
+        </h2>
+    
+        
+    </div>
+
+    
+    
+    
+    
+    <footer class="article-time">
+        
+            <div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-calendar-time" width="56" height="56" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <path d="M11.795 21h-6.795a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v4" />
+  <circle cx="18" cy="18" r="4" />
+  <path d="M15 3v4" />
+  <path d="M7 3v4" />
+  <path d="M3 11h16" />
+  <path d="M18 16.496v1.504l1 1" />
+</svg>
+                <time class="article-time--published">2023-11-08</time>
+            </div>
+        
+
+        
+            <div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-clock" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="12" cy="12" r="9" />
+  <polyline points="12 7 12 12 15 15" />
+</svg>
+
+
+
+                <time class="article-time--reading">
+                    阅读时长: 6 分钟
+                </time>
+            </div>
+        
+    </footer>
+    
+
+    
+</div>
+
+</header>
+
+    <section class="article-content">
+    
+    
+    <h2 id="前言">前言：
+</h2><p>在看socket相关代码的时候，AbstractPlainSocketImpl中的一段代码吸引了我，其实之前见过很多次类似的代码，但一直不想去看，只知道肯定和权限什么的相关，这次既然又碰到了就研究一下，毕竟也不能对java基本代码一无所知。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span><span class="lnt">9
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-gdscript3" data-lang="gdscript3"><span class="line"><span class="cl"><span class="k">static</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="n">java</span><span class="o">.</span><span class="n">security</span><span class="o">.</span><span class="n">AccessController</span><span class="o">.</span><span class="n">doPrivileged</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">        <span class="n">new</span> <span class="n">java</span><span class="o">.</span><span class="n">security</span><span class="o">.</span><span class="n">PrivilegedAction</span><span class="o">&lt;</span><span class="n">Void</span><span class="o">&gt;</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="n">public</span> <span class="n">Void</span> <span class="n">run</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">                <span class="n">System</span><span class="o">.</span><span class="n">loadLibrary</span><span class="p">(</span><span class="s2">&#34;net&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">                <span class="k">return</span> <span class="n">null</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">            <span class="p">}</span>
+</span></span><span class="line"><span class="cl">        <span class="p">});</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="一些概念">一些概念:
+</h2><p>在jdk1.0的时代，applet依然是前端的一种可用的技术方案，比如可以嵌入在网页里运行。那个时候jdk的设计者们认为本地代码是安全的、远端代码是有风险的，而applet就是属于远端代码。因此，为了保证用户主机的安全和隐私，设计者参考了沙箱的思想，依托于当时jdk的体量很小，使用SecurityManager来分隔本地代码和远程代码，一个有权限，一个没有权限。</p>
+<p>当时还出现了签名相关的机制(本文不关心，所以没做了解），随着java发展，1.1的时候出现了JAVABEAN、JDBC、反射等新概念，于是有了更多的新权限。设计者发现完全授予本地代码所有权限变得不合理，在1.2的时候重构了SecurityManager，变成了现在这样以最小粒度控制权限。这个时候的SecurityManager有两个功能，一是防御远程代码、二是防御本地代码的漏洞。</p>
+<p>不知道是什么时候起，安全机制引入了域（ProtectDomain）的概念，也可以视作将一个大沙箱拆分为多个小沙箱。一个域对应一个沙箱，不同的代码（Codesource）被划分到不同域中，不同的域有着不同的权限（Permission），就像下图一样。同时可以给不同的域配置不同的权限，静态和动态均可，这个配置被称为策略(Policy)。
+<img src="https://cdn.jsdelivr.net/gh/qisiii/imagehost@main/imgpicgo/picgo-clipboard-images/20240729f745258652dc174547b669498d053847.png"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<p><strong>注意！</strong></p>
+<blockquote>
+<p>在JDK20和JDK21的security-guide中都提到了，和SecurityManager与之相关的api已被弃用，并将在未来的版本中删除。SecurityManager没有替代者。有关讨论和备选方案，请参阅<a class="link" href="https://openjdk.org/jeps/411"  title="JEP 411: Deprecate the Security Manager for Removal。"
+     target="_blank" rel="noopener"
+    >JEP 411: Deprecate the Security Manager for Removal。</a></p>
+</blockquote>
+<h2 id="accesscontroller">AccessController
+</h2><p>AccessController主要有两个功能，对应的核心方法也是两类</p>
+<h3 id="checkpermission校验是否存在权限">checkPermission(校验是否存在权限)
+</h3><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span><span class="lnt">9
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">public static void checkPermission(Permission perm)
+</span></span><span class="line"><span class="cl">    throws AccessControlException
+</span></span><span class="line"><span class="cl">{
+</span></span><span class="line"><span class="cl">    AccessControlContext stack = getStackAccessControlContext();
+</span></span><span class="line"><span class="cl">    // if context is null, we had privileged system code on the stack.
+</span></span><span class="line"><span class="cl">    //...其他获取context方法
+</span></span><span class="line"><span class="cl">    AccessControlContext acc = stack.optimize();
+</span></span><span class="line"><span class="cl">    acc.checkPermission(perm);
+</span></span><span class="line"><span class="cl">}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>调用该方法时，一般会new一个期望的权限，然后作为入参传入checkPermission方法。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">FilePermission perm = new FilePermission(&#34;C:\\Users\\Administrator\\Desktop\\liveController.txt&#34;, &#34;read&#34;);
+</span></span><span class="line"><span class="cl">AccessController.checkPermission(perm);
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><strong>注意，校验权限的时候会校验调用链路径上所有类的权限；假如调用链是从i开始，一直调用到m，校验逻辑如下</strong></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-zed" data-lang="zed"><span class="line"><span class="cl"><span class="w"> </span><span class="n">for</span><span class="w"> </span><span class="p">(</span><span class="n">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">m</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="err">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="o">--</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">     </span><span class="n">if</span><span class="w"> </span><span class="p">(</span><span class="n">caller</span><span class="w"> </span><span class="n">i</span><span class="err">&#39;</span><span class="n">s</span><span class="w"> </span><span class="n">domain</span><span class="w"> </span><span class="n">does</span><span class="w"> </span><span class="n">not</span><span class="w"> </span><span class="n">have</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="kd">permission</span><span class="p">)</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">         </span><span class="n">throw</span><span class="w"> </span><span class="n">AccessControlException</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">     </span><span class="n">else</span><span class="w"> </span><span class="n">if</span><span class="w"> </span><span class="p">(</span><span class="n">caller</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="n">is</span><span class="w"> </span><span class="n">marked</span><span class="w"> </span><span class="n">as</span><span class="w"> </span><span class="n">privileged</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">         </span><span class="n">if</span><span class="w"> </span><span class="p">(</span><span class="n">a</span><span class="w"> </span><span class="n">context</span><span class="w"> </span><span class="n">was</span><span class="w"> </span><span class="n">specified</span><span class="w"> </span><span class="n">in</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">call</span><span class="w"> </span><span class="n">to</span><span class="w"> </span><span class="n">doPrivileged</span><span class="p">)</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">             </span><span class="n">context</span><span class="p">.</span><span class="n">checkPermission</span><span class="p">(</span><span class="kd">permission</span><span class="p">)</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">         </span><span class="n">if</span><span class="w"> </span><span class="p">(</span><span class="n">limited</span><span class="w"> </span><span class="n">permissions</span><span class="w"> </span><span class="n">were</span><span class="w"> </span><span class="n">specified</span><span class="w"> </span><span class="n">in</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">call</span><span class="w"> </span><span class="n">to</span><span class="w"> </span><span class="n">doPrivileged</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">             </span><span class="n">for</span><span class="w"> </span><span class="p">(</span><span class="n">each</span><span class="w"> </span><span class="n">limited</span><span class="w"> </span><span class="kd">permission</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                 </span><span class="n">if</span><span class="w"> </span><span class="p">(</span><span class="n">the</span><span class="w"> </span><span class="n">limited</span><span class="w"> </span><span class="kd">permission</span><span class="w"> </span><span class="n">implies</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">requested</span><span class="w"> </span><span class="kd">permission</span><span class="p">)</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                     </span><span class="n">return</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">             </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">         </span><span class="p">}</span><span class="w"> </span><span class="n">else</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">             </span><span class="n">return</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">     </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"> </span><span class="p">}</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>代码执行的时候，每一次方法的调用都代表着一次入栈，而权限校验的时候则正好是从栈顶开始，依次判断每个栈帧是否具有权限，一直到栈底。
+<img src="https://cdn.jsdelivr.net/gh/qisiii/imagehost@main/imgpicgo/picgo-clipboard-images/2024072941a244f2fb0cc49d443daef8016f2140.png"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<h3 id="doprivileged临时授权">doPrivileged(临时授权)
+</h3><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">public static native &lt;T&gt; T doPrivileged(PrivilegedAction&lt;T&gt; action);
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>这个方法的功能是将当前类所拥有的权限，<strong>能且仅能</strong>临时赋予其上游调用方。</p>
+<p>在这个场景下，必然存在多个域，且只有某些域拥有权限A，但是其他域并没有这个权限。在java语言中很容易出现这个情况，比如我们调用一些第三方jar包的方法，三方jar包还能调用别的三方jar包，这种场景很有可能只有最底层的方法所对应的域拥有权限。此时为了方法的成功，就可以使用该方法。</p>
+<p>使用的时候就是将代码逻辑放入AccessController.doPrivileged中即可，如下述代码一般。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-gdscript3" data-lang="gdscript3"><span class="line"><span class="cl"><span class="o">//</span><span class="err">项目</span><span class="n">B</span><span class="err">，会打成</span><span class="n">security</span><span class="o">-</span><span class="n">demo</span><span class="o">.</span><span class="n">jar</span>
+</span></span><span class="line"><span class="cl"><span class="n">public</span> <span class="k">class</span> <span class="n">PermissionDemo</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="o">/**</span>
+</span></span><span class="line"><span class="cl">     <span class="o">*</span> <span class="err">使用特权访问机制</span>
+</span></span><span class="line"><span class="cl">     <span class="o">*</span> <span class="err">@</span><span class="n">param</span> <span class="n">file</span>
+</span></span><span class="line"><span class="cl">     <span class="o">*/</span>
+</span></span><span class="line"><span class="cl">    <span class="n">public</span> <span class="n">void</span> <span class="n">runWithOutPermission</span><span class="p">(</span><span class="ne">String</span> <span class="n">file</span><span class="p">){</span>
+</span></span><span class="line"><span class="cl">        <span class="n">AccessController</span><span class="o">.</span><span class="n">doPrivileged</span><span class="p">((</span><span class="n">PrivilegedAction</span><span class="o">&lt;</span><span class="ne">String</span><span class="o">&gt;</span><span class="p">)</span> <span class="p">()</span> <span class="o">-&gt;</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="o">//</span><span class="n">hutool的FileUtil</span>
+</span></span><span class="line"><span class="cl">            <span class="ne">String</span> <span class="n">s</span> <span class="o">=</span> <span class="n">FileUtil</span><span class="o">.</span><span class="n">readString</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="s2">&#34;utf-8&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">            <span class="n">System</span><span class="o">.</span><span class="n">out</span><span class="o">.</span><span class="n">println</span><span class="p">(</span><span class="n">s</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">            <span class="k">return</span> <span class="n">s</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="p">});</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="o">//</span><span class="err">项目</span><span class="n">A</span><span class="err">，引入</span><span class="n">security</span><span class="o">-</span><span class="n">demo</span><span class="o">.</span><span class="n">jar</span>
+</span></span><span class="line"><span class="cl"><span class="n">public</span> <span class="k">class</span> <span class="n">Aperson</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="n">public</span> <span class="k">static</span> <span class="n">void</span> <span class="n">main</span><span class="p">(</span><span class="ne">String</span><span class="p">[]</span> <span class="n">args</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="n">new</span> <span class="n">PermissionDemo</span><span class="p">()</span><span class="o">.</span><span class="n">runWithOutPermission</span><span class="p">(</span><span class="s2">&#34;C:</span><span class="se">\\</span><span class="s2">Users</span><span class="se">\\</span><span class="s2">Administrator</span><span class="se">\\</span><span class="s2">Desktop</span><span class="se">\\</span><span class="s2">test.txt&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>这里需要注意的是，AccessController.doPrivileged所在的当前类也需要拥有权限。以这个例子为例，文件读写是在hutool的FileUtil中执行，hutool对应的是域C；PermissionDemo对应的是域B，且会将自身权限向上传递；而Aperson对应的是域A。这个例子中，想要Aperson执行成功，必须是域C和域B都拥有test.txt的read权限。</p>
+<p>对应的policy如下</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-zed" data-lang="zed"><span class="line"><span class="cl"><span class="n">grant</span><span class="w"> </span><span class="n">codeBase</span><span class="w">  </span><span class="err">&#34;</span><span class="n">file</span><span class="o">:/</span><span class="n">C</span><span class="o">:/</span><span class="nn">Users/Administrator/</span><span class="p">.</span><span class="nn">m2/repository/cn/hutool/</span><span class="n">hutool</span><span class="o">-</span><span class="nn">all/</span><span class="err">5</span><span class="p">.</span><span class="err">7</span><span class="p">.</span><span class="err">11</span><span class="o">/-</span><span class="err">&#34;</span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="kd">permission</span><span class="w"> </span><span class="n">java</span><span class="p">.</span><span class="n">io</span><span class="p">.</span><span class="n">FilePermission</span><span class="w"> </span><span class="err">&#34;</span><span class="n">C</span><span class="o">:</span><span class="err">\\</span><span class="n">Users</span><span class="err">\\</span><span class="n">Administrator</span><span class="err">\\</span><span class="n">Desktop</span><span class="err">\\</span><span class="o">*</span><span class="err">&#34;</span><span class="p">,</span><span class="w"> </span><span class="err">&#34;</span><span class="n">read</span><span class="err">&#34;</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">};</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="n">grant</span><span class="w"> </span><span class="n">codeBase</span><span class="w">  </span><span class="err">&#34;</span><span class="n">file</span><span class="o">:/</span><span class="n">C</span><span class="o">:/</span><span class="nn">Users/Administrator/</span><span class="p">.</span><span class="nn">m2/repository/xxx/xxx/</span><span class="n">security</span><span class="o">-</span><span class="nn">demo/</span><span class="o">-</span><span class="err">&#34;</span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="kd">permission</span><span class="w"> </span><span class="n">java</span><span class="p">.</span><span class="n">io</span><span class="p">.</span><span class="n">FilePermission</span><span class="w"> </span><span class="err">&#34;</span><span class="n">C</span><span class="o">:</span><span class="err">\\</span><span class="n">Users</span><span class="err">\\</span><span class="n">Administrator</span><span class="err">\\</span><span class="n">Desktop</span><span class="err">\\</span><span class="o">*</span><span class="err">&#34;</span><span class="p">,</span><span class="w"> </span><span class="err">&#34;</span><span class="n">read</span><span class="err">&#34;</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">};</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>从栈帧的角度来看的话，判断到doPrivilege对应的那层之后，校验就直接返回了，不校验下面层是否存在权限。
+<img src="https://cdn.jsdelivr.net/gh/qisiii/imagehost@main/imgpicgo/picgo-clipboard-images/20240729e6ac0c020bf517a6047fcaaf00888f5d.png"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<h2 id="protectdomain">ProtectDomain
+</h2><p>protectDomain类由codeSource和permission构成
+<img src="https://cdn.jsdelivr.net/gh/qisiii/imagehost@main/imgpicgo/picgo-clipboard-images/20240729ce4b8b3a012225b7ad7e9bbf0612ca99.png"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<p><img src="https://cdn.jsdelivr.net/gh/qisiii/imagehost@main/imgpicgo/picgo-clipboard-images/20240729ed7a6012769be9a09f74a0adda74bea7.png"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<h2 id="codesource">CodeSource
+</h2><p>类的来源，一般为jar包路径或者classpath路径（target/classes）</p>
+<p>因为所有类在通过ClassLoader引入的，所以ClassLoader知道类的基本信息，在defineClass时，将CodeSource和Permission进行了绑定。同理，由于类必须通过ClassLoader加载，对于使用自定义ClassLoader加载的类，就只有那个类加载器知道对应的CodeSource和permission。因此，不同的类加载器本身就属于不同的域。</p>
+<h2 id="permission">Permission
+</h2><p>Java抽象出的顶层的类，核心方法是implies，该方法用来判断当前线程是否隐含指定权限，由各自的子类实现。子类实现过多，这里就不列举了。</p>
+<p><strong>PermissionCollection</strong>本质是个list，里面是某一类权限的多个实例，比如文件夹A-读权限，文件夹B-写权限，文件夹C-读写权限。</p>
+<p><strong>Permissions</strong>核心是一个map,key是Permissoin子类,value是PermissionCollection</p>
+<h2 id="securitymanager">SecurityManager
+</h2><p>SecurityManage里有一堆check方法，调用的是AccessController.checkPermission方法，入参就是Permission各个子类的实例化。</p>
+<h3 id="开启方式">开启方式：
+</h3><p>隐性：启动时添加-Djava.security.manager</p>
+<p>显性：System.setSecurityManager</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-gdscript3" data-lang="gdscript3"><span class="line"><span class="cl"><span class="n">public</span> <span class="k">class</span> <span class="n">NoShowTest</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">     <span class="k">static</span> <span class="k">class</span> <span class="n">CustomManager</span> <span class="k">extends</span> <span class="n">SecurityManager</span><span class="p">{</span>
+</span></span><span class="line"><span class="cl">         <span class="err">@</span><span class="n">Override</span>
+</span></span><span class="line"><span class="cl">         <span class="n">public</span> <span class="n">void</span> <span class="n">checkRead</span><span class="p">(</span><span class="ne">String</span> <span class="n">file</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">             <span class="n">throw</span> <span class="n">new</span> <span class="n">AccessControlException</span><span class="p">(</span><span class="s2">&#34;无权限访问&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">         <span class="p">}</span>
+</span></span><span class="line"><span class="cl">     <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="n">public</span> <span class="k">static</span> <span class="n">void</span> <span class="n">main</span><span class="p">(</span><span class="ne">String</span><span class="p">[]</span> <span class="n">args</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">       <span class="n">System</span><span class="o">.</span><span class="n">setSecurityManager</span><span class="p">(</span><span class="n">new</span> <span class="n">CustomManager</span><span class="p">());</span>
+</span></span><span class="line"><span class="cl">       <span class="n">System</span><span class="o">.</span><span class="n">getSecurityManager</span><span class="p">()</span><span class="o">.</span><span class="n">checkRead</span><span class="p">(</span><span class="s2">&#34;C:</span><span class="se">\\</span><span class="s2">Users</span><span class="se">\\</span><span class="s2">Administrator</span><span class="se">\\</span><span class="s2">Desktop</span><span class="se">\\</span><span class="s2">liveController.txt&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="policy">Policy
+</h2><p>启动时通过 -Djava.security.policy=xxxx\custom.policy，如果没有指定，则默认使用jdk路径下\jre\lib\security\java.policy</p>
+<h1 id="参考">参考：
+</h1><p><a class="link" href="https://juejin.cn/post/6844903657775824910#heading-1"  target="_blank" rel="noopener"
+    >Java安全:SecurityManager与AccessController - 掘金</a></p>
+<p><a class="link" href="https://juejin.cn/post/6844904150321332232?from=search-suggest#heading-15"  target="_blank" rel="noopener"
+    >Java沙箱机制的实现——安全管理器、访问控制器 - 掘金</a></p>
+<p><a class="link" href="https://zhuanlan.zhihu.com/p/268637283"  target="_blank" rel="noopener"
+    >第21章-再谈类的加载器</a></p>
+<p><a class="link" href="https://openjdk.org/jeps/411"  target="_blank" rel="noopener"
+    >https://openjdk.org/jeps/411</a></p>
+<p><a class="link" href="https://docs.oracle.com/en/java/javase/20/security/java-security-overview1.html#GUID-BBEC2DC8-BA00-42B1-B52A-A49488FCF8FE"  target="_blank" rel="noopener"
+    >https://docs.oracle.com/en/java/javase/20/security/java-security-overview1.html#GUID-BBEC2DC8-BA00-42B1-B52A-A49488FCF8FE</a></p>
+<p><a class="link" href="https://www.cnblogs.com/liruilong/p/14810513.html"  target="_blank" rel="noopener"
+    >AccessController.doPrivileged - 山河已无恙 - 博客园</a></p>
+
+</section>
+
+
+    <footer class="article-footer">
+    
+    <section class="article-tags">
+        
+            <a href="/tags/java/">Java</a>
+        
+    </section>
+
+
+    
+    <section class="article-copyright">
+        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-copyright" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="12" cy="12" r="9" />
+  <path d="M14.5 9a3.5 4 0 1 0 0 6" />
+</svg>
+
+
+
+        <span>Licensed under CC BY-NC-SA 4.0</span>
+    </section>
+    </footer>
+
+
+    
+</article>
+
+    
+
+    
+
+<aside class="related-content--wrapper">
+    <h2 class="section-title">相关文章</h2>
+    <div class="related-content">
+        <div class="flex article-list--tile">
+            
+                
+<article class="">
+    <a href="/post/tech/lang/jstack/">
+        
+        
+
+        <div class="article-details">
+            <h2 class="article-title">Jstack使用</h2>
+        </div>
+    </a>
+</article>
+
+            
+                
+<article class="">
+    <a href="/post/tech/lang/javaagent/">
+        
+        
+
+        <div class="article-details">
+            <h2 class="article-title">JavaAgent技术</h2>
+        </div>
+    </a>
+</article>
+
+            
+                
+<article class="">
+    <a href="/post/tech/distributed/zookeeper%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0-%E5%8D%95%E6%9C%BA%E9%83%A8%E5%88%86%E9%80%9A%E4%BF%A1%E7%BB%84%E4%BB%B6/">
+        
+        
+
+        <div class="article-details">
+            <h2 class="article-title">Zookeeper源码学习-单机部分通信组件</h2>
+        </div>
+    </a>
+</article>
+
+            
+        </div>
+    </div>
+</aside>
+
+     
+    
+        
+    <script src="//cdn.jsdelivr.net/npm/twikoo@1.6.21/dist/twikoo.all.min.js"></script>
+<div id="tcomment"></div>
+<style>
+    .twikoo {
+        background-color: var(--card-background);
+        border-radius: var(--card-border-radius);
+        box-shadow: var(--shadow-l1);
+        padding: var(--card-padding);
+    }
+    :root[data-scheme="dark"] {
+        --twikoo-body-text-color-main: rgba(255, 255, 255, 0.9);
+        --twikoo-body-text-color: rgba(255, 255, 255, 0.7);
+    }
+    .twikoo .el-input-group__prepend,
+    .twikoo .tk-action-icon,
+    .twikoo .tk-submit-action-icon,
+    .twikoo .tk-time,
+    .twikoo .tk-comments-no,
+    .twikoo .tk-comments-count {
+        color: var(--twikoo-body-text-color);
+    }
+    .twikoo .el-input__inner,
+    .twikoo .el-textarea__inner,
+    .twikoo .tk-preview-container,
+    .twikoo .tk-content,
+    .twikoo .tk-nick,
+    .twikoo .tk-send {
+        color: var(--twikoo-body-text-color-main);
+    }
+    .twikoo .el-button{
+        color: var(--twikoo-body-text-color)!important;
+    }
+    .twikoo .el-input__count {
+        color: var(--twikoo-body-text-color) !important;
+    }
+    .OwO .OwO-body {
+        background-color: var(--body-background) !important;
+        color: var(--body-text-color) !important;
+    }
+</style><script>
+    twikoo.init({
+        envId: 'https:\/\/qisiii-twikoo.hf.space',
+        el: '#tcomment',})
+</script>
+
+    
+
+    <footer class="site-footer">
+    <section class="copyright">
+        &copy; 
+        
+            2022 - 
+        
+        2024 起司
+    </section>
+    
+    <section class="powerby">
+        使用 <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> 构建 <br />
+        主题 <b><a href="https://github.com/CaiJimmy/hugo-theme-stack" target="_blank" rel="noopener" data-version="3.26.0">Stack</a></b> 由 <a href="https://jimmycai.com" target="_blank" rel="noopener">Jimmy</a> 设计
+    </section>
+</footer>
+
+
+    
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    
+    <div class="pswp__bg"></div>
+
+    
+    <div class="pswp__scroll-wrap">
+
+        
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                
+                
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"integrity="sha256-ePwmChbbvXbsO02lbM3HoHbSHTHFAeChekF1xKJdleo="crossorigin="anonymous"
+                defer
+                >
+            </script><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"integrity="sha256-UKkzOn/w1mBxRmLLGrSeyB4e1xbrp4xylgAWb3M42pU="crossorigin="anonymous"
+                defer
+                >
+            </script><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css"crossorigin="anonymous"
+            ><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css"crossorigin="anonymous"
+            >
+
+            </main>
+        </div>
+        <script 
+                src="https://cdn.jsdelivr.net/npm/node-vibrant@3.1.6/dist/vibrant.min.js"integrity="sha256-awcR2jno4kI5X0zL8ex0vi2z&#43;KMkF24hUW8WePSA9HM="crossorigin="anonymous"
+                
+                >
+            </script><script type="text/javascript" src="/ts/main.js" defer></script>
+<script>
+    (function () {
+        const customFont = document.createElement('link');
+        customFont.href = "https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap";
+
+        customFont.type = "text/css";
+        customFont.rel = "stylesheet";
+
+        document.head.appendChild(customFont);
+    }());
+</script>
+
+
+    </body>
+</html>

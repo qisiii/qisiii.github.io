@@ -9,19 +9,15 @@
         <copyright>起司</copyright>
         <lastBuildDate>Tue, 23 Jul 2024 00:00:00 +0000</lastBuildDate><atom:link href="http://localhost:1313/tags/%E5%8D%9A%E5%AE%A2/index.xml" rel="self" type="application/rss+xml" /><item>
         <title>搭建自己的博客</title>
-        <link>http://localhost:1313/p/%E6%90%AD%E5%BB%BA%E8%87%AA%E5%B7%B1%E7%9A%84%E5%8D%9A%E5%AE%A2/</link>
+        <link>http://localhost:1313/post/site/personsite/</link>
         <pubDate>Tue, 23 Jul 2024 00:00:00 +0000</pubDate>
         
-        <guid>http://localhost:1313/p/%E6%90%AD%E5%BB%BA%E8%87%AA%E5%B7%B1%E7%9A%84%E5%8D%9A%E5%AE%A2/</guid>
-        <description>&lt;ul&gt;
-&lt;li&gt;
-&lt;h2 id=&#34;建站方式&#34;&gt;建站方式
+        <guid>http://localhost:1313/post/site/personsite/</guid>
+        <description>&lt;h2 id=&#34;建站方式&#34;&gt;建站方式
 &lt;/h2&gt;&lt;p&gt;选择建站方式，是使用动态建站（如WordPress、halo），还是使用静态建站（Jekyll、hexo、hugo）。&lt;/p&gt;
 &lt;p&gt;前者更偏向于传统的CMS管理系统，有后台管理页面，可以在管理页面发布，修改文章。除了需要服务器之外，需要同时了解前端、后端、数据库相关的知识，当然现有的项目完全可以简单配置后就可以开箱使用。&lt;/p&gt;
 &lt;p&gt;后者一般是使用各种开源项目，将文档转为静态资源（html），部署在服务器或者以GithubPages的方式供他人访问。而使用哪个开源项目进行建站，可以去&lt;a class=&#34;link&#34; href=&#34;https://jamstack.org/generators/&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
     &gt;Static Site Generators -Jamstack&lt;/a&gt;选择个人喜欢的项目，本文使用hugo项目进行搭建。&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
 &lt;h2 id=&#34;hugo安装和使用&#34;&gt;hugo安装和使用
 &lt;/h2&gt;&lt;p&gt;参考&lt;a class=&#34;link&#34; href=&#34;https://hugo.opendocs.io/getting-started/quick-start/&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
     &gt;hugo中文官网&lt;/a&gt;，进行安装，我这里是mac os系统，所以直接使用&lt;code&gt; brew install hugo&lt;/code&gt;进行安装。&lt;/p&gt;
@@ -93,8 +89,6 @@
 	
 	
 &gt;&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
 &lt;h2 id=&#34;github-page&#34;&gt;Github Page
 &lt;/h2&gt;&lt;p&gt;通过hugo server已经可以在本地电脑进行访问了，但如果想要通过互联网访问，则需要进行额外的设置。&lt;/p&gt;
 &lt;p&gt;如果拥有自己的服务器，可以在服务器上启动hugo，然后使用nginx监听并转发到public目录；但如果没有服务器，则可以通过&lt;a class=&#34;link&#34; href=&#34;[https://pages.github.com/]%28https://pages.github.com/%29&#34; &gt;Github Page&lt;/a&gt;功能来托管自己的项目。&lt;/p&gt;
@@ -136,8 +130,6 @@
 	
 &gt;&lt;/p&gt;
 &lt;p&gt;如果想要更个性化的域名，则需要购买一个域名，添加一个cname类型的解析，同时在上图Custom domain的文本框中填入对应的域名，这样子就可以以自己的域名访问了。&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
 &lt;h2 id=&#34;markdown工具&#34;&gt;Markdown工具
 &lt;/h2&gt;&lt;p&gt;市面上的markdown工具还是蛮多的，各种开发用的ide，或者专门用于markdown的编辑器。我使用的是MarkText(&lt;a class=&#34;link&#34; href=&#34;https://github.com/marktext/marktext&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
     &gt;GitHub - marktext/marktext: 📝A simple and elegant markdown editor, available for Linux, macOS and Windows.&lt;/a&gt;)，建议直接安装&lt;a class=&#34;link&#34; href=&#34;https://marktext.weero.net/&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
@@ -154,7 +146,7 @@
 	
 	
 &gt;&lt;/p&gt;
-&lt;h3 id=&#34;无法上传剪贴板的图片&#34;&gt;无法上传剪贴板的图片。
+&lt;h3 id=&#34;无法上传剪贴板的图片&#34;&gt;无法上传剪贴板的图片
 &lt;/h3&gt;&lt;p&gt;其中，无法上传剪贴板图片的bug是由于项目中fileSystem.js中path.join方法参数类型错误导致的；参考&lt;a class=&#34;link&#34; href=&#34;https://github.com/marktext/marktext/pull/3366&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
     &gt;Fix Failure when uploading clipboard images with PicGo （#3360） by Jakentop · Pull Request #3366 · marktext/marktext · GitHub&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/qisiii/imagehost/main/2024/07/30-00-06-41-image.png&#34;
@@ -167,8 +159,11 @@
 &gt;&lt;/p&gt;
 &lt;h3 id=&#34;无法检测到picgo存在&#34;&gt;无法检测到picgo存在
 &lt;/h3&gt;&lt;p&gt;无法检测到picgo我在本地启动没有复现，只有在打包之后才会出现这个问题，目前定位不到原因&lt;/p&gt;
-&lt;/li&gt;
-&lt;/ul&gt;
+&lt;h2 id=&#34;参考博客&#34;&gt;参考博客：
+&lt;/h2&gt;&lt;p&gt;&lt;a class=&#34;link&#34; href=&#34;https://jinli.io/p/%E4%B8%AA%E4%BA%BA%E7%BD%91%E7%AB%99%E7%9A%84%E5%BB%BA%E7%AB%8B%E8%BF%87%E7%A8%8B%E4%BA%8C%E4%BD%BF%E7%94%A8hugo%E6%A1%86%E6%9E%B6%E6%90%AD%E5%BB%BA%E4%B8%AA%E4%BA%BA%E7%BD%91%E7%AB%99/&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
+    &gt;个人网站的建立过程（二）：使用Hugo框架搭建个人网站&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a class=&#34;link&#34; href=&#34;https://jinli.io/p/%E4%B8%AA%E4%BA%BA%E7%BD%91%E7%AB%99%E7%9A%84%E5%BB%BA%E7%AB%8B%E8%BF%87%E7%A8%8B%E4%BA%8C%E4%BD%BF%E7%94%A8hugo%E6%A1%86%E6%9E%B6%E6%90%AD%E5%BB%BA%E4%B8%AA%E4%BA%BA%E7%BD%91%E7%AB%99/&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
+    &gt;个人网站的建立过程（二）：使用Hugo框架搭建个人网站&lt;/a&gt;&lt;/p&gt;
 </description>
         </item>
         
