@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html lang="zh-cn" dir="ltr">
     <head><meta charset='utf-8'>
-<meta name='viewport' content='width=device-width, initial-scale=1'><meta name='description' content="1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 @Service public class Bean1 { @Autowired private Bean2 bean2; // @Async public void test(){ System.out.println(&#34;Bean1&#34;); } } @Service public class Bean2 { @Autowired private Bean1 bean1; // @Async public void test(){ System.out.println(&#34;Bean2&#34;); } } 在doGetBean的第一个节点上">
+<meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='description' content="1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 @Service public class Bean1 { @Autowired private Bean2 bean2; // @Async public void test(){ System.out.println(&#34;Bean1&#34;); } } @Service public class Bean2 { @Autowired private Bean1 bean1; // @Async public void test(){ System.out.println(&#34;Bean2&#34;); } } 在doGetBean的第一个节点上">
 <title>SpringBean循环依赖处理流程</title>
 
 <link rel='canonical' href='https://qisiii.github.io/post/tech/spring/cycle_/'>
@@ -31,6 +32,7 @@
       </script>
     
   
+
 
 
     </head>
@@ -228,11 +230,11 @@
         
     </footer>
     
-
     
 </div>
 
 </header>
+
 
     <section class="article-content">
     
@@ -404,6 +406,7 @@
     
 </article>
 
+
     
 
     
@@ -544,7 +547,42 @@
     <section class="powerby">
         使用 <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> 构建 <br />
         主题 <b><a href="https://github.com/CaiJimmy/hugo-theme-stack" target="_blank" rel="noopener" data-version="3.26.0">Stack</a></b> 由 <a href="https://jimmycai.com" target="_blank" rel="noopener">Jimmy</a> 设计
-    </section>
+    
+        
+        <script async src=" //busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js "></script>
+   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+
+ 
+
+    
+        
+            <section>
+                
+                    <span id="busuanzi_container_value_site_pv"><i class="far fa-eye fa-fw"></i>
+                        
+                        <span id="busuanzi_value_site_pv"></span>
+                    </span>
+                
+
+                
+                    &nbsp;|&nbsp;              
+                
+
+                
+                    <span id="busuanzi_container_value_site_uv"><i class="fa fa-user" aria-hidden="true"></i>
+                        
+                        <span id="busuanzi_value_site_uv"></span>
+                    </span>
+                
+            </section>
+        
+
+        
+        
+    
+
+
+</section>
 </footer>
 
 
