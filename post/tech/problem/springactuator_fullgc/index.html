@@ -1,0 +1,1178 @@
+<!DOCTYPE html>
+<html lang="zh-cn" dir="ltr">
+    <head><meta charset='utf-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1'><meta name='description' content="整体复盘： 一个不算普通的周五中午，同事收到了大量了cpu异常的报警。根据报警表现和通过arthas查看，很明显的问题就是内存不足，疯狂无效g">
+<title>偷偷开启的监控在吃内存</title>
+
+<link rel='canonical' href='https://qisiii.github.io/post/tech/problem/springactuator_fullgc/'>
+
+<link rel="stylesheet" href="/scss/style.min.0304c6baf04e01a8fe70693791cb744d56a3578a3120a8796cefc66825aa39c7.css"><meta property='og:title' content="偷偷开启的监控在吃内存">
+<meta property='og:description' content="整体复盘： 一个不算普通的周五中午，同事收到了大量了cpu异常的报警。根据报警表现和通过arthas查看，很明显的问题就是内存不足，疯狂无效g">
+<meta property='og:url' content='https://qisiii.github.io/post/tech/problem/springactuator_fullgc/'>
+<meta property='og:site_name' content='起司的博客'>
+<meta property='og:type' content='article'><meta property='article:section' content='Post' /><meta property='article:tag' content='线上异常' /><meta property='article:published_time' content='2023-12-10T00:00:00&#43;00:00'/><meta property='article:modified_time' content='2023-12-10T00:00:00&#43;00:00'/>
+<meta name="twitter:title" content="偷偷开启的监控在吃内存">
+<meta name="twitter:description" content="整体复盘： 一个不算普通的周五中午，同事收到了大量了cpu异常的报警。根据报警表现和通过arthas查看，很明显的问题就是内存不足，疯狂无效g"><link rel="alternate" type="application/json" href="https://qisiii.github.io/post/tech/problem/springactuator_fullgc/index.json">
+  
+    
+      <script async src="https://www.googletagmanager.com/gtag/js?id=G-8NDCRP4S7S"></script>
+      <script>
+        var doNotTrack = false;
+        if ( false ) {
+          var dnt = (navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack);
+          var doNotTrack = (dnt == "1" || dnt == "yes");
+        }
+        if (!doNotTrack) {
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-8NDCRP4S7S');
+        }
+      </script>
+    
+  
+
+
+    </head>
+    <body class="
+    article-page
+    ">
+    <script>
+        (function() {
+            const colorSchemeKey = 'StackColorScheme';
+            if(!localStorage.getItem(colorSchemeKey)){
+                localStorage.setItem(colorSchemeKey, "auto");
+            }
+        })();
+    </script><script>
+    (function() {
+        const colorSchemeKey = 'StackColorScheme';
+        const colorSchemeItem = localStorage.getItem(colorSchemeKey);
+        const supportDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches === true;
+
+        if (colorSchemeItem == 'dark' || colorSchemeItem === 'auto' && supportDarkMode) {
+            
+
+            document.documentElement.dataset.scheme = 'dark';
+        } else {
+            document.documentElement.dataset.scheme = 'light';
+        }
+    })();
+</script>
+<div class="container main-container flex on-phone--column extended"><aside class="sidebar left-sidebar sticky ">
+    <button class="hamburger hamburger--spin" type="button" id="toggle-menu" aria-label="切换菜单">
+        <span class="hamburger-box">
+            <span class="hamburger-inner"></span>
+        </span>
+    </button>
+
+    <header>
+        
+            
+            <figure class="site-avatar">
+                <a href="/">
+                
+                    
+                    
+                    
+                        
+                        <img src="/img/avatar_huf89847f5290877d03a6309f0caaa56f1_43584_300x0_resize_box_3.png" width="300"
+                            height="300" class="site-logo" loading="lazy" alt="Avatar">
+                    
+                
+                </a>
+                
+            </figure>
+            
+        
+        
+        <div class="site-meta">
+            <h1 class="site-name"><a href="/">起司的博客</a></h1>
+            <h2 class="site-description"></h2>
+        </div>
+    </header><ol class="menu-social">
+            
+                <li>
+                    <a 
+                        href='https://www.cnblogs.com/qisi'
+                        target="_blank"
+                        title="cnblog"
+                        rel="me"
+                    >
+                        
+                        
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-rss" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="5" cy="19" r="1" />
+  <path d="M4 4a16 16 0 0 1 16 16" />
+  <path d="M4 11a9 9 0 0 1 9 9" />
+</svg>
+
+
+
+                        
+                    </a>
+                </li>
+            
+                <li>
+                    <a 
+                        href='https://github.com/qisiii'
+                        target="_blank"
+                        title="GitHub"
+                        rel="me"
+                    >
+                        
+                        
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-brand-github" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+  <path d="M9 19c-4.3 1.4 -4.3 -2.5 -6 -3m12 5v-3.5c0 -1 .1 -1.4 -.5 -2c2.8 -.3 5.5 -1.4 5.5 -6a4.6 4.6 0 0 0 -1.3 -3.2a4.2 4.2 0 0 0 -.1 -3.2s-1.1 -.3 -3.5 1.3a12.3 12.3 0 0 0 -6.2 0c-2.4 -1.6 -3.5 -1.3 -3.5 -1.3a4.2 4.2 0 0 0 -.1 3.2a4.6 4.6 0 0 0 -1.3 3.2c0 4.6 2.7 5.7 5.5 6c-.6 .6 -.6 1.2 -.5 2v3.5" />
+</svg>
+
+
+
+                        
+                    </a>
+                </li>
+            
+        </ol><ol class="menu" id="main-menu">
+        
+        
+        <li class="menu-bottom-section">
+            <ol class="menu">
+
+                
+                    <li id="dark-mode-toggle">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-toggle-left" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="8" cy="12" r="2" />
+  <rect x="2" y="6" width="20" height="12" rx="6" />
+</svg>
+
+
+
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-toggle-right" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="16" cy="12" r="2" />
+  <rect x="2" y="6" width="20" height="12" rx="6" />
+</svg>
+
+
+
+                        <span>暗色模式</span>
+                    </li>
+                
+            </ol>
+        </li>
+    </ol>
+</aside>
+
+    <aside class="sidebar right-sidebar sticky">
+        
+            
+                
+    <section class="widget archives">
+        <div class="widget-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-hash" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <line x1="5" y1="9" x2="19" y2="9" />
+  <line x1="5" y1="15" x2="19" y2="15" />
+  <line x1="11" y1="4" x2="7" y2="20" />
+  <line x1="17" y1="4" x2="13" y2="20" />
+</svg>
+
+
+
+        </div>
+        <h2 class="widget-title section-title">目录</h2>
+        
+        <div class="widget--toc">
+            <nav id="TableOfContents">
+  <ol>
+    <li><a href="#整体复盘">整体复盘：</a></li>
+    <li><a href="#结论">结论</a></li>
+    <li><a href="#解决方案">解决方案</a></li>
+    <li><a href="#复现">复现：</a></li>
+    <li><a href="#分析">分析</a>
+      <ol>
+        <li><a href="#actuator导致rest启动了metrics记录">actuator导致rest启动了metrics记录</a></li>
+        <li><a href="#为什么maxuritags没有生效">为什么maxUriTags没有生效？</a>
+          <ol>
+            <li><a href="#simplemeterregistry的实例化时机">simpleMeterRegistry的实例化时机</a></li>
+          </ol>
+        </li>
+      </ol>
+    </li>
+  </ol>
+</nav>
+        </div>
+    </section>
+
+            
+        
+    </aside>
+
+
+            <main class="main full-width">
+    <article class="main-article">
+    <header class="article-header">
+
+    <div class="article-details">
+    
+    <header class="article-category">
+        
+            <a href="/categories/%E6%8A%80%E6%9C%AF%E6%96%87%E6%A1%A3/" >
+                技术文档
+            </a>
+        
+    </header>
+    
+
+    <div class="article-title-wrapper">
+        <h2 class="article-title">
+            <a href="/post/tech/problem/springactuator_fullgc/">偷偷开启的监控在吃内存</a>
+        </h2>
+    
+        
+    </div>
+
+    
+    
+    
+    
+    <footer class="article-time">
+        
+            <div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-calendar-time" width="56" height="56" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <path d="M11.795 21h-6.795a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v4" />
+  <circle cx="18" cy="18" r="4" />
+  <path d="M15 3v4" />
+  <path d="M7 3v4" />
+  <path d="M3 11h16" />
+  <path d="M18 16.496v1.504l1 1" />
+</svg>
+                <time class="article-time--published">2023-12-10</time>
+            </div>
+        
+
+        
+            <div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-clock" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="12" cy="12" r="9" />
+  <polyline points="12 7 12 12 15 15" />
+</svg>
+
+
+
+                <time class="article-time--reading">
+                    阅读时长: 10 分钟
+                </time>
+            </div>
+        
+    </footer>
+    
+
+    
+</div>
+
+</header>
+
+    <section class="article-content">
+    
+    
+    <h2 id="整体复盘">整体复盘：
+</h2><p>一个不算普通的周五中午，同事收到了大量了cpu异常的报警。根据报警表现和通过arthas查看，很明显的问题就是内存不足，疯狂无效gc。而且结合arthas和gc日志查看，老年代打满了，gc不了一点。既然问题是内存问题，那么老样子，通过jmap和heap dump 文件分析。</p>
+<p>不感兴趣的可以直接看结论</p>
+<p>通过jmap命令查看的类似下图，并没有项目中明显的自定义类，而占空间最大的又是char数组，当时线上占900M左右，整个老年代也就1.8个G；此时dump文件同事还在下载，网速较慢。</p>
+<p><img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=MTRmMjkyMTVkMWIyOTRiY2YwZWVkYzU2OWJlNGQxMmRfcGZ5eUdTd1lHN3lqNDNxc094TzVGdndjc0pDejlXODZfVG9rZW46VjBpWGJ1eTlwb09ta3B4V2lNNmNWRFRNbmZkXzE3MjMzNjIwNzk6MTcyMzM2NTY3OV9WNA"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<p>通过业务日志查看，很多restTempalte请求报错，根据报错信息可知是某xx认证过期了，导致接收到回调，业务处理时调接口报错了；查询数据库，大概有20多万回调。根据过期时间和内存监控，大概能对的上号，表明内存异常和这个认证过期有关。怀疑度最高的只有回调以及回调补偿任务，但是一行一行代码看过去，并不觉得有什么异常。</p>
+<p><del>在dump文件下载完之后，使用jvisualvm分析，最多的char里大部分都是一些请求的路径，如“example/test/1&quot;，”“example/test/2&quot;之类的，都是接口统一，但是参数不一样，因为是GET请求，所以实际路径都不一样。Jvisualvm点击gc_root又一直计算不出来，在等待计算的过程中，一度走了弯路（百度搜索到ImmutableTag这个类在skywalking有用过，但skywalking由于是jar包进行代理，项目中不存在对应的源码，所以又不得不下载公司的jar包反编译，然后去找http相关插件里翻源码，只是为了看一下ImmutableTag的具体结构）；此时，我们大概归纳到是http的监控在统计一些指标物料时，没有释放接口路径所引用的对象导致老年代打满）。 在gc_root终于计算出来之后，更是肯定了这个想法，但是hikari怎么可能监听http呢？</del></p>
+<p><img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=MzE1NDliNDRhMjBkOGY5YTFiODI0YmI2OWEyNmYzNTFfeDBIU2hqQUZLWDFLdXNvazRxbm54Yk9LMWNHdExzUjhfVG9rZW46R3BCS2J3cU81b0h6YzZ4c1AzdmNoQ2EzbjZnXzE3MjMzNjIwNzk6MTcyMzM2NTY3OV9WNA"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<p>于是又现下载jprofiler，通过jprofiler的聚类，确定了一定是这个Meter导致的，而通过JProfile的分析，终于定位到是</p>
+<p>org.springframework.boot.actuate.metrics.web.client.MetricsClientHttpRequestInterceptor#intercept这个类。然后发现，MetricsClientHttpRequestInterceptor 持有一个meterRegistry，里面核心是个map，所以一定是map没有清除。和我们最开始想的skywalking不一样，是springboot配套的监控，根据依赖分析，发现是有次需求引入了redisson-spring-boot-starter，而redisson依赖了spring-boot-starter-actuator，这东西默认启动了，会拦截所有的RestTempalte请求，然后记录一些指标。</p>
+<p><img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=MDY4ZjY3NTAzNzhjOWI4MGRhMWRlZTBkZGM1ZDk4MGVfWWlrU2ZhVG0zd2VWN3hUUTV3VFhXaHZXczZKeGZwMW5fVG9rZW46VkplVWJ2T25mb3JTQmR4YzBvRWNNSlE3bjVkXzE3MjMzNjIwNzk6MTcyMzM2NTY3OV9WNA"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<p><img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=ZmNhZjRjNjViNGJjMWRhOGE4NzI2MjViZGVhNTY4NDZfRlNQV0VoZUJSM01JMHBRNDEzQ0ZzWUNUV29xd1o3WDhfVG9rZW46SmhOTWJGSEUxb25wUEh4TmZlWGNPRm9rbjFlXzE3MjMzNjIwNzk6MTcyMzM2NTY3OV9WNA"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<p>所以问题变成了，为什么map没有清掉已经执行完的请求？</p>
+<p>我之前并没有研究过spring的actuator，只是看过skywalking的流程，所以我以为也和skywalking一样，记录然后上报，上报之后删除本地的。所以当时怀疑，难道是和我们请求都异常了有关，但是正如下面的代码，无论是否异常，都是执行finnally，所以又不太可能。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-Java" data-lang="Java"><span class="line"><span class="cl"><span class="n">ClientHttpResponse</span><span class="w"> </span><span class="n">response</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">null</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">try</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">   </span><span class="n">response</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">execution</span><span class="p">.</span><span class="na">execute</span><span class="p">(</span><span class="n">request</span><span class="p">,</span><span class="w"> </span><span class="n">body</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">   </span><span class="k">return</span><span class="w"> </span><span class="n">response</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">finally</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">   </span><span class="k">try</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="n">getTimeBuilder</span><span class="p">(</span><span class="n">request</span><span class="p">,</span><span class="w"> </span><span class="n">response</span><span class="p">).</span><span class="na">register</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="na">meterRegistry</span><span class="p">).</span><span class="na">record</span><span class="p">(</span><span class="n">System</span><span class="p">.</span><span class="na">nanoTime</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">startTime</span><span class="p">,</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="n">TimeUnit</span><span class="p">.</span><span class="na">NANOSECONDS</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">   </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">   </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="n">Exception</span><span class="w"> </span><span class="n">ex</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="n">logger</span><span class="p">.</span><span class="na">info</span><span class="p">(</span><span class="s">&#34;Failed to record metrics.&#34;</span><span class="p">,</span><span class="w"> </span><span class="n">ex</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">   </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">   </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">urlTemplate</span><span class="p">.</span><span class="na">get</span><span class="p">().</span><span class="na">isEmpty</span><span class="p">())</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="n">urlTemplate</span><span class="p">.</span><span class="na">remove</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">   </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">}</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>而在我自己尝试复现之后，micrometer的指标根本不会被自动清除，生命周期和应用的生命周期一样。因为并不存在上报，数据全部在内存（虽然可以导出到数据库，但并没有深入研究）。其实也合理，因为如果要通过Grafana等可视化平台查看的时候，我们也希望查看任意时刻的监控。不过看代码应该是有留一些手动删除的，应该是页面操作之类的才会触发。</p>
+<h2 id="结论">结论
+</h2><p><strong>所以到此为止，可以定结论，那就是因为引入了redisson-spring-boot-starter，导致不知情引入了spring-boot-starter-actuator。</strong></p>
+<p>因此默认开启了http.client.request指标的监控，关于http.client.request，有一个属性是maxUriTags，默认值是100，其作用是限制meterMap里<strong>uri</strong>的个数。但是maxUriTags起作用的地方MeterFilter没有生效。</p>
+<p>由于maxUriTags没有生效，导致监控信息里的uri因为业务大量的GET请求中存在唯一id，本身就很占内存。压死内存的最后稻草是认证过期和补偿任务。补偿任务为保证及时性一直在频繁执行，而接口的uri里两个变量（token和uniId）导致meterMap里的key不重复，一直在插入，20万回调，token两小时更新一次，持续了两天，最终产生了124万条字符串，被map持有，无法回收。</p>
+<h2 id="解决方案">解决方案
+</h2><ol>
+<li>不需要监控</li>
+</ol>
+<p>直接排除掉<strong>spring-boot-starter-actuator</strong></p>
+<ol start="2">
+<li>需要监控但不需要http.client.request指标</li>
+</ol>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-Java" data-lang="Java"><span class="line"><span class="cl"><span class="nl">management</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="n">metrics</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="n">web</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="n">client</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">request</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">          </span><span class="n">autotime</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="n">enabled</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><ol start="3">
+<li>需要http.client.request指标</li>
+</ol>
+<p>jar包升到2.5.1或以上</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-Java" data-lang="Java"><span class="line"><span class="cl"><span class="o">&lt;</span><span class="n">dependency</span><span class="o">&gt;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="o">&lt;</span><span class="n">groupId</span><span class="o">&gt;</span><span class="n">org</span><span class="p">.</span><span class="na">springframework</span><span class="p">.</span><span class="na">boot</span><span class="o">&lt;/</span><span class="n">groupId</span><span class="o">&gt;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="o">&lt;</span><span class="n">artifactId</span><span class="o">&gt;</span><span class="n">spring</span><span class="o">-</span><span class="n">boot</span><span class="o">-</span><span class="n">actuator</span><span class="o">-</span><span class="n">autoconfigure</span><span class="o">&lt;/</span><span class="n">artifactId</span><span class="o">&gt;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="o">&lt;</span><span class="n">version</span><span class="o">&gt;</span><span class="n">2</span><span class="p">.</span><span class="na">5</span><span class="p">.</span><span class="na">1</span><span class="o">&lt;/</span><span class="n">version</span><span class="o">&gt;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="o">&lt;/</span><span class="n">dependency</span><span class="o">&gt;</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="复现">复现：
+</h2><p>新建测试项目</p>
+<p><img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=NTFjOGNhNGRkNjk0YWRiZmU1NGNjYTlkZDJlYThkYzdfMzVuMG84aTBueWtNSWE4TXh1YndGcWJzY0Q5Y2ZEckVfVG9rZW46Rm9KaWIzWjFQb040TnV4QzF6dmNyTEdVbk1nXzE3MjMzNjIwNzk6MTcyMzM2NTY3OV9WNA"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<p>相关代码和配置如下</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span><span class="lnt">47
+</span><span class="lnt">48
+</span><span class="lnt">49
+</span><span class="lnt">50
+</span><span class="lnt">51
+</span><span class="lnt">52
+</span><span class="lnt">53
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-Java" data-lang="Java"><span class="line"><span class="cl"><span class="nd">@SpringBootApplication</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nd">@Slf4j</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="kd">public</span><span class="w"> </span><span class="kd">class</span> <span class="nc">Application</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kd">static</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span><span class="n">String</span><span class="o">[]</span><span class="w"> </span><span class="n">args</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">ConfigurableApplicationContext</span><span class="w"> </span><span class="n">run</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">SpringApplication</span><span class="p">.</span><span class="na">run</span><span class="p">(</span><span class="n">Application</span><span class="p">.</span><span class="na">class</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">RestTemplate</span><span class="w"> </span><span class="n">bean</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">run</span><span class="p">.</span><span class="na">getBean</span><span class="p">(</span><span class="n">RestTemplate</span><span class="p">.</span><span class="na">class</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">300000</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="o">++</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="k">try</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                </span><span class="n">String</span><span class="w"> </span><span class="n">forObject</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">bean</span><span class="p">.</span><span class="na">getForObject</span><span class="p">(</span><span class="s">&#34;http://localhost:9999/first/echo?i=&#34;</span><span class="o">+</span><span class="n">i</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="p">.</span><span class="na">class</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="p">}</span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="n">Exception</span><span class="w"> </span><span class="n">e</span><span class="p">){</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                </span><span class="n">log</span><span class="p">.</span><span class="na">error</span><span class="p">(</span><span class="s">&#34;执行&#34;</span><span class="o">+</span><span class="n">i</span><span class="o">+</span><span class="s">&#34;次&#34;</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nd">@Configuration</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="kd">public</span><span class="w"> </span><span class="kd">class</span> <span class="nc">RestTemplateTestConfig</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nd">@Bean</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="n">RestTemplate</span><span class="w"> </span><span class="nf">restTemplate</span><span class="p">(</span><span class="n">RestTemplateBuilder</span><span class="w"> </span><span class="n">builder</span><span class="p">){</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">builder</span><span class="p">.</span><span class="na">build</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="o">&lt;</span><span class="n">dependencies</span><span class="o">&gt;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="o">&lt;</span><span class="n">dependency</span><span class="o">&gt;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="o">&lt;</span><span class="n">groupId</span><span class="o">&gt;</span><span class="n">org</span><span class="p">.</span><span class="na">redisson</span><span class="o">&lt;/</span><span class="n">groupId</span><span class="o">&gt;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="o">&lt;</span><span class="n">artifactId</span><span class="o">&gt;</span><span class="n">redisson</span><span class="o">-</span><span class="n">spring</span><span class="o">-</span><span class="n">boot</span><span class="o">-</span><span class="n">starter</span><span class="o">&lt;/</span><span class="n">artifactId</span><span class="o">&gt;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="o">&lt;</span><span class="n">version</span><span class="o">&gt;</span><span class="n">3</span><span class="p">.</span><span class="na">13</span><span class="p">.</span><span class="na">1</span><span class="o">&lt;/</span><span class="n">version</span><span class="o">&gt;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="o">&lt;/</span><span class="n">dependency</span><span class="o">&gt;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="o">&lt;</span><span class="n">dependency</span><span class="o">&gt;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="o">&lt;</span><span class="n">groupId</span><span class="o">&gt;</span><span class="n">org</span><span class="p">.</span><span class="na">apache</span><span class="p">.</span><span class="na">httpcomponents</span><span class="o">&lt;/</span><span class="n">groupId</span><span class="o">&gt;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="o">&lt;</span><span class="n">artifactId</span><span class="o">&gt;</span><span class="n">httpclient</span><span class="o">&lt;/</span><span class="n">artifactId</span><span class="o">&gt;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="o">&lt;/</span><span class="n">dependency</span><span class="o">&gt;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="o">&lt;/</span><span class="n">dependencies</span><span class="o">&gt;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nl">server</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="n">port</span><span class="p">:</span><span class="w"> </span><span class="n">8080</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nl">spring</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="n">redis</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="n">host</span><span class="p">:</span><span class="w"> </span><span class="n">101</span><span class="p">.</span><span class="na">43</span><span class="p">.</span><span class="na">164</span><span class="p">.</span><span class="na">254</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="n">password</span><span class="p">:</span><span class="w"> </span><span class="n">hkc810215</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="err">#</span><span class="n">management</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="err">#</span><span class="w">  </span><span class="n">endpoints</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="err">#</span><span class="w">    </span><span class="n">web</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="err">#</span><span class="w">      </span><span class="n">exposure</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="err">#</span><span class="w">        </span><span class="n">include</span><span class="p">:</span><span class="w"> </span><span class="s">&#34;metrics&#34;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="err">#</span><span class="w">  </span><span class="n">metrics</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="err">#</span><span class="w">    </span><span class="n">web</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="err">#</span><span class="w">      </span><span class="n">client</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="err">#</span><span class="w">        </span><span class="n">request</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="err">#</span><span class="w">          </span><span class="n">autotime</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="err">#</span><span class="w">            </span><span class="n">enabled</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>启动项目通过jconsole查看整个堆的监控和老年代监控分别如下，可以看出老年代一直在增长，并不会回收，</p>
+<p><img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=ZjQzNjdhN2QxY2NhZTJmNGRmNjAzNDNhMjMxMzk4NmZfZFJKblUxVDlCSGxHcXVPMk5uSnd3Z2lPbFVVeFF0d3dfVG9rZW46TE93T2JQYmFEb3pQRzR4WDg5Y2NmVFJvbjdmXzE3MjMzNjIwNzk6MTcyMzM2NTY3OV9WNA"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<p><img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=ZjRkNzNlMzA5NzVkZmY4NGRmMTAxNGIxY2EwNjExZWJfZkV0Rnh3MDJ3SnhXT0E1bmd6NGc0TlNqY3d5dUZjNHdfVG9rZW46S3E4N2JXM3Jrb0FWVEN4U3ZYZmNQd2xObnRjXzE3MjMzNjIwNzk6MTcyMzM2NTY3OV9WNA"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<p>甚至手动触发GC，老年代也回收不了</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-Java" data-lang="Java"><span class="line"><span class="cl"><span class="o">[</span><span class="n">Full</span><span class="w"> </span><span class="nf">GC</span><span class="w"> </span><span class="p">(</span><span class="n">System</span><span class="p">.</span><span class="na">gc</span><span class="p">())</span><span class="w"> </span><span class="o">[</span><span class="n">Tenured</span><span class="p">:</span><span class="w"> </span><span class="n">195217K</span><span class="o">-&gt;</span><span class="n">195457K</span><span class="p">(</span><span class="n">204800K</span><span class="p">),</span><span class="w"> </span><span class="n">0</span><span class="p">.</span><span class="na">3975261</span><span class="w"> </span><span class="n">secs</span><span class="o">]</span><span class="w"> </span><span class="n">233021K</span><span class="o">-&gt;</span><span class="n">195457K</span><span class="p">(</span><span class="n">296960K</span><span class="p">),</span><span class="w"> </span><span class="o">[</span><span class="n">Metaspace</span><span class="p">:</span><span class="w"> </span><span class="n">30823K</span><span class="o">-&gt;</span><span class="n">30823K</span><span class="p">(</span><span class="n">33152K</span><span class="p">)</span><span class="o">]</span><span class="p">,</span><span class="w"> </span><span class="n">0</span><span class="p">.</span><span class="na">3976223</span><span class="w"> </span><span class="n">secs</span><span class="o">]</span><span class="w"> </span><span class="o">[</span><span class="n">Times</span><span class="p">:</span><span class="w"> </span><span class="n">user</span><span class="o">=</span><span class="n">0</span><span class="p">.</span><span class="na">39</span><span class="w"> </span><span class="n">sys</span><span class="o">=</span><span class="n">0</span><span class="p">.</span><span class="na">00</span><span class="p">,</span><span class="w"> </span><span class="n">real</span><span class="o">=</span><span class="n">0</span><span class="p">.</span><span class="na">40</span><span class="w"> </span><span class="n">secs</span><span class="o">]</span><span class="w"> 
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>通过jprofiler确定主要是meterMap占据内存了，最多的都是字符串。</p>
+<p><img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=ZjE0YTcxM2YzOWZlZDc1YjU1N2M4MTEyY2I1ZmFiNTFfYkx5SWE2YVR5MmF1M3l4RGZ5ZHYyaUxyUWRpdkJSMnRfVG9rZW46U3Z0MmJjNGYxb3dTV0N4YlR6TWNhTVppbnhkXzE3MjMzNjIwNzk6MTcyMzM2NTY3OV9WNA"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<p><img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=YzZjZDIwZDFiNWVkNmIwZThkN2RhODVlMTAxMWQ0NDZfcnFtdThnaDRkNzVWNVo3cWM0aVJ1T2JyU0x2ZUo3TnhfVG9rZW46UjJobWJDUEVrb0lnRjB4RXE5VWNWelUzbkpjXzE3MjMzNjIwNzk6MTcyMzM2NTY3OV9WNA"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<h2 id="分析">分析
+</h2><h3 id="actuator导致rest启动了metrics记录">actuator导致rest启动了metrics记录
+</h3><p>在使用RestTemplateBuilder构建RestTemplate的时候，会触发懒加载的RestTemplateAutoConfiguration里的RestTemplateBuilderConfigurer，在此期间，config中会注入RestTempalteCustomizer类型的bean。</p>
+<p><img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=ZGNiMGU0ZjdmYTA4MTYyMGE0NDI2MjE5NWY0NWYxNThfZ3IxVTB2WGd0T004SGFWcXVOWERKSWFMYXRiN2xoWFhfVG9rZW46T3lrZ2JpcUs5b0RGaWx4YWh6a2MxWExLblZoXzE3MjMzNjIwNzk6MTcyMzM2NTY3OV9WNA"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<p>而项目中引用了redisson-spring-boot-starter，从依赖分析可以看出间接引用了actuator相关的包。</p>
+<p><img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=MmM3Y2JiZjcyOTQwMDg0NmRkMjIyZjI1ZmVlYTM0ZDNfZ2ZCaDRzYllST0ZJREdhVm1MbzRuVVNsc3p6Z1lHU1ZfVG9rZW46UVZqSGJMVzlqbzVXUFB4b1pzSWM2N3NpbkZkXzE3MjMzNjIwNzk6MTcyMzM2NTY3OV9WNA"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<p>这导致会在RestTemplateMetricsConfiguration配置类中实例化一个叫做MetricsRestTemplateCustomizer的bean，这个bean会通过上面的restTepalteBuilderConfigurer.configure方法给restTemplate添加拦截器MetricsClientHttpRequestInterceptor。</p>
+<p><img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=ZWIzNDJiM2YxZjk3MjNmZDY0N2ZhNGRmZGE5N2QzZjJfZkpuNjdKN29sRnk0Q25teXB5dnFOSW05SG1Uak5lV3NfVG9rZW46UGlHQWJFTlV5b3gweGR4SUkwUGNRVFZybjFjXzE3MjMzNjIwNzk6MTcyMzM2NTY3OV9WNA"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<p>拦截器的intercept方法会在finnally中最终记录此次请求的一些指标</p>
+<p><img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=YjI2MzBkYzE2ZmRjMjVmNjJmZWEwOGQ0ZDA0OGI5ZWVfWXJ3TWdCZmdnNFVMYVpka2NjVmhaS0V6Yjh2SEUxUWlfVG9rZW46Qk5ka2JRTUpDb0dLUjZ4aGd4OGMya2xNbnI0XzE3MjMzNjIwNzk6MTcyMzM2NTY3OV9WNA"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<p>io.micrometer.core.instrument.Timer.Builder#register-&gt;</p>
+<p>io.micrometer.core.instrument.MeterRegistry#time-&gt;</p>
+<p>io.micrometer.core.instrument.MeterRegistry#registerMeterIfNecessary-&gt;</p>
+<p>io.micrometer.core.instrument.MeterRegistry#getOrCreateMeter{</p>
+<p>meterMap.put(mappedId, m);</p>
+<p>}</p>
+<p><img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=OGZiNGI2MzY3NTYzZjcxYmY5OTg0YTBkN2MwOGQxYmNfNGJ3ajRLUmN6UmFnRjR5NVRYS0dDaXBNYUxLbTlmZFVfVG9rZW46VDlLa2JMUTJibzN4clN4VlY0WmNqbHI1bnVnXzE3MjMzNjIwNzk6MTcyMzM2NTY3OV9WNA"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<p>最终存到了是SimpleMeterRegistry这个bean的meterMap中去，这个bean也是actuator-autoconfigure自动注入的</p>
+<p><img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=MjM5NTMyMDIxZWIzNDlhODU3YTRjYjA5NDY2OTVjN2JfblFpQWJLMnJnTTBRNmJ5N05XekhRZXB2WEFkMHZtSjFfVG9rZW46RGYzQ2JseFdCb3JlOWt4MnhKMmNkZmFsbnVVXzE3MjMzNjIwNzk6MTcyMzM2NTY3OV9WNA"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<p>但是到目前为止，只是启动了metrics记录，假如maxUriTags有效的话，会在超过100条记录后getOrCreateMeter方法里的accept这里过滤掉，并不会走到下面的meterMap.put(mappedId, m)</p>
+<p><img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=ZjAwZGJjN2Y5OTBjMWE0ZjY3NTZkZDM5ZDc5MmQ4OTRfWTdsTzFjRktlTWp3RG1UYTRBVDFGUmlpT0kwNnlNUU9fVG9rZW46V2xST2JUS3Mzb1M4M1Z4R0FQb2NDVFpIbmNjXzE3MjMzNjIwNzk6MTcyMzM2NTY3OV9WNA"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<h3 id="为什么maxuritags没有生效">为什么maxUriTags没有生效？
+</h3><p>maxUriTags只在下图这个位置使用了，作用是构建了一个MeterFilter，根据debug我们可以确定bean是产生了的</p>
+<p><img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=YzVmOGI5Y2FiNzdlNTc3ZTc2OTNhZjM2MTlmZTc3YjdfV3lKS3YyaXg2RzN6TVhlTlBRNW81emU4NU1vM2lXY09fVG9rZW46UkJ1d2JIeVpwb2QyaTZ4aTNKWWN1dUdrbmljXzE3MjMzNjIwNzk6MTcyMzM2NTY3OV9WNA"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<p>但是在accept这里打上断点，再触发一些请求可以发现，代码并不会走到这里</p>
+<p><img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=OGI5YWM5OTNiMDM0YzViMzRiNDJjZDc1OTU1NGQyNmRfME11aG1nY0J0d1V1RlA0SUFyeDhwbXJaWlFCN3ZBQjFfVG9rZW46WWh1SWJZQjBBb2pqVXB4VGZxbWNIckdnblVkXzE3MjMzNjIwNzk6MTcyMzM2NTY3OV9WNA"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<p>往上跟，没有走到这里的情况只能是filters里没有这个MeterFilter，但我们刚才又确定metricsHttpCLientUriTagFilter这个bean是产生了的，那么就只能是没有添加到filters，也就是没有调用过meterFilter</p>
+<p><img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=M2UzZDNlNTZhNThkMDk1N2JmMmQ4NjlkMGMxMjI5MDdfQ2hYVUJqWUw3bjJqOUFUTVR5QUluRW1TallQSTg3bHZfVG9rZW46VThVZGJIREdNbzVBVEh4V2xrR2NyekJjbmtkXzE3MjMzNjIwNzk6MTcyMzM2NTY3OV9WNA"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<p><img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=NjQ2Yjc3YTJjNmY3NzU2YzgzNTJhYmY3NTc0YmJlMmZfZjJiNWhjdzZWbVF0NGJmQjJiV3RvbUgwUWpxOXhibk9fVG9rZW46S3BqTmJSTVRzb1pSVnB4QU5tUGNyc3JBbmNnXzE3MjMzNjIwNzk6MTcyMzM2NTY3OV9WNA"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<p>从meterFilter往上只有可能是addFilters，一层一层往上最终到了MeterRegistryPostProcessor#postProcessAfterInitialization这个方法</p>
+<p><img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=Y2Y5MTk1YjM5ZTM1NTc0NGQ3MTNiMGQ3MmRhZWQ5OWJfVE4yS2xaUjlZMFROZXBJbEVFdmVKVDdiQW1jdlpwenFfVG9rZW46WGkzSmJFcG4xb3RjYWZ4T283MmNYVEZGbm8xXzE3MjMzNjIwNzk6MTcyMzM2NTY3OV9WNA"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<p><img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=MmExMmUxOTMxMmNhNDE3ZDM3M2Q5ZmVjNDBkNjQwMWVfV2dqdWVrcjVmMUZ6QlhadTlYR01vRXJpcmJiMm5YcGNfVG9rZW46SmxoWmJEQUl5b2lNbGZ4a2dGQ2M5STFWbnlnXzE3MjMzNjIwNzk6MTcyMzM2NTY3OV9WNA"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<p><img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=ZjBiNGJjMDM5OWNiZjllOWJlZjYyNjhmMWEzYzVjNTNfdE1KM2xYdEJRanVjdTdEWEl2cW93VWlhbm02VFZvZmJfVG9rZW46TjZwSmJ1VjMzb050eHJ4Y0ZIVWMxam9sbkRkXzE3MjMzNjIwNzk6MTcyMzM2NTY3OV9WNA"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<p>我们上面说过负责记录的bean叫做simpleMeterRegistry，但是我们在这里打上条件断点发现并没有走到这里</p>
+<p><img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=OTkxNTg5Yjk5ZTIzNTQ4MTYxZGMyN2ExZGJkZDYxYTRfRTJCWHd5Nm5mc0RMZlIyUm9rWEJMZzJqVkI0V0hZQ09fVG9rZW46UlB2MGJEVzVvbzVuZjl4Qlh0S2NRQmxkbmhkXzE3MjMzNjIwNzk6MTcyMzM2NTY3OV9WNA"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<p>找到SimpleMeterRegistry和MeterRegistryPostProcessor这两个bean注入的地方打断点观察，都产生了，且MeterRegistryPostProcessor比SimpleMeterRegistry产生的要早</p>
+<p><img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=NzBjNGRjMzc3ZmZmMzQyZWNiNWJmMTBjMzE3OTIxZDJfdFE3N2gycDRUT00yamw2dXVtYlgyTEtXcXJvaEVrb3pfVG9rZW46Rkd6NmJFeEdnb2xjeDF4TzNVU2MxaXRqbk9EXzE3MjMzNjIwNzk6MTcyMzM2NTY3OV9WNA"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<p><img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=YWM5NWY1NWE2ZmI0YjQyNzViYmM5Nzk2YWRmNWE0MTJfN1lzYWxRVmI5ak1rbDRjdGZsR3dnU2JrM1R0anBaNElfVG9rZW46UGoyamJBY1JQb1Nac2R4UmtabGM5UVBEbklnXzE3MjMzNjIwNzk6MTcyMzM2NTY3OV9WNA"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<p>理论上没问题，但现在确实没走到，所以只能在SimpleMeterRegistry产生的时候在org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory#applyBeanPostProcessorsAfterInitialization打断点，然后可以发现，在simpleMeterRegistry实例化快结束的时候，调用后处理器时this.beanPostProcessors确实没有MeterRegistryPostProcessor</p>
+<p><img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=YWM0ZWJjOWViMzcwOTE4YjY2NzM5OWE1Y2RjOTJiMzlfU2pwQUVNNW9SdU1zdkNpclZXRjV5R25jdHhpQktOc2tfVG9rZW46RHBFeGJsZlVDb0V2bnZ4Szc2cGNYSzdhbjJMXzE3MjMzNjIwNzk6MTcyMzM2NTY3OV9WNA"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<p><img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=NWNlMDA1MmE3NThhYzQ5YTBkNjRlYjc4OWQ0MzE5ZDBfVXpGSEV4WlloaUZpWmlBcUJnYVhMdnBQb0J0VXYyOHFfVG9rZW46U0JsdGJ1NjVmb3gzNkl4VDNWTmNZd0czbmdoXzE3MjMzNjIwNzk6MTcyMzM2NTY3OV9WNA"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<p>一般来说，postPorcessor的bean注入是在refresh方法的registerBeanPostProcessors中，是早于普通bean的实例化</p>
+<p><img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=OWM1MTA4YjZiN2Q3NDFiNWI0MGU0MzJkNjk2Yjk1MDZfQVZuTUZCZmVuNGY5bTRqUEZnSlpSSnZkZ1hkNW5LVXlfVG9rZW46UHVId2JWR3Bvb2FwQmN4MGYyT2NxeGp2bnhjXzE3MjMzNjIwNzk6MTcyMzM2NTY3OV9WNA"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<p>所以simpleMeterRegistry实例化的时候没有MeterRegistryPostProcessor是不合理的情况，定位simpleMeterRegistry是何时实例化的成了关键问题</p>
+<h4 id="simplemeterregistry的实例化时机">simpleMeterRegistry的实例化时机
+</h4><p>在new SimpleMeterRegistry这里打上断点观察堆栈发现，simpleMeterRegistry是MetricsRepositoryMethodInvocationListener的参数，MetricsRepositoryMethodInvocationListener则是metricsRepositoryMethodInvocationListenerBeanPostProcessor的参数</p>
+<p>所以是在实例化metricsRepositoryMethodInvocationListenerBeanPostProcessor这个处理器的时候，因为依赖导致先实例化了simpleMeterRegistry这个bean</p>
+<p><img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=YmIzMjYwYzdlNTg4ODRiYWUzZDkzZTM5ZGY4NjQxMTBfTlNoRng5YWF3YkUwR1RubWlTMERVb2phVzVHU0UyNjJfVG9rZW46V3VoNmI4OHJJbzFDQ014WURndGNqYmtnbjZiXzE3MjMzNjIwNzk6MTcyMzM2NTY3OV9WNA"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<p><img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=NjU3N2FiYTg2ZDNjNmRhNWZiYjM0NWE5NzIyOTAzZTFfMU9iZm54MVdTeHFJMU1YblQ4VkRIVjVaaU9xMTJqTGxfVG9rZW46QkJpZWJsUmhVb2VROTF4SjVBVGM1RDZWbnNoXzE3MjMzNjIwNzk6MTcyMzM2NTY3OV9WNA"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<p><img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=ZGU3MDk5NTIzZjlhYzg4ZGIzY2MwY2ZkYTE1OTY5OTlfczBGWGtnc0k3QUxqTXdTcFlzNFVJT1JJWkxzcUpnNWxfVG9rZW46Vk1PM2JBM0w0b2xzczB4QTlJNWN3TEpWbktiXzE3MjMzNjIwNzk6MTcyMzM2NTY3OV9WNA"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<p><img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=YWEyNzJiNWEzOWI0NDExN2M3MTI4YmRkZTUyNjNlZDFfUWRaeFRKdFl0Nm15VUpzUVlJYTZLa0wyYmNRaFFTcThfVG9rZW46V09QS2JRY2FFb2VGTU14ZG13dGNSdlBTbmNnXzE3MjMzNjIwNzk6MTcyMzM2NTY3OV9WNA"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<p>依赖，导致实例化了SimpleMeterRegistry，而这个时候由于没有注册，所以SimpleMeterRegistry在执行applyBeanPostProcessorsAfterInitialization时就执行不到meterRegistryPostProcessor了</p>
+<p><img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=YjNkNTk1OTgzNDczZTZlMjdhY2EwMjUxNGZmODZjYmZfQ2NEUWZBZzVYeXkzaE9aQVRrRW1JM2xyc0FvSnhHSVhfVG9rZW46TXF5WWJweVUwb1lQdW14TXZMS2NLMDNobmNrXzE3MjMzNjIwNzk6MTcyMzM2NTY3OV9WNA"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<p><img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=M2ZlMDhjMmM1MmZkZDg2MzRmOTNmOTk0ZTI0YTQzOGRfdVo1ZEdpMUtWVzkwUE9odVZEQlhnMUZpTkk0d3dvR0lfVG9rZW46S1k3dGJPRGJyb0NnOUV4QVVKSGNzSThqbmJlXzE3MjMzNjIwNzk6MTcyMzM2NTY3OV9WNA"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<p>spring已经修复了这个问题，spring-boot-actuator-autoconfigure版本大于2.5.0的都已经没有问题了。解决方案</p>
+<p>2.5.1 版本中，添加了一个这个ObjectProvider，在源头上不会立即把依赖的bean初始化完</p>
+<p><img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=NWQ0MTAxOTk3NTU5Mjk3YzZmNjg3NTI4ZTcyZDBlMDlfaWZubTViQTJia3ppeWpwWXpLRjdicTRFeGtEeFVsVGVfVG9rZW46RTFYcWJSTU5yb3hJc294aG11TmM1akxZbkpoXzE3MjMzNjIwNzk6MTcyMzM2NTY3OV9WNA"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<p><img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=MzQ5ZGUzNTllNTAzNzY1MTE5MTI2ZTMyNDc3NWRjYTVfVFJjUTVXNzVqQm9LaGU0NUNnemtUSVEwWGZxeG1LQTNfVG9rZW46TkNsNGJkbXQ4b2xyc3F4bUlFb2NNUmlobjhnXzE3MjMzNjIwNzk6MTcyMzM2NTY3OV9WNA"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<p>2.5.0 版本</p>
+<p><img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=OGMzZWRiN2FiZDU1MDI3NzMyZTA4NjNiZTdkMTdjYzhfWXRmNVloMlU0WENiNm9rMjI1QW54UUd3YndYVmNEOFlfVG9rZW46T2hMQWJXSHg0b05QRGJ4NzFseGNVN3ZtbjlmXzE3MjMzNjIwNzk6MTcyMzM2NTY3OV9WNA"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-Java" data-lang="Java"><span class="line"><span class="cl"><span class="kd">public</span><span class="w"> </span><span class="n">Object</span><span class="w"> </span><span class="nf">resolveDependency</span><span class="p">(</span><span class="n">DependencyDescriptor</span><span class="w"> </span><span class="n">descriptor</span><span class="p">,</span><span class="w"> </span><span class="nd">@Nullable</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">requestingBeanName</span><span class="p">,</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="nd">@Nullable</span><span class="w"> </span><span class="n">Set</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span><span class="w"> </span><span class="n">autowiredBeanNames</span><span class="p">,</span><span class="w"> </span><span class="nd">@Nullable</span><span class="w"> </span><span class="n">TypeConverter</span><span class="w"> </span><span class="n">typeConverter</span><span class="p">)</span><span class="w"> </span><span class="kd">throws</span><span class="w"> </span><span class="n">BeansException</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">   </span><span class="n">descriptor</span><span class="p">.</span><span class="na">initParameterNameDiscovery</span><span class="p">(</span><span class="n">getParameterNameDiscoverer</span><span class="p">());</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">   </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">Optional</span><span class="p">.</span><span class="na">class</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">descriptor</span><span class="p">.</span><span class="na">getDependencyType</span><span class="p">())</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="k">return</span><span class="w"> </span><span class="n">createOptionalDependency</span><span class="p">(</span><span class="n">descriptor</span><span class="p">,</span><span class="w"> </span><span class="n">requestingBeanName</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">   </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">   </span><span class="c1">//由于使用了ObjectProvider，所以这里只是返回了一个DependencyObjectProvider</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">   </span><span class="k">else</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">ObjectFactory</span><span class="p">.</span><span class="na">class</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">descriptor</span><span class="p">.</span><span class="na">getDependencyType</span><span class="p">()</span><span class="w"> </span><span class="o">||</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">         </span><span class="n">ObjectProvider</span><span class="p">.</span><span class="na">class</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">descriptor</span><span class="p">.</span><span class="na">getDependencyType</span><span class="p">())</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="k">return</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">DependencyObjectProvider</span><span class="p">(</span><span class="n">descriptor</span><span class="p">,</span><span class="w"> </span><span class="n">requestingBeanName</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">   </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">   </span><span class="k">else</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">javaxInjectProviderClass</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">descriptor</span><span class="p">.</span><span class="na">getDependencyType</span><span class="p">())</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="k">return</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">Jsr330Factory</span><span class="p">().</span><span class="na">createDependencyProvider</span><span class="p">(</span><span class="n">descriptor</span><span class="p">,</span><span class="w"> </span><span class="n">requestingBeanName</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">   </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">   </span><span class="k">else</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">   </span><span class="c1">//2.5.0版本中会在这个方法加载入参依赖的bean</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="n">Object</span><span class="w"> </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">getAutowireCandidateResolver</span><span class="p">().</span><span class="na">getLazyResolutionProxyIfNecessary</span><span class="p">(</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="n">descriptor</span><span class="p">,</span><span class="w"> </span><span class="n">requestingBeanName</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">result</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="kc">null</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">         </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">doResolveDependency</span><span class="p">(</span><span class="n">descriptor</span><span class="p">,</span><span class="w"> </span><span class="n">requestingBeanName</span><span class="p">,</span><span class="w"> </span><span class="n">autowiredBeanNames</span><span class="p">,</span><span class="w"> </span><span class="n">typeConverter</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="k">return</span><span class="w"> </span><span class="n">result</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">   </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">}</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div>
+</section>
+
+
+    <footer class="article-footer">
+    
+    <section class="article-tags">
+        
+            <a href="/tags/%E7%BA%BF%E4%B8%8A%E5%BC%82%E5%B8%B8/">线上异常</a>
+        
+    </section>
+
+
+    
+    <section class="article-copyright">
+        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-copyright" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="12" cy="12" r="9" />
+  <path d="M14.5 9a3.5 4 0 1 0 0 6" />
+</svg>
+
+
+
+        <span>Licensed under CC BY-NC-SA 4.0</span>
+    </section>
+    </footer>
+
+
+    
+</article>
+
+    
+
+    
+
+<aside class="related-content--wrapper">
+    <h2 class="section-title">相关文章</h2>
+    <div class="related-content">
+        <div class="flex article-list--tile">
+            
+                
+<article class="">
+    <a href="/post/tech/problem/%E5%86%85%E5%AD%98%E9%A3%99%E5%8D%87gc%E9%A2%91%E7%B9%81cpu%E9%A3%99%E9%AB%98/">
+        
+        
+
+        <div class="article-details">
+            <h2 class="article-title">记一次内存飙升、gc频繁、cpu飙高</h2>
+        </div>
+    </a>
+</article>
+
+            
+                
+<article class="">
+    <a href="/post/tech/problem/%E7%BA%BF%E7%A8%8B%E5%BC%82%E5%B8%B8%E5%A2%9E%E9%95%BF/">
+        
+        
+
+        <div class="article-details">
+            <h2 class="article-title">线程异常增长</h2>
+        </div>
+    </a>
+</article>
+
+            
+                
+<article class="">
+    <a href="/post/tech/distributed/zookeeper/zookeeper%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-watch%E6%9C%BA%E5%88%B6/">
+        
+        
+
+        <div class="article-details">
+            <h2 class="article-title">Zookeeper源码分析-watch机制</h2>
+        </div>
+    </a>
+</article>
+
+            
+                
+<article class="">
+    <a href="/post/tech/distributed/zookeeper/zookeeperservermain/">
+        
+        
+
+        <div class="article-details">
+            <h2 class="article-title">Zookeeper源码学习-单机部分通信组件</h2>
+        </div>
+    </a>
+</article>
+
+            
+                
+<article class="">
+    <a href="/post/tech/distributed/redis_cluster_deploy/">
+        
+        
+
+        <div class="article-details">
+            <h2 class="article-title">单服务器Redis集群部署记录</h2>
+        </div>
+    </a>
+</article>
+
+            
+        </div>
+    </div>
+</aside>
+
+     
+    
+        
+    <script src="//cdn.jsdelivr.net/npm/twikoo@1.6.21/dist/twikoo.all.min.js"></script>
+<div id="tcomment"></div>
+<style>
+    .twikoo {
+        background-color: var(--card-background);
+        border-radius: var(--card-border-radius);
+        box-shadow: var(--shadow-l1);
+        padding: var(--card-padding);
+    }
+    :root[data-scheme="dark"] {
+        --twikoo-body-text-color-main: rgba(255, 255, 255, 0.9);
+        --twikoo-body-text-color: rgba(255, 255, 255, 0.7);
+    }
+    .twikoo .el-input-group__prepend,
+    .twikoo .tk-action-icon,
+    .twikoo .tk-submit-action-icon,
+    .twikoo .tk-time,
+    .twikoo .tk-comments-no,
+    .twikoo .tk-comments-count {
+        color: var(--twikoo-body-text-color);
+    }
+    .twikoo .el-input__inner,
+    .twikoo .el-textarea__inner,
+    .twikoo .tk-preview-container,
+    .twikoo .tk-content,
+    .twikoo .tk-nick,
+    .twikoo .tk-send {
+        color: var(--twikoo-body-text-color-main);
+    }
+    .twikoo .el-button{
+        color: var(--twikoo-body-text-color)!important;
+    }
+    .twikoo .el-input__count {
+        color: var(--twikoo-body-text-color) !important;
+    }
+    .OwO .OwO-body {
+        background-color: var(--body-background) !important;
+        color: var(--body-text-color) !important;
+    }
+</style><script>
+    twikoo.init({
+        envId: 'https:\/\/qisiii-twikoo.hf.space',
+        el: '#tcomment',})
+</script>
+
+    
+
+    <footer class="site-footer">
+    <section class="copyright">
+        &copy; 
+        
+            2022 - 
+        
+        2024 起司
+    </section>
+    
+    <section class="powerby">
+        使用 <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> 构建 <br />
+        主题 <b><a href="https://github.com/CaiJimmy/hugo-theme-stack" target="_blank" rel="noopener" data-version="3.26.0">Stack</a></b> 由 <a href="https://jimmycai.com" target="_blank" rel="noopener">Jimmy</a> 设计
+    </section>
+</footer>
+
+
+    
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    
+    <div class="pswp__bg"></div>
+
+    
+    <div class="pswp__scroll-wrap">
+
+        
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                
+                
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"integrity="sha256-ePwmChbbvXbsO02lbM3HoHbSHTHFAeChekF1xKJdleo="crossorigin="anonymous"
+                defer
+                >
+            </script><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"integrity="sha256-UKkzOn/w1mBxRmLLGrSeyB4e1xbrp4xylgAWb3M42pU="crossorigin="anonymous"
+                defer
+                >
+            </script><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css"crossorigin="anonymous"
+            ><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css"crossorigin="anonymous"
+            >
+
+            </main>
+        </div>
+        <script 
+                src="https://cdn.jsdelivr.net/npm/node-vibrant@3.1.6/dist/vibrant.min.js"integrity="sha256-awcR2jno4kI5X0zL8ex0vi2z&#43;KMkF24hUW8WePSA9HM="crossorigin="anonymous"
+                
+                >
+            </script><script type="text/javascript" src="/ts/main.js" defer></script>
+<script>
+    (function () {
+        const customFont = document.createElement('link');
+        customFont.href = "https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap";
+
+        customFont.type = "text/css";
+        customFont.rel = "stylesheet";
+
+        document.head.appendChild(customFont);
+    }());
+</script>
+
+
+    </body>
+</html>

@@ -1,0 +1,1565 @@
+<!DOCTYPE html>
+<html lang="zh-cn" dir="ltr">
+    <head><meta charset='utf-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1'><meta name='description' content="MVCC机制遗留的问题 为什么在可重复读级别下，幻读没有产生？ 回想一下在事务隔离级别那篇文章中，可串行化是通过什么保证的？ 对操作的每一行记录加">
+<title>锁</title>
+
+<link rel='canonical' href='https://qisiii.github.io/post/tech/mysql/db_lock/'>
+
+<link rel="stylesheet" href="/scss/style.min.0304c6baf04e01a8fe70693791cb744d56a3578a3120a8796cefc66825aa39c7.css"><meta property='og:title' content="锁">
+<meta property='og:description' content="MVCC机制遗留的问题 为什么在可重复读级别下，幻读没有产生？ 回想一下在事务隔离级别那篇文章中，可串行化是通过什么保证的？ 对操作的每一行记录加">
+<meta property='og:url' content='https://qisiii.github.io/post/tech/mysql/db_lock/'>
+<meta property='og:site_name' content='起司的博客'>
+<meta property='og:type' content='article'><meta property='article:section' content='Post' /><meta property='article:tag' content='mysql' /><meta property='article:published_time' content='2023-06-14T00:00:00&#43;00:00'/><meta property='article:modified_time' content='2023-06-14T00:00:00&#43;00:00'/>
+<meta name="twitter:title" content="锁">
+<meta name="twitter:description" content="MVCC机制遗留的问题 为什么在可重复读级别下，幻读没有产生？ 回想一下在事务隔离级别那篇文章中，可串行化是通过什么保证的？ 对操作的每一行记录加"><link rel="alternate" type="application/json" href="https://qisiii.github.io/post/tech/mysql/db_lock/index.json">
+  
+    
+      <script async src="https://www.googletagmanager.com/gtag/js?id=G-8NDCRP4S7S"></script>
+      <script>
+        var doNotTrack = false;
+        if ( false ) {
+          var dnt = (navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack);
+          var doNotTrack = (dnt == "1" || dnt == "yes");
+        }
+        if (!doNotTrack) {
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-8NDCRP4S7S');
+        }
+      </script>
+    
+  
+
+
+    </head>
+    <body class="
+    article-page
+    ">
+    <script>
+        (function() {
+            const colorSchemeKey = 'StackColorScheme';
+            if(!localStorage.getItem(colorSchemeKey)){
+                localStorage.setItem(colorSchemeKey, "auto");
+            }
+        })();
+    </script><script>
+    (function() {
+        const colorSchemeKey = 'StackColorScheme';
+        const colorSchemeItem = localStorage.getItem(colorSchemeKey);
+        const supportDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches === true;
+
+        if (colorSchemeItem == 'dark' || colorSchemeItem === 'auto' && supportDarkMode) {
+            
+
+            document.documentElement.dataset.scheme = 'dark';
+        } else {
+            document.documentElement.dataset.scheme = 'light';
+        }
+    })();
+</script>
+<div class="container main-container flex on-phone--column extended"><aside class="sidebar left-sidebar sticky ">
+    <button class="hamburger hamburger--spin" type="button" id="toggle-menu" aria-label="切换菜单">
+        <span class="hamburger-box">
+            <span class="hamburger-inner"></span>
+        </span>
+    </button>
+
+    <header>
+        
+            
+            <figure class="site-avatar">
+                <a href="/">
+                
+                    
+                    
+                    
+                        
+                        <img src="/img/avatar_huf89847f5290877d03a6309f0caaa56f1_43584_300x0_resize_box_3.png" width="300"
+                            height="300" class="site-logo" loading="lazy" alt="Avatar">
+                    
+                
+                </a>
+                
+            </figure>
+            
+        
+        
+        <div class="site-meta">
+            <h1 class="site-name"><a href="/">起司的博客</a></h1>
+            <h2 class="site-description"></h2>
+        </div>
+    </header><ol class="menu-social">
+            
+                <li>
+                    <a 
+                        href='https://www.cnblogs.com/qisi'
+                        target="_blank"
+                        title="cnblog"
+                        rel="me"
+                    >
+                        
+                        
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-rss" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="5" cy="19" r="1" />
+  <path d="M4 4a16 16 0 0 1 16 16" />
+  <path d="M4 11a9 9 0 0 1 9 9" />
+</svg>
+
+
+
+                        
+                    </a>
+                </li>
+            
+                <li>
+                    <a 
+                        href='https://github.com/qisiii'
+                        target="_blank"
+                        title="GitHub"
+                        rel="me"
+                    >
+                        
+                        
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-brand-github" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+  <path d="M9 19c-4.3 1.4 -4.3 -2.5 -6 -3m12 5v-3.5c0 -1 .1 -1.4 -.5 -2c2.8 -.3 5.5 -1.4 5.5 -6a4.6 4.6 0 0 0 -1.3 -3.2a4.2 4.2 0 0 0 -.1 -3.2s-1.1 -.3 -3.5 1.3a12.3 12.3 0 0 0 -6.2 0c-2.4 -1.6 -3.5 -1.3 -3.5 -1.3a4.2 4.2 0 0 0 -.1 3.2a4.6 4.6 0 0 0 -1.3 3.2c0 4.6 2.7 5.7 5.5 6c-.6 .6 -.6 1.2 -.5 2v3.5" />
+</svg>
+
+
+
+                        
+                    </a>
+                </li>
+            
+        </ol><ol class="menu" id="main-menu">
+        
+        
+        <li class="menu-bottom-section">
+            <ol class="menu">
+
+                
+                    <li id="dark-mode-toggle">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-toggle-left" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="8" cy="12" r="2" />
+  <rect x="2" y="6" width="20" height="12" rx="6" />
+</svg>
+
+
+
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-toggle-right" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="16" cy="12" r="2" />
+  <rect x="2" y="6" width="20" height="12" rx="6" />
+</svg>
+
+
+
+                        <span>暗色模式</span>
+                    </li>
+                
+            </ol>
+        </li>
+    </ol>
+</aside>
+
+    <aside class="sidebar right-sidebar sticky">
+        
+            
+                
+    <section class="widget archives">
+        <div class="widget-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-hash" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <line x1="5" y1="9" x2="19" y2="9" />
+  <line x1="5" y1="15" x2="19" y2="15" />
+  <line x1="11" y1="4" x2="7" y2="20" />
+  <line x1="17" y1="4" x2="13" y2="20" />
+</svg>
+
+
+
+        </div>
+        <h2 class="widget-title section-title">目录</h2>
+        
+        <div class="widget--toc">
+            <nav id="TableOfContents">
+  <ol>
+    <li><a href="#mvcc机制遗留的问题">MVCC机制遗留的问题</a></li>
+    <li><a href="#读锁和写锁共享锁和排它锁">读锁和写锁（共享锁和排它锁）</a></li>
+    <li><a href="#表锁">表锁</a>
+      <ol>
+        <li><a href="#表锁-1">表锁</a>
+          <ol>
+            <li><a href="#上锁和解锁">上锁和解锁</a></li>
+            <li><a href="#查看锁情况">查看锁情况</a></li>
+          </ol>
+        </li>
+        <li><a href="#全局读锁">全局读锁</a></li>
+        <li><a href="#元数据锁">元数据锁</a>
+          <ol>
+            <li><a href="#读写阻塞问题">读写阻塞问题</a></li>
+          </ol>
+        </li>
+      </ol>
+    </li>
+    <li><a href="#行锁record-lock">行锁（Record Lock)</a>
+      <ol>
+        <li><a href="#间隙锁gap-lock">间隙锁（Gap Lock）</a></li>
+        <li><a href="#临键锁next-key-lock">临键锁(next-key Lock)</a></li>
+      </ol>
+    </li>
+    <li><a href="#意向锁">意向锁</a>
+      <ol>
+        <li><a href="#表意向锁">表意向锁</a></li>
+        <li><a href="#插入意向锁">插入意向锁</a></li>
+      </ol>
+    </li>
+    <li><a href="#自增锁auto-inc-locks">自增锁（<strong>AUTO-INC Locks</strong>）</a></li>
+    <li><a href="#case">Case</a>
+      <ol>
+        <li><a href="#case1表锁的读-写-读阻塞">case1（表锁的读-写-读阻塞）</a></li>
+        <li><a href="#case2元数据锁读-写-读">case2（元数据锁读-写-读）</a></li>
+        <li><a href="#case3next-key-lock-和-primary-key">case3(next-key lock 和 primary key)</a>
+          <ol>
+            <li><a href="#单一查询且查询结果存在id15">单一查询且查询结果存在(id=15)</a></li>
+            <li><a href="#单一查询且结果不存在id16">单一查询且结果不存在(id=16）</a></li>
+            <li><a href="#范围查询">范围查询</a></li>
+          </ol>
+        </li>
+        <li><a href="#case4next-key-lock和-unique-key">case4(next-key lock和 unique key)</a>
+          <ol>
+            <li><a href="#单一查询且查询结果存在uni15">单一查询且查询结果存在(uni=15)</a></li>
+            <li><a href="#单一查询且结果不存在uni116">单一查询且结果不存在(uni=116）</a></li>
+            <li><a href="#uni105">uni&gt;105</a></li>
+            <li><a href="#uni105-and-uni120">uni&gt;105 and uni&lt;120</a></li>
+            <li><a href="#uni105-and-uni120-1">uni&gt;105 and uni&lt;=120</a></li>
+            <li><a href="#uni130和上面的id30结果一样就不贴了">uni&gt;130和上面的id&gt;30结果一样，就不贴了</a></li>
+          </ol>
+        </li>
+        <li><a href="#case5索引加在哪">case5（索引加在哪）</a></li>
+        <li><a href="#case6next-key-lock-和index">case6（next-key lock 和index）</a>
+          <ol>
+            <li><a href="#seq215">seq=215</a></li>
+            <li><a href="#seq216">seq=216</a></li>
+            <li><a href="#seq215-and-seq220">seq&gt;215 and seq&lt;220</a></li>
+            <li><a href="#seq215-and-seq-220">seq&gt;215 and seq &lt;=220</a></li>
+            <li><a href="#seq230和前面unidx130和id30都一样">seq&gt;230和前面unidx&gt;130和id&gt;30都一样</a></li>
+          </ol>
+        </li>
+        <li><a href="#case7next-key和没有索引">case7(next-key和没有索引）</a></li>
+      </ol>
+    </li>
+    <li><a href="#疑问">疑问</a></li>
+    <li><a href="#参考文档">参考文档</a></li>
+  </ol>
+</nav>
+        </div>
+    </section>
+
+            
+        
+    </aside>
+
+
+            <main class="main full-width">
+    <article class="main-article">
+    <header class="article-header">
+
+    <div class="article-details">
+    
+    <header class="article-category">
+        
+            <a href="/categories/%E6%8A%80%E6%9C%AF%E6%96%87%E6%A1%A3/" >
+                技术文档
+            </a>
+        
+    </header>
+    
+
+    <div class="article-title-wrapper">
+        <h2 class="article-title">
+            <a href="/post/tech/mysql/db_lock/">锁</a>
+        </h2>
+    
+        
+    </div>
+
+    
+    
+    
+    
+    <footer class="article-time">
+        
+            <div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-calendar-time" width="56" height="56" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <path d="M11.795 21h-6.795a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v4" />
+  <circle cx="18" cy="18" r="4" />
+  <path d="M15 3v4" />
+  <path d="M7 3v4" />
+  <path d="M3 11h16" />
+  <path d="M18 16.496v1.504l1 1" />
+</svg>
+                <time class="article-time--published">2023-06-14</time>
+            </div>
+        
+
+        
+            <div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-clock" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="12" cy="12" r="9" />
+  <polyline points="12 7 12 12 15 15" />
+</svg>
+
+
+
+                <time class="article-time--reading">
+                    阅读时长: 15 分钟
+                </time>
+            </div>
+        
+    </footer>
+    
+
+    
+</div>
+
+</header>
+
+    <section class="article-content">
+    
+    
+    <h2 id="mvcc机制遗留的问题">MVCC机制遗留的问题
+</h2><p><strong>为什么在可重复读级别下，幻读没有产生？</strong></p>
+<p>回想一下在事务隔离级别那篇文章中，可串行化是通过什么保证的？</p>
+<p>对操作的每一行记录加读锁、写锁和范围锁；任何其他事务都必须等待持有锁的事务释放锁之后才能进行操作；</p>
+<p>而可重复读级别相比之下唯一少的就是范围锁，所以无论你是否了解过具体原因，都应该去猜测推理，大概率是加了范围锁。而在这里，他有一个特殊的名字，叫做间隙锁。</p>
+<p>虽然我很想直接上间隙锁相关的内容，但是为了更加有体系化，最好还是完整梳理一下；</p>
+<p>本篇文章最好是有一点基础再看，因为本身就是自记录，没有打算写一篇完整的教学博客。</p>
+<h2 id="读锁和写锁共享锁和排它锁">读锁和写锁（共享锁和排它锁）
+</h2><p>Shared Lock 共享锁（S锁），也叫读锁；不和读锁冲突，但和写锁冲突；</p>
+<p>当事务A持有读锁的时候，事务B依然可以加读锁；但是除了事务A自己可以加写锁，其他事务都无法对这条记录加写锁。</p>
+<p>Exclusive Lock 排他锁（X锁），也叫写锁；和谁都冲突；</p>
+<p>即当事务A持有记录的写锁时，其他事务读锁和写锁都加不了</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td>S</td>
+<td>X</td>
+</tr>
+<tr>
+<td>S</td>
+<td>兼容</td>
+<td>冲突</td>
+</tr>
+<tr>
+<td>X</td>
+<td>冲突</td>
+<td>冲突</td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p>行和列代表不同事务</p>
+</blockquote>
+<h2 id="表锁">表锁
+</h2><h3 id="表锁-1">表锁
+</h3><h4 id="上锁和解锁">上锁和解锁
+</h4><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-Bash" data-lang="Bash"><span class="line"><span class="cl">lock tables 表名 <span class="o">[</span>as alisa<span class="o">]</span> 锁类型<span class="p">;</span>
+</span></span><span class="line"><span class="cl">unlock tables <span class="p">;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>表锁的命令就是上述两行，且表锁也分读写锁，表级读写的兼容冲突和读写锁一致。</p>
+<p>通过lock tables 命令加锁的session，在释放锁之前，能且只能执行lock tables 命令后面指定的表，命令类型和锁类型保持一致；比如 lock tables A read,那么后面就只能读A表，而不能执行读B表，或者写A表；如下面的例子一样；另外如果使用了别名，那么需要确保查询语句涉及的别名和lock table的别名完全一致；</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-SQL" data-lang="SQL"><span class="line"><span class="cl"><span class="k">lock</span><span class="w"> </span><span class="n">tables</span><span class="w"> </span><span class="k">simple</span><span class="w"> </span><span class="k">read</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">select</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">from</span><span class="w"> </span><span class="k">simple</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">select</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">from</span><span class="w"> </span><span class="n">batch_insert</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="o">//</span><span class="p">[</span><span class="n">HY000</span><span class="p">][</span><span class="mi">1100</span><span class="p">]</span><span class="w"> </span><span class="k">Table</span><span class="w"> </span><span class="s1">&#39;batch_insert&#39;</span><span class="w"> </span><span class="n">was</span><span class="w"> </span><span class="k">not</span><span class="w"> </span><span class="n">locked</span><span class="w"> </span><span class="k">with</span><span class="w"> </span><span class="k">LOCK</span><span class="w"> </span><span class="n">TABLES</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">update</span><span class="w"> </span><span class="k">simple</span><span class="w"> </span><span class="k">set</span><span class="w"> </span><span class="n">name</span><span class="o">=</span><span class="mi">3</span><span class="w"> </span><span class="k">where</span><span class="w"> </span><span class="n">id</span><span class="o">=</span><span class="mi">2</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">Table</span><span class="w"> </span><span class="s1">&#39;simple&#39;</span><span class="w"> </span><span class="n">was</span><span class="w"> </span><span class="n">locked</span><span class="w"> </span><span class="k">with</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="k">READ</span><span class="w"> </span><span class="k">lock</span><span class="w"> </span><span class="k">and</span><span class="w"> </span><span class="n">can</span><span class="s1">&#39;t be updated
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>Unlock tables 会显式的释放所有该session之前加的所有表；另一个作用是释放<u><code><a href="https://dev.mysql.com/doc/refman/8.0/en/flush.html#flush-tables-with-read-lock">FLUSH TABLES WITH READ LOCK</a></code></u><u>命令所加的全局读锁；</u></p>
+<blockquote>
+<p>Another use for <u><code><a href="https://dev.mysql.com/doc/refman/8.0/en/lock-tables.html">UNLOCK TABLES</a></code></u> is to release the global read lock acquired with the <u><code><a href="https://dev.mysql.com/doc/refman/8.0/en/flush.html#flush-tables-with-read-lock">FLUSH TABLES WITH READ LOCK</a></code></u> statement, which enables you to lock all tables in all databases. See <a class="link" href="https://dev.mysql.com/doc/refman/8.0/en/flush.html"  target="_blank" rel="noopener"
+    >Section 13.7.8.3, “FLUSH Statement”</a>.</p>
+</blockquote>
+<p>lock tables、start transcation命令可以隐式的释放之前持有的锁；</p>
+<h4 id="查看锁情况">查看锁情况
+</h4><p>可通过下面的命令查看表是否上锁，name_locked为0表示上锁</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-C" data-lang="C"><span class="line"><span class="cl"><span class="n">show</span> <span class="n">OPEN</span> <span class="n">TABLES</span> <span class="n">where</span> <span class="n">In_use</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=ZjVlMjQyZTVjMTYxZmZjZjRkOTg0MjkwMmQyM2VhMGRfWUJBZE5IMnFlUzJtbnZTU3FRMHhYNGRmUWhxYlduZzlfVG9rZW46UU1yY2IyWmJPb0xmdjd4cko5b2NGQ1hubmtiXzE3MjMzNjUyOTQ6MTcyMzM2ODg5NF9WNA"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<blockquote>
+<p><code>WRITE</code> locks normally have higher priority than <code>READ</code> locks to ensure that updates are processed as soon as possible. This means that if one session obtains a <code>READ</code> lock and then another session requests a <code>WRITE</code> lock, subsequent <code>READ</code> lock requests wait until the session that requested the <code>WRITE</code> lock has obtained the lock and released it.</p>
+</blockquote>
+<p>对于读-写-读的情况，由于锁的优先级较高，如果申请写的session迟迟获取不到锁，会阻塞后续其他session申请读锁；具体分析看Case1；</p>
+<h3 id="全局读锁">全局读锁
+</h3><p>关于全局锁，我一共只在两篇文档中看到过；一个是《Mysql45讲》的06篇，一个mysql官方文档的lock-table文章和FLUSH Statement文章，所以了解的并不全，加上此时的我还不太关心数据库主从的问题，所以也没有深入研究。</p>
+<p><strong>FLUSH TABLES WITH READ LOCK</strong></p>
+<blockquote>
+<p>Closes all open tables and locks all tables for all databases with a global read lock.</p>
+</blockquote>
+<h3 id="元数据锁">元数据锁
+</h3><blockquote>
+<p>Statements acquire metadata locks one by one, not simultaneously, and perform deadlock detection in the process.</p>
+<p>DML statements normally acquire locks in the order in which tables are mentioned in the statement.</p>
+<p>DDL statements, <u><code><a href="https://dev.mysql.com/doc/refman/8.0/en/lock-tables.html">LOCK TABLES</a></code></u>, and other similar statements try to reduce the number of possible deadlocks between concurrent DDL statements by acquiring locks on explicitly named tables in name order.</p>
+</blockquote>
+<p>元数据锁是一个个获取的，DML和DDL通过不同的方式定义执行的顺序；官网提供了一个rename table的顺序例子，但那个例子挺迷的；</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-C" data-lang="C"><span class="line"><span class="cl"><span class="c1">//可以通过这个表查看元数据锁的情况
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">select</span> <span class="o">*</span> <span class="n">from</span> <span class="n">performance_schema</span><span class="p">.</span><span class="n">metadata_locks</span><span class="p">;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><blockquote>
+<p>To ensure transaction serializability, the server must not permit one session to perform a data definition language (DDL) statement on a table that is used in an uncompleted explicitly or implicitly started transaction in another session. The server achieves this by acquiring metadata locks on tables used within a transaction and deferring release of those locks until the transaction ends. A metadata lock on a table prevents changes to the table&rsquo;s structure. This locking approach has the implication that a table that is being used by a transaction within one session cannot be used in DDL statements by other sessions until the transaction ends.</p>
+</blockquote>
+<p>如果一个session或者一个事务持有某个表的元数据锁，那么另一个session或者事务就无法执行DDL操作；</p>
+<p><a class="link" href="https://dev.mysql.com/doc/refman/8.0/en/metadata-locking.html"  target="_blank" rel="noopener"
+    >https://dev.mysql.com/doc/refman/8.0/en/metadata-locking.html</a></p>
+<h4 id="读写阻塞问题">读写阻塞问题
+</h4><p>关于元数据锁，在《Mysql45讲》中有提到一个问题，后加的读锁会被前面的写锁所阻塞，很类似于表锁最后提到的优先级问题，有没有可能是一个原因呢？具体见case2</p>
+<h2 id="行锁record-lock">行锁（Record Lock)
+</h2><blockquote>
+<p>A record lock is a lock on an index record.</p>
+</blockquote>
+<p>行锁是在索引上的一个锁。这句话非常重要！</p>
+<p>这里的索引可以是聚簇索引也可以是二级索引，如果表中没有索引或者查询的条件没有索引，又或者优化器认为索引没有作用，这个时候就会退化为“表锁”，但我总感觉像是锁定了所有行。</p>
+<p>另外，如果表中没有定义聚簇索引，会自动生成一个隐藏的索引。</p>
+<h3 id="间隙锁gap-lock">间隙锁（Gap Lock）
+</h3><blockquote>
+<p>A gap lock is a lock on a gap between index records, or a lock on the gap before the first or after the last index record.</p>
+</blockquote>
+<p>单靠行锁是无法解决幻读的问题的，所以innodb引入了间隙锁的概念，只在RR级别生效。间隙锁是一个范围锁，比如所以索引1和索引3之间就存在（1，3）这样一个间隙，当这个间隙被锁定的时候，就无法插入值为2的记录。</p>
+<p>不同的事务对于同一个间隙加锁是允许发生的，因为都是在保护这个间隙不被插入数据。</p>
+<blockquote>
+<p>Gap locking is not needed for statements that lock rows using a unique index to search for a unique row.</p>
+</blockquote>
+<p>当查询条件是唯一索引，如果查询的值存在且是唯一的一行记录，那么是不需要加间隙锁的；因为间隙锁的出现就是为了防止幻读，对于加了唯一索引的表，同样的查询条件永远只能查出唯一的一条，既然已经保证了唯一，那么就没有间隙锁的必要了。</p>
+<p>那如果查询结果不存在？以及查询条件是范围查询？又或者是普通索引甚至没有索引呢？</p>
+<p>关于这些情况的排列组合，见case3</p>
+<h3 id="临键锁next-key-lock">临键锁(next-key Lock)
+</h3><blockquote>
+<p>A next-key lock is a combination of a record lock on the index record and a gap lock on the gap before the index record.</p>
+</blockquote>
+<p>临建锁=行锁+间隙锁，是innodb RR级别默认加的锁；由于锁定的是当前索引记录行和索引前的部分，所以一般总结为左开右闭；</p>
+<p>假如存在索引10,11,13,20，那么就会存在以下几个区间，最后一个范围是mysql会假定一个非常大的supremum，但由于实际并不存在这个值，所以是左开右开。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-C" data-lang="C"><span class="line"><span class="cl"><span class="p">(</span><span class="n">negative</span> <span class="n">infinity</span><span class="p">,</span> <span class="mi">10</span><span class="p">]</span>
+</span></span><span class="line"><span class="cl"><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">11</span><span class="p">]</span>
+</span></span><span class="line"><span class="cl"><span class="p">(</span><span class="mi">11</span><span class="p">,</span> <span class="mi">13</span><span class="p">]</span>
+</span></span><span class="line"><span class="cl"><span class="p">(</span><span class="mi">13</span><span class="p">,</span> <span class="mi">20</span><span class="p">]</span>
+</span></span><span class="line"><span class="cl"><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="n">positive</span> <span class="n">infinity</span><span class="p">)</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="意向锁">意向锁
+</h2><h3 id="表意向锁">表意向锁
+</h3><p>innodb支持多粒度锁，即允许行锁和表锁同时存在，并且在加锁的时候需要进行冲突检测；</p>
+<p>比如事务A已经持有了a表的一条记录索引的行锁，这个时候B事务想要给a表加表锁，就需要一行行查看是否存在行锁；为了优化这种情况，innodb引入了意向锁的概念。</p>
+<p>表意向锁是个表级锁，分为读意向锁（IS）和写意向锁（IX），它们添加的时机是在对行索引添加S锁和X锁之前；即如果想要对某一行加锁，就必须先取得这个表的意向锁。这样当另一个事务需要判断时，就不需要一行行进行检查，只需要查看这个表是否具有意向锁即可。</p>
+<p>意向锁的作用主要是用来阻塞表锁的。所以其互相之间是不存在互斥的，只和表锁存在冲突，即读写冲突，具体就像是下面表格这样；</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+<th></th>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td>X</td>
+<td>IX</td>
+<td>S</td>
+<td>IS</td>
+</tr>
+<tr>
+<td>X</td>
+<td>Conflict</td>
+<td>Conflict</td>
+<td>Conflict</td>
+<td>Conflict</td>
+</tr>
+<tr>
+<td>IX</td>
+<td>Conflict</td>
+<td>Compatible</td>
+<td>Conflict</td>
+<td>Compatible</td>
+</tr>
+<tr>
+<td>S</td>
+<td>Conflict</td>
+<td>Conflict</td>
+<td>Compatible</td>
+<td>Compatible</td>
+</tr>
+<tr>
+<td>IS</td>
+<td>Conflict</td>
+<td>Compatible</td>
+<td>Compatible</td>
+<td>Compatible</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="插入意向锁">插入意向锁
+</h3><blockquote>
+<p>An insert intention lock is a type of gap lock set by <u><code><a href="https://dev.mysql.com/doc/refman/8.0/en/insert.html">INSERT</a></code></u> operations prior to row insertion. This lock signals the intent to insert in such a way that multiple transactions inserting into the same index gap need not wait for each other if they are not inserting at the same position within the gap. Suppose that there are index records with values of 4 and 7. Separate transactions that attempt to insert values of 5 and 6, respectively, each lock the gap between 4 and 7 with insert intention locks prior to obtaining the exclusive lock on the inserted row, but do not block each other because the rows are nonconflicting.</p>
+</blockquote>
+<p>插入意向锁是间隙锁类型的一种意向锁，锁的是间隙；是在进行插入之前必须申请获得的锁，所以和间隙锁是冲突的；换句话说，如果你想插入一条语句，那么这个语句对应的间隙必须不存在锁，这样你才能加上插入意向锁，进而插入数据；</p>
+<p>而且，插入意向锁只要插入的不是同一行，那么就可以同时插入；</p>
+<h2 id="自增锁auto-inc-locks">自增锁（<strong>AUTO-INC Locks</strong>）
+</h2><blockquote>
+<p>An <code>AUTO-INC</code> lock is a special table-level lock taken by transactions inserting into tables with <code>AUTO_INCREMENT</code> columns.</p>
+</blockquote>
+<p>如官方文档所说，自增锁其实是只针对于自增的字段，算是一个表级锁，一般对我们来说就是自增主键；当有多个事务同时想要插入，由于自增的值必须保持连续，所以多个事务的插入必须串行；</p>
+<h2 id="case">Case
+</h2><h3 id="case1表锁的读-写-读阻塞">case1（表锁的读-写-读阻塞）
+</h3><p>先看正常情况，表锁的读锁是可以加多个的，如下，通过两个查询命令也可以看到确实同时加上了，没有阻塞；</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-C" data-lang="C"><span class="line"><span class="cl"><span class="c1">//console1
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">lock</span> <span class="n">tables</span> <span class="n">simple</span> <span class="n">read</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="c1">//console2
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">lock</span> <span class="n">tables</span> <span class="n">simple</span> <span class="n">read</span><span class="p">;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>select * from performance_schema.metadata_locks;</p>
+<p><img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=MmI1YTQ5NzUxMGNjOGY5YWFkZWRkNDM2NDFmMWRiODFfbmRvTXhUZDcwQXFRQlE1cU0yZFcyVU5Xdm9EN0dRdUxfVG9rZW46RGpTRmI2RTBCbzl5Rjh4Zm1NUGNGeThPbjVkXzE3MjMzNjUyOTQ6MTcyMzM2ODg5NF9WNA"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<p>show OPEN TABLES where In_use &gt; 0;</p>
+<p><img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=MzU5Y2Y3OTU0NWE2ZDY4MjU5NGI5NzA5ZTIwN2M1YzRfN2IwZkNnRHBjRjBxdVNoZk9CT2JBeFJrT2ZLVjNDaUpfVG9rZW46TmN3RmI2U1NGb1FxV3F4cnkzMWNxdVRRbndiXzE3MjMzNjUyOTQ6MTcyMzM2ODg5NF9WNA"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<p>但是在两次读中间插入一次写锁的获取，后面的读锁也会同时被阻塞</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-C" data-lang="C"><span class="line"><span class="cl"><span class="c1">//console1
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">lock</span> <span class="n">tables</span> <span class="n">simple</span> <span class="n">read</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="c1">//console2
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">lock</span> <span class="n">tables</span> <span class="n">simple</span> <span class="n">write</span><span class="p">;</span><span class="c1">//被console1阻塞
+</span></span></span><span class="line"><span class="cl"><span class="c1">//console3
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">lock</span> <span class="n">tables</span> <span class="n">simple</span> <span class="n">read</span><span class="p">;</span><span class="c1">//被console2阻塞
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>实验证明确实如文档所说，但暂时没有分析原理；</p>
+<h3 id="case2元数据锁读-写-读">case2（元数据锁读-写-读）
+</h3><p>mysql45讲中提到的一个问题，具体分析见<a class="link" href="https://blog.csdn.net/q2878948/article/details/96430129"  target="_blank" rel="noopener"
+    >mysql MDL读写锁阻塞，以及online ddl造成的“插队”现象_花落的速度的博客-CSDN博客</a></p>
+<p><img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=ZDdlM2FlODBlMWJjYWVhZjY4MWZjNzk4NTMxNTg5NzRfUW05R1ZYTHU5S0d4Z3IzMk9mRlJucTg3cTZWTEp3aFVfVG9rZW46SlNwaWJQcU1Vb1U1V0x4RnZEYWNmVGM0bmxlXzE3MjMzNjUyOTQ6MTcyMzM2ODg5NF9WNA"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<h3 id="case3next-key-lock-和-primary-key">case3(next-key lock 和 primary key)
+</h3><p>在分析之前，先贴一下45讲的总结,该总结版本是 5.x 系列 &lt;=5.7.24，8.0 系列 &lt;=8.0.13，而我测试的版本是8.0.33</p>
+<p><img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=ZjQyZTgzN2FmMGU1ZDliYzE3ZGIzMDVhZjllNzE4NGRfcHYzWUdkb3paNUtJOERDNTQ1MExxU2NNd2g5aExEcHVfVG9rZW46WUVIMWI1bUFIb2daRkN4ZlI3MGM4TFZabkxmXzE3MjMzNjUyOTQ6MTcyMzM2ODg5NF9WNA"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<blockquote>
+<p>原则 1：加锁的基本单位是 next-key lock。希望你还记得，next-key lock 是前开后闭区间。</p>
+<p>原则 2：查找过程中访问到的对象才会加锁。</p>
+<p>优化 1：索引上的等值查询，给唯一索引加锁的时候，next-key lock 退化为行锁。</p>
+<p>优化 2：索引上的等值查询，向右遍历时且最后一个值不满足等值条件的时候，next-key lock 退化为间隙锁。</p>
+<p>一个 bug：唯一索引上的范围查询会访问到不满足条件的第一个值为止。</p>
+</blockquote>
+<p>目前的数据</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-C" data-lang="C"><span class="line"><span class="cl"><span class="n">CREATE</span> <span class="n">TABLE</span> <span class="err">`</span><span class="n">simple</span><span class="err">`</span> <span class="p">(</span>
+</span></span><span class="line"><span class="cl">  <span class="err">`</span><span class="n">id</span><span class="err">`</span> <span class="n">bigint</span> <span class="n">NOT</span> <span class="nb">NULL</span> <span class="n">AUTO_INCREMENT</span> <span class="n">COMMENT</span> <span class="err">&#39;主键&#39;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">  <span class="err">`</span><span class="n">name</span><span class="err">`</span> <span class="nf">varchar</span><span class="p">(</span><span class="mi">256</span><span class="p">)</span> <span class="n">COLLATE</span> <span class="n">utf8mb4_bin</span> <span class="n">DEFAULT</span> <span class="nb">NULL</span> <span class="n">COMMENT</span> <span class="err">&#39;字符&#39;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">  <span class="err">`</span><span class="n">seq</span><span class="err">`</span> <span class="n">bigint</span> <span class="n">NOT</span> <span class="nb">NULL</span> <span class="n">COMMENT</span> <span class="err">&#39;消息序号&#39;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">  <span class="err">`</span><span class="n">type</span><span class="err">`</span> <span class="n">tinyint</span> <span class="n">NOT</span> <span class="nb">NULL</span> <span class="n">COMMENT</span> <span class="err">&#39;类型，</span><span class="n">tinyint值</span><span class="err">&#39;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">  <span class="err">`</span><span class="n">version</span><span class="err">`</span> <span class="kt">int</span> <span class="n">NOT</span> <span class="nb">NULL</span> <span class="n">DEFAULT</span> <span class="sc">&#39;1&#39;</span> <span class="n">COMMENT</span> <span class="err">&#39;版本值&#39;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">  <span class="err">`</span><span class="n">msg</span><span class="err">`</span> <span class="n">text</span> <span class="n">COLLATE</span> <span class="n">utf8mb4_bin</span> <span class="n">COMMENT</span> <span class="err">&#39;消息&#39;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">  <span class="err">`</span><span class="n">create_time</span><span class="err">`</span> <span class="n">datetime</span> <span class="n">NOT</span> <span class="nb">NULL</span> <span class="n">DEFAULT</span> <span class="n">CURRENT_TIMESTAMP</span> <span class="n">COMMENT</span> <span class="err">&#39;创建时间&#39;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">  <span class="err">`</span><span class="n">update_time</span><span class="err">`</span> <span class="n">datetime</span> <span class="n">NOT</span> <span class="nb">NULL</span> <span class="n">DEFAULT</span> <span class="n">CURRENT_TIMESTAMP</span> <span class="n">COMMENT</span> <span class="err">&#39;修改时间&#39;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">  <span class="err">`</span><span class="n">yn</span><span class="err">`</span> <span class="n">tinyint</span> <span class="n">NOT</span> <span class="nb">NULL</span> <span class="n">DEFAULT</span> <span class="sc">&#39;1&#39;</span> <span class="n">COMMENT</span> <span class="err">&#39;是否有效&#39;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">  <span class="err">`</span><span class="n">uni</span><span class="err">`</span> <span class="kt">int</span> <span class="n">NOT</span> <span class="nb">NULL</span> <span class="n">COMMENT</span> <span class="err">&#39;唯一索引&#39;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">  <span class="n">PRIMARY</span> <span class="nf">KEY</span> <span class="p">(</span><span class="err">`</span><span class="n">id</span><span class="err">`</span><span class="p">),</span>
+</span></span><span class="line"><span class="cl">  <span class="n">UNIQUE</span> <span class="n">KEY</span> <span class="err">`</span><span class="n">unidx</span><span class="err">`</span> <span class="p">(</span><span class="err">`</span><span class="n">uni</span><span class="err">`</span><span class="p">),</span>
+</span></span><span class="line"><span class="cl">  <span class="n">KEY</span> <span class="err">`</span><span class="n">seqidx</span><span class="err">`</span> <span class="p">(</span><span class="err">`</span><span class="n">seq</span><span class="err">`</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">)</span> <span class="n">ENGINE</span><span class="o">=</span><span class="n">InnoDB</span> <span class="n">AUTO_INCREMENT</span><span class="o">=</span><span class="mi">301</span> <span class="n">DEFAULT</span> <span class="n">CHARSET</span><span class="o">=</span><span class="n">utf8mb4</span> <span class="n">COLLATE</span><span class="o">=</span><span class="n">utf8mb4_bin</span> <span class="n">COMMENT</span><span class="o">=</span><span class="err">&#39;简单测试表&#39;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=ZWM0YjI2MzBiMDNjZTAzYWFkMGRlNDkwMjViNzg2YzVfbDIzM0Y5bzdsbWpRY3poRWJXQWNrNFRtbmVUb2JWaFlfVG9rZW46RjJDWmJZZGl3b21aaHB4QmR6c2NDbmV6bnVkXzE3MjMzNjUyOTQ6MTcyMzM2ODg5NF9WNA"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<h4 id="单一查询且查询结果存在id15">单一查询且查询结果存在(id=15)
+</h4><p>存在一个意向表锁和行级读锁，理论上锁住的应该是(5, 15]这部分，但是由于是主键索引（唯一），所以只会锁15这一行，没有必要锁前面的间隙；这是优化1的体现；</p>
+<p><strong>LOCK_MODE为S,REC_NOT_GAP，我理解应该是说只有行锁，行锁类型是读锁；</strong></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-C" data-lang="C"><span class="line"><span class="cl"><span class="n">start</span> <span class="n">transaction</span> <span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="n">select</span> <span class="o">*</span> <span class="n">from</span> <span class="n">simple</span> <span class="n">where</span> <span class="n">id</span> <span class="o">=</span> <span class="mi">15</span> <span class="n">lock</span> <span class="n">in</span> <span class="n">share</span> <span class="n">mode</span> <span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="n">select</span> <span class="o">*</span> <span class="n">from</span> <span class="n">performance_schema</span><span class="p">.</span><span class="n">data_locks</span><span class="p">;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=MWU4YmEzMzhiN2FmYjg5OGY4MTZkYjQ4ZWJkYmNiOThfd2hTc1d5a3ppdHJPQ0k2M1kzVnJmSGoxTXp1OUZaUDZfVG9rZW46T3VLaWJKNWtUb1dOM054WHpIT2NKdjRjbmViXzE3MjMzNjUyOTQ6MTcyMzM2ODg5NF9WNA"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<h4 id="单一查询且结果不存在id16">单一查询且结果不存在(id=16）
+</h4><p>将查询条件从15换成了16，理论上锁住的是（15,20]这部分，但是实验表明，20这行不会加行锁，所以最终表现为(15,20)；这是优化2的体现；</p>
+<p>LOCK_MODE为S,GAP，我理解应该是说只有间隙锁，即（15,20）；</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-C" data-lang="C"><span class="line"><span class="cl"><span class="n">start</span> <span class="n">transaction</span> <span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="n">select</span> <span class="o">*</span> <span class="n">from</span> <span class="n">simple</span> <span class="n">where</span> <span class="n">id</span> <span class="o">=</span> <span class="mi">16</span> <span class="n">lock</span> <span class="n">in</span> <span class="n">share</span> <span class="n">mode</span> <span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="n">select</span> <span class="o">*</span> <span class="n">from</span> <span class="n">performance_schema</span><span class="p">.</span><span class="n">data_locks</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="c1">//console2
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">start</span> <span class="n">transaction</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="n">insert</span> <span class="n">into</span> <span class="nf">simple</span> <span class="p">(</span><span class="n">id</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="n">type</span><span class="p">,</span><span class="n">seq</span><span class="p">)</span> <span class="nf">value</span> <span class="p">(</span><span class="mi">16</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">5</span><span class="p">);</span><span class="c1">//会被阻塞
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">select</span> <span class="o">*</span> <span class="n">from</span> <span class="n">simple</span> <span class="n">where</span> <span class="n">id</span><span class="o">=</span><span class="mi">20</span> <span class="k">for</span> <span class="n">update</span> <span class="p">;</span><span class="c1">//发现这行可以执行成功
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="err">既然可以成功，那就证明</span><span class="n">id</span> <span class="o">=</span> <span class="mi">16</span> <span class="err">的查询并没有锁</span><span class="mi">20</span><span class="err">这一行，不然不可能加的上写锁</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=YzhiY2ZhMjQ0OWJiZThjOTU3OWM5MzFjYzU4NGQ2NjVfbFR0T3RQRTVMd29zdm1xa0VrbHRQWERaYXFyUEZGeU1fVG9rZW46V0R3Y2JxYUpEb0gyZWV4TTB5QWNSWGZVbkNlXzE3MjMzNjUyOTQ6MTcyMzM2ODg5NF9WNA"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<p><img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=NmU3OGU2Yjk1NjhkMGNjYjI0YjkwNjZiMzAwNTQ4OGZfbGNST0VFS1RNbHV1NzJtVUhEU1ZIRXdnSzR1R25FVjVfVG9rZW46UFhCaGJPMTBQb2ZSd2d4MHFBVWM1UzhtbnNmXzE3MjMzNjUyOTQ6MTcyMzM2ODg5NF9WNA"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<p>那这里如果我把id为20的更新成id为16会怎样？</p>
+<blockquote>
+<p>update simple set id=16 where id=20;</p>
+</blockquote>
+<p>经实验16-19都不能更新，20以后可以更，比如update simple set id=21 where id=20就可以成功；所以间隙锁是不是也能防止更新；又或者说，其实是因为更新的本质是删除再插入，再插入的被阻塞了，这里感兴趣的可以研究一下；</p>
+<h4 id="范围查询">范围查询
+</h4><h5 id="id5">id&gt;5
+</h5><p>按照理论，应该锁住的后5往后的所有范围，即(5,15],(15,20],(20,23],(23,super..];</p>
+<p>所以我推测<strong>LOCK_MODE只有一个S，代表加的是临键锁，类型是读锁</strong>，没有特殊表明缺少行锁或者间隙锁就是完整的临建锁，并且我在console2尝试插入id为6或者36的，都会被阻塞</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-C" data-lang="C"><span class="line"><span class="cl"><span class="c1">//console1
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">start</span> <span class="n">transaction</span> <span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="n">select</span> <span class="o">*</span> <span class="n">from</span> <span class="n">simple</span> <span class="n">where</span> <span class="n">id</span><span class="o">&gt;</span><span class="mi">5</span> <span class="n">lock</span> <span class="n">in</span> <span class="n">share</span> <span class="n">mode</span> <span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="n">select</span> <span class="o">*</span> <span class="n">from</span> <span class="n">performance_schema</span><span class="p">.</span><span class="n">data_locks</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="c1">//console2
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="err">都会被阻塞</span>
+</span></span><span class="line"><span class="cl"><span class="n">insert</span> <span class="n">into</span> <span class="nf">simple</span> <span class="p">(</span><span class="n">id</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="n">type</span><span class="p">,</span><span class="n">seq</span><span class="p">)</span> <span class="nf">value</span> <span class="p">(</span><span class="mi">6</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">5</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="n">insert</span> <span class="n">into</span> <span class="nf">simple</span> <span class="p">(</span><span class="n">id</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="n">type</span><span class="p">,</span><span class="n">seq</span><span class="p">)</span> <span class="nf">value</span> <span class="p">(</span><span class="mi">36</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">5</span><span class="p">);</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=ZmVhOWRlZmVhZDNkNzRkODZlMGFkMzcyN2E2Yjk1ZDdfWnh1WXJOOHg4aXJMZTRDVzllZHZTS2g3bDlIWGk1dkFfVG9rZW46SkVDYmJOY0ZOb3hhTU94d0o1Q2NnekhtbmNlXzE3MjMzNjUyOTQ6MTcyMzM2ODg5NF9WNA"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<h5 id="id5-1">id&gt;=5
+</h5><p>和上面的唯一区别就是多了个等于5，那么5上是临键锁还是行锁呢？我觉得是行锁，因为优化1，而且这样和我们的认知也是比较符合的；</p>
+<p>实际看到确实是这样；</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-C" data-lang="C"><span class="line"><span class="cl"><span class="n">start</span> <span class="n">transaction</span> <span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="n">select</span> <span class="o">*</span> <span class="n">from</span> <span class="n">simple</span> <span class="n">where</span> <span class="n">id</span><span class="o">&gt;=</span><span class="mi">5</span> <span class="n">lock</span> <span class="n">in</span> <span class="n">share</span> <span class="n">mode</span> <span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="n">select</span> <span class="o">*</span> <span class="n">from</span> <span class="n">performance_schema</span><span class="p">.</span><span class="n">data_locks</span><span class="p">;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=MjNhODlkYTg5MzMwZjZlZjJmMTg4M2YwZWM3M2IwZjRfR1RmSFhSMkdTUHRnSFlUOFBiMkwxTTlFdlBkSUY1UzFfVG9rZW46VDY4TmJJUkRSbzcxYzh4cmowT2M1d2c2blZnXzE3MjMzNjUyOTQ6MTcyMzM2ODg5NF9WNA"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<h5 id="id5-and-id20">id&gt;5 and id&lt;20
+</h5><p>首先5&lt;x&lt;20，那么正常情况应该是(5,15]和(15,20]，然后20因为不等于会被优化（触发了优化2)，所以是(5,20)</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-C" data-lang="C"><span class="line"><span class="cl"><span class="n">start</span> <span class="n">transaction</span> <span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="n">select</span> <span class="o">*</span> <span class="n">from</span> <span class="n">simple</span> <span class="n">where</span> <span class="n">id</span><span class="o">&gt;</span><span class="mi">5</span> <span class="n">and</span> <span class="n">id</span><span class="o">&lt;</span><span class="mi">20</span> <span class="n">lock</span> <span class="n">in</span> <span class="n">share</span> <span class="n">mode</span> <span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="n">select</span> <span class="o">*</span> <span class="n">from</span> <span class="n">performance_schema</span><span class="p">.</span><span class="n">data_locks</span><span class="p">;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=NjFjMzBlNDM2YWMxM2IwODYzZWM2MWU2MjU5YThlZTVfRVA1WlQ0UmlvcHdEWjFmQVBPSG9sV1o0anJNZkNLc05fVG9rZW46T3drMmJKVWxSb1pmenl4SXlmd2Mzb08zbmxnXzE3MjMzNjUyOTQ6MTcyMzM2ODg5NF9WNA"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<h5 id="id5-and-id20-1">id&gt;5 and id&lt;=20
+</h5><p>假如是5&lt;x&lt;=20，那就会是(5,20]；</p>
+<p>但是注意我们前面提到过一个bug，可是我们看到目前就是锁到20为止，并不是(5,23)，翻看评论区说在MySQL 8.0.18 已经修复,而我的版本是8.0.33，这里难道是修复了吗？先存疑，因为这里只能证明主键索引修复了，后面唯一索引那里还是乱的一批</p>
+<p><img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=Njc1MzBmNWUwMGQwZWYzNzc5MTNkZTBmZDI4YjExMWVfN0JKaGlRY1pzSTBwQ2RqdjN5NTJLUkVMWFEwdElpZ3FfVG9rZW46VUJ5WWI3S0Rrb2M2ckF4ZFJwZWNHQVUybkdiXzE3MjMzNjUyOTQ6MTcyMzM2ODg5NF9WNA"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<h5 id="id30">id&gt;30
+</h5><p>应该会直接锁(23,super&hellip;)</p>
+<p><img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=NTgxMDFmYzU1MmUwMjEwNTg0MmY0MWFjMjljN2EzMWNfT2U5bDZXS3RIb083Z0RQMlMwd2ZpbEoyS3lGV0pGcEVfVG9rZW46RER3bGIwbXcyb2lZWkF4MzhteWM0YTdDbnlkXzE3MjMzNjUyOTQ6MTcyMzM2ODg5NF9WNA"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<h3 id="case4next-key-lock和-unique-key">case4(next-key lock和 unique key)
+</h3><p>和case3唯一的区别就是将主键索引换成了唯一索引，猜测应该是一模一样的，因为文档里的特殊规则说的也都是唯一索引，而没有限制到主键上；</p>
+<h4 id="单一查询且查询结果存在uni15">单一查询且查询结果存在(uni=15)
+</h4><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-C" data-lang="C"><span class="line"><span class="cl"><span class="n">start</span> <span class="n">transaction</span> <span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="n">select</span> <span class="o">*</span> <span class="n">from</span> <span class="n">simple</span> <span class="n">where</span> <span class="n">uni</span> <span class="o">=</span> <span class="mi">15</span> <span class="n">lock</span> <span class="n">in</span> <span class="n">share</span> <span class="n">mode</span> <span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="n">select</span> <span class="o">*</span> <span class="n">from</span> <span class="n">performance_schema</span><span class="p">.</span><span class="n">data_locks</span><span class="p">;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=NDBhOGU3YjhiMzEwNjAzMzQ5MDFkZjBjMzQ1YTM3YTRfVDZjeWlHSDhhN3hjTzBEYjFaUXRPdXIyeld3b1VYV3pfVG9rZW46TFFBRmJ2SW00b0FMeXd4aHdtRWNlRGJ2blFBXzE3MjMzNjUyOTQ6MTcyMzM2ODg5NF9WNA"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<p>理想很美好，现实很骨感；这是什么？？突然想到行锁和间隙锁都是锁在索引上的锁，由于我查询结果是所有字段，所以会发生回表查询；当命中到唯一索引的时候会锁一次，然后根据主键id再锁一次；</p>
+<p>但是现在我的uni和id字段值是一样的，所以为了区分，我将uni这一列都加了100，然后执行下面的句子</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-C" data-lang="C"><span class="line"><span class="cl"><span class="n">start</span> <span class="n">transaction</span> <span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="n">select</span> <span class="o">*</span> <span class="n">from</span> <span class="n">simple</span> <span class="n">where</span> <span class="n">uni</span> <span class="o">=</span> <span class="mi">115</span> <span class="n">lock</span> <span class="n">in</span> <span class="n">share</span> <span class="n">mode</span> <span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="n">select</span> <span class="o">*</span> <span class="n">from</span> <span class="n">performance_schema</span><span class="p">.</span><span class="n">data_locks</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">select</span> <span class="n">id</span> <span class="n">from</span> <span class="n">simple</span> <span class="n">where</span> <span class="n">uni</span> <span class="o">=</span> <span class="mi">115</span> <span class="n">lock</span> <span class="n">in</span> <span class="n">share</span> <span class="n">mode</span> <span class="p">;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=ODA3Y2YzNmEzOGUzOWM2MDBlN2M4NDNhOTRkYTA2NzlfZnlEcEd1Rmc1bmlvSnNqQWJOcDBjTHlURktycER0TE9fVG9rZW46WDFLRWJNSnc4b2VPa0N4bXlpYWNpcHNPbjVkXzE3MjMzNjUyOTQ6MTcyMzM2ODg5NF9WNA"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<p>可以看到primary那行应该是因为回表操作，而unidx那行应该则是对应唯一索引的查询，实际锁的范围和主键索引是一致的，只不过锁的内容我不理解，lock_data为115,15，为什么？</p>
+<p>而且如果我们查询的不是select *,而是select id ,锁的信息就不包含primary那行了；</p>
+<p><img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=Yjg2ZjE2ZDFiMDc5ZmQ4MjNkODc3NmY0ZTNiOGJiMTRfd2Y4a3VRRU9BY0Q5YkFNMjZMdDl4Uk4wNEFBWVp3VWNfVG9rZW46SzhLbWJ6S0hyb1JHamp4cXdxUmNKUFJkbk1kXzE3MjMzNjUyOTQ6MTcyMzM2ODg5NF9WNA"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<h4 id="单一查询且结果不存在uni116">单一查询且结果不存在(uni=116）
+</h4><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-C" data-lang="C"><span class="line"><span class="cl"><span class="n">start</span> <span class="n">transaction</span> <span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="n">select</span> <span class="o">*</span> <span class="n">from</span> <span class="n">simple</span> <span class="n">where</span> <span class="n">uni</span> <span class="o">=</span> <span class="mi">116</span> <span class="n">lock</span> <span class="n">in</span> <span class="n">share</span> <span class="n">mode</span> <span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="n">select</span> <span class="o">*</span> <span class="n">from</span> <span class="n">performance_schema</span><span class="p">.</span><span class="n">data_locks</span><span class="p">;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=NTg0YmZhOTkzMzFiM2JiOGY3OWE1ZmQ1Yzk0MGU5YjJfbEIxMU5zN0h0dXpMWmlNRHZDMEY2TEFnbDNydWljSmNfVG9rZW46WVhDaGJZNGN6bzB6STF4RW5vNGNGYnFrblJjXzE3MjMzNjUyOTQ6MTcyMzM2ODg5NF9WNA"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<p>由于查询不到，所以也不会回表查询，就不存在primary那行了</p>
+<h4 id="uni105">uni&gt;105
+</h4><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-C" data-lang="C"><span class="line"><span class="cl"><span class="n">start</span> <span class="n">transaction</span> <span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="n">select</span> <span class="n">id</span> <span class="n">from</span> <span class="n">simple</span> <span class="n">where</span> <span class="n">simple</span><span class="p">.</span><span class="n">uni</span><span class="o">&gt;</span><span class="mi">105</span> <span class="n">lock</span> <span class="n">in</span> <span class="n">share</span> <span class="n">mode</span> <span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="n">select</span> <span class="o">*</span> <span class="n">from</span> <span class="n">performance_schema</span><span class="p">.</span><span class="n">data_locks</span><span class="p">;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=NmRiZTAyM2Q4Yzc5Njc2Y2IzYTIyYzlkNmVhZWVlNjJfT0VDcUlFTWZFaDFOaXlnZHlJOWxVRE43NWpDRjY5alZfVG9rZW46UmFHTWJFdkdib2pSa1V4MDVLYmNkSFB1bjhnXzE3MjMzNjUyOTQ6MTcyMzM2ODg5NF9WNA"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<p>我理解到每个索引节点的时候，都会执行一次select * from simple where id = x；所以会多出几行只有行锁primary的记录；</p>
+<p>uni&gt;=105只是会在unidx和primary上各多一个锁，但范围和唯一索引依然一致，就不贴了</p>
+<h4 id="uni105-and-uni120">uni&gt;105 and uni&lt;120
+</h4><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-C" data-lang="C"><span class="line"><span class="cl"><span class="c1">//console1
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">commit</span> <span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="n">start</span> <span class="n">transaction</span> <span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="n">select</span> <span class="o">*</span> <span class="n">from</span> <span class="n">simple</span> <span class="n">where</span> <span class="n">uni</span><span class="o">&gt;</span><span class="mi">105</span> <span class="n">and</span> <span class="n">uni</span><span class="o">&lt;</span><span class="mi">120</span> <span class="n">lock</span> <span class="n">in</span> <span class="n">share</span> <span class="n">mode</span> <span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="n">select</span> <span class="o">*</span> <span class="n">from</span> <span class="n">performance_schema</span><span class="p">.</span><span class="n">data_locks</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="c1">//console2
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">select</span> <span class="o">*</span> <span class="n">from</span> <span class="n">simple</span> <span class="n">where</span> <span class="n">uni</span><span class="o">=</span><span class="mi">120</span> <span class="k">for</span> <span class="n">update</span> <span class="p">;</span><span class="c1">//被阻塞
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p><img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=OTVmYjM4OGU1NGNhYzEyMDhkMTJhODk4MDIwNjg4NWZfVnc1VVdEWnp3MGtYWkhUWVhXWGJPT2l2ek1wMzJwelpfVG9rZW46V0c1WGI4V2Z4b3h6aE14WFdxa2NjNWlCbnpoXzE3MjMzNjUyOTQ6MTcyMzM2ODg5NF9WNA"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<p>这里和上面不一样的是，这里把120这行也锁上了，主键索引锁20是间隙锁，这里是临键锁；为什么这里会锁上呢？就很像是bug并没有修复，依然锁到了第一个不满足条件的，并且加了临键锁</p>
+<h4 id="uni105-and-uni120-1">uni&gt;105 and uni&lt;=120
+</h4><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-C" data-lang="C"><span class="line"><span class="cl"><span class="n">commit</span> <span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="n">start</span> <span class="n">transaction</span> <span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="n">select</span> <span class="o">*</span> <span class="n">from</span> <span class="n">simple</span> <span class="n">where</span> <span class="n">uni</span><span class="o">&gt;</span><span class="mi">105</span> <span class="n">and</span> <span class="n">uni</span><span class="o">&lt;=</span><span class="mi">120</span> <span class="n">lock</span> <span class="n">in</span> <span class="n">share</span> <span class="n">mode</span> <span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="n">select</span> <span class="o">*</span> <span class="n">from</span> <span class="n">performance_schema</span><span class="p">.</span><span class="n">data_locks</span><span class="p">;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=ZGI3NTIyZWYxMDE1YjFlZTBiZWNhZDQzOWQ0YjQ0YmFfOEViNW4xQUlxcEw5YXROOVUzTUpEQXYzS0piV0dpb3pfVG9rZW46VGdtdWJ3RWx0b3g3Y1p4YXNMRGMzVnBubkxlXzE3MjMzNjUyOTQ6MTcyMzM2ODg5NF9WNA"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<p>这里更离谱，这里为什么把123都给锁上了？？感觉bug依然存在，多锁了一个区间</p>
+<h4 id="uni130和上面的id30结果一样就不贴了">uni&gt;130和上面的id&gt;30结果一样，就不贴了
+</h4><p>总结：对于唯一索引来说，因为存在主键，那么会产生回表操作，回表操作会给主键再加一把锁；而那个bug依旧存在，只有主键索引的修复了，非主键唯一索引依然存在这个bug;</p>
+<h3 id="case5索引加在哪">case5（索引加在哪）
+</h3><p><img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=OGU4NzgzZWQ2MzJjZWQwN2ViOTA5ZTRmYjI3MzY2YTZfZ3cwRWxOeE1qTXRVT2x3aUM2VUdZQ29iR3U0aWZzSDJfVG9rZW46Q0xEMWJUUllUb1ZXMHZ4WlNVcmNJOWU5bnBjXzE3MjMzNjUyOTQ6MTcyMzM2ODg5NF9WNA"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-C" data-lang="C"><span class="line"><span class="cl"><span class="c1">//console1
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">start</span> <span class="n">transaction</span> <span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="n">select</span> <span class="n">id</span> <span class="n">from</span> <span class="n">simple</span> <span class="n">where</span>  <span class="n">uni</span><span class="o">=</span><span class="mi">105</span> <span class="n">lock</span> <span class="n">in</span> <span class="n">share</span> <span class="n">mode</span> <span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="n">select</span> <span class="o">*</span> <span class="n">from</span> <span class="n">performance_schema</span><span class="p">.</span><span class="n">data_locks</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="c1">//console2
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">start</span> <span class="n">transaction</span> <span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="n">update</span> <span class="n">simple</span> <span class="n">set</span> <span class="n">name</span><span class="o">=</span><span class="err">&#39;</span><span class="n">new</span><span class="err">&#39;</span> <span class="n">where</span> <span class="n">id</span><span class="o">=</span><span class="mi">5</span><span class="p">;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>现在我们已经清楚，执行完console1之后，会给unidx加一个行锁，因为没有回表，所以主键上没有锁；那么console2能否成功执行呢？</p>
+<p>答案是，可以的；</p>
+<p>我个人理解，是因为锁是加在索引上的，而索引是列维度的，不是行维度的；console2执行语句只会去判断id这个索引上，有没有5这个锁；</p>
+<p>接下来我们反过来</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-C" data-lang="C"><span class="line"><span class="cl"><span class="c1">//console1
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">start</span> <span class="n">transaction</span> <span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="n">select</span> <span class="o">*</span> <span class="n">from</span> <span class="n">simple</span> <span class="n">where</span>  <span class="n">id</span><span class="o">=</span><span class="mi">5</span> <span class="n">lock</span> <span class="n">in</span> <span class="n">share</span> <span class="n">mode</span> <span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="n">select</span> <span class="o">*</span> <span class="n">from</span> <span class="n">performance_schema</span><span class="p">.</span><span class="n">data_locks</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="c1">//console2
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">start</span> <span class="n">transaction</span> <span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="n">update</span> <span class="n">simple</span> <span class="n">set</span> <span class="n">name</span><span class="o">=</span><span class="err">&#39;</span><span class="n">new</span><span class="err">&#39;</span> <span class="n">where</span> <span class="n">uni</span><span class="o">=</span><span class="mi">105</span><span class="p">;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>你试着一起敲一下就会发现，咦，console2怎么阻塞了呢？按上面所说的，不是不应该吗？</p>
+<p>实际上console1的执行锁的确实是id；</p>
+<p>但是你console2的执行，会回表啊，会尝试给id加写锁，但是id已经加了读锁了，所以自然不行了；</p>
+<p>所以，不要盲目的只看查询条件，要理解当前语句都会加什么锁，是否和已经加的锁冲突；</p>
+<p>最后，我们再来看一个附加题，下面两个语句加的锁是否一样呢？</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-C" data-lang="C"><span class="line"><span class="cl"><span class="n">start</span> <span class="n">transaction</span> <span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="n">select</span> <span class="n">id</span> <span class="n">from</span> <span class="n">simple</span> <span class="n">where</span>  <span class="n">uni</span><span class="o">=</span><span class="mi">105</span> <span class="n">lock</span> <span class="n">in</span> <span class="n">share</span> <span class="n">mode</span> <span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="n">select</span> <span class="o">*</span> <span class="n">from</span> <span class="n">performance_schema</span><span class="p">.</span><span class="n">data_locks</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">start</span> <span class="n">transaction</span> <span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="n">select</span> <span class="n">id</span> <span class="n">from</span> <span class="n">simple</span> <span class="n">where</span>  <span class="n">uni</span><span class="o">=</span><span class="mi">105</span> <span class="k">for</span> <span class="n">update</span> <span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="n">select</span> <span class="o">*</span> <span class="n">from</span> <span class="n">performance_schema</span><span class="p">.</span><span class="n">data_locks</span><span class="p">;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>在我没有尝试之前，我理解都没有回表，那么就应该一个是唯一索引加读锁，一个是唯一索引加写锁；</p>
+<p>但是实际结果却是lock in share mode是对的，for update会认为你要更新语句，自动给主键加锁了</p>
+<p><img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=ZWQ0OWZhMTI0MzZiZWJmNzgxODI0YjcwYzAyNDQ1NWFfQXRuTGZzTnB3N3NCZjZtMjFOZlJEYm52eldRZWdEQU5fVG9rZW46R0Y0QWJCdHdIb3ZDWXN4TEl0V2NwWWxtbjZjXzE3MjMzNjUyOTQ6MTcyMzM2ODg5NF9WNA"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<h3 id="case6next-key-lock-和index">case6（next-key lock 和index）
+</h3><p>吸取uni的教训，我给seq的值都加了200，现在这个表是这样的</p>
+<p><img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=YjkwZTU1MzBhZDNlNzljNWQ3NmUzNzFkOTJlNDk4MjVfUXBLbXRzMWtDNVN0Ujc4dmphbjRVQW5FWFpac1NqVjRfVG9rZW46Vm5yQWJRbVNjb0lOR3h4M2ZIb2N5SWRKbjVnXzE3MjMzNjUyOTQ6MTcyMzM2ODg5NF9WNA"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<h4 id="seq215">seq=215
+</h4><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-C" data-lang="C"><span class="line"><span class="cl"><span class="n">start</span> <span class="n">transaction</span> <span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="n">select</span> <span class="o">*</span> <span class="n">from</span> <span class="n">simple</span> <span class="n">where</span>  <span class="n">seq</span><span class="o">=</span><span class="mi">215</span> <span class="n">lock</span> <span class="n">in</span> <span class="n">share</span> <span class="n">mode</span> <span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="n">select</span> <span class="o">*</span> <span class="n">from</span> <span class="n">performance_schema</span><span class="p">.</span><span class="n">data_locks</span><span class="p">;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=ZWNhMTEwODA3NGRkMDI5NTg5MTNkY2IwMWJkOWJkMWNfcFVDN2M1Zkl0SHV5bFNIcTNGTGJhNXFMTEtjSkN3bkFfVG9rZW46SWEzSWJySmozb0hvaHZ4TlBucWNLNnFHbk82XzE3MjMzNjUyOTQ6MTcyMzM2ODg5NF9WNA"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<p>除了意向锁，其他三个我们一个个看；</p>
+<p>seqidx(S)这行是普通索引执行时加的临键锁，由于不是唯一索引，所以不能优化（因为可能存在重复）</p>
+<p>primary(S,REC_NOT_GAP)这是回表操作带来的</p>
+<p>seqidx(S,GAP)这行是因为不是唯一索引，所以在查询到匹配的值之后不会立马停止（因为后面可能还存在相同的值），所以必须要到不符合条件的值为止，而所有查询过的都会加索引，所以存在一个间隙锁。</p>
+<h4 id="seq216">seq=216
+</h4><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-C" data-lang="C"><span class="line"><span class="cl"><span class="n">start</span> <span class="n">transaction</span> <span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="n">select</span> <span class="o">*</span> <span class="n">from</span> <span class="n">simple</span> <span class="n">where</span>  <span class="n">seq</span><span class="o">=</span><span class="mi">216</span> <span class="n">lock</span> <span class="n">in</span> <span class="n">share</span> <span class="n">mode</span> <span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="n">select</span> <span class="o">*</span> <span class="n">from</span> <span class="n">performance_schema</span><span class="p">.</span><span class="n">data_locks</span><span class="p">;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=MTJmYmFkNGQwMTY5Mjc5YjZhMWU4MTdkMmNhZGU2NTJfV0F6cHFnS1M1Mlh2V2RDMjZ1RWdnc2lPbnBJQUVCMGhfVG9rZW46QXh5RWJaMXJvbzU3Tk54dDU1S2NremVDbmlnXzE3MjMzNjUyOTQ6MTcyMzM2ODg5NF9WNA"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<p>我理解，应该是从205开始查，查到第一个不符合条件的值是215，加上中间没有回表，所以就这一个锁；理论应该是(215,220]，但由于优化2，所以退化为间隙锁；</p>
+<h4 id="seq215-and-seq220">seq&gt;215 and seq&lt;220
+</h4><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-C" data-lang="C"><span class="line"><span class="cl"><span class="n">start</span> <span class="n">transaction</span> <span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="n">select</span> <span class="o">*</span> <span class="n">from</span> <span class="n">simple</span> <span class="n">where</span>  <span class="n">seq</span><span class="o">&gt;</span><span class="mi">215</span> <span class="n">and</span> <span class="n">seq</span> <span class="o">&lt;</span><span class="mi">220</span> <span class="n">lock</span> <span class="n">in</span> <span class="n">share</span> <span class="n">mode</span> <span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="n">select</span> <span class="o">*</span> <span class="n">from</span> <span class="n">performance_schema</span><span class="p">.</span><span class="n">data_locks</span><span class="p">;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>从215开始匹配，第一个不符合条件的是220，所以只能是（215,220]</p>
+<h4 id="seq215-and-seq-220">seq&gt;215 and seq &lt;=220
+</h4><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-C" data-lang="C"><span class="line"><span class="cl"><span class="n">start</span> <span class="n">transaction</span> <span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="n">select</span> <span class="o">*</span> <span class="n">from</span> <span class="n">simple</span> <span class="n">where</span>  <span class="n">seq</span><span class="o">&gt;</span><span class="mi">215</span> <span class="n">and</span> <span class="n">seq</span> <span class="o">&lt;=</span><span class="mi">220</span> <span class="n">lock</span> <span class="n">in</span> <span class="n">share</span> <span class="n">mode</span> <span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="n">select</span> <span class="o">*</span> <span class="n">from</span> <span class="n">performance_schema</span><span class="p">.</span><span class="n">data_locks</span><span class="p">;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=NWU1M2M3NjdkZDY3ZDY5M2NmMWEzNDI2ODI2ZDczYTdfZW5PRWlERDdVWVdwbzNpUEVzekJZUXlzY1BaQlpWNEpfVG9rZW46VFozRGJ0NUcyb3h4RWV4dFYzR2NDT293bnJiXzE3MjMzNjUyOTQ6MTcyMzM2ODg5NF9WNA"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<p>这里和上面区别就是不符合条件的会到223为止，另外中间因为匹配成功会回一次表</p>
+<h4 id="seq230和前面unidx130和id30都一样">seq&gt;230和前面unidx&gt;130和id&gt;30都一样
+</h4><h3 id="case7next-key和没有索引">case7(next-key和没有索引）
+</h3><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-C" data-lang="C"><span class="line"><span class="cl"><span class="n">alter</span> <span class="n">table</span> <span class="n">simple</span> <span class="n">drop</span> <span class="n">index</span>  <span class="n">seqidx</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="n">start</span> <span class="n">transaction</span> <span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="n">select</span> <span class="o">*</span> <span class="n">from</span> <span class="n">simple</span> <span class="n">where</span>  <span class="n">seq</span><span class="o">=</span><span class="mi">215</span> <span class="n">lock</span> <span class="n">in</span> <span class="n">share</span> <span class="n">mode</span> <span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="n">select</span> <span class="o">*</span> <span class="n">from</span> <span class="n">performance_schema</span><span class="p">.</span><span class="n">data_locks</span><span class="p">;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>前面提到过，查询条件匹配不到索引或者只是索引的一部分，这个时候为了保证数据的准确性，会给整个表“加锁”，其实给表里所有的记录都加锁(这里我不知道描述的对不对，因为表锁！=所有记录加锁，虽然效果相似，但并不是一个东西）.</p>
+<p><img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=ZjNiMmMzNzIzZTY2MWI1Y2QzNzU0Y2I1ZjU5NWU1N2JfbXJXYVZSMmg5WFlxMFlReDBOVXRJU1ZVaEpBREVhd2JfVG9rZW46S0dHdGJNUXZ2bzV4ZTJ4bkgxNmNyaWFablFkXzE3MjMzNjUyOTQ6MTcyMzM2ODg5NF9WNA"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<p><img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=M2NlY2VhOGI3ZjA0ZDZlOTVkZTlmMWQyMjg0NGY1MTdfd1dRc2VzTW9QNDJQcFQ3Q01lTnlMOXN2d2JRbHE3RXdfVG9rZW46QmxVcmJXSVdFb2VIdDF4NWhkYWNjdXNrbndDXzE3MjMzNjUyOTQ6MTcyMzM2ODg5NF9WNA"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<p>同时因为这个表存在意向读锁，通过lock tables simple write 加写的表锁会冲突；</p>
+<h2 id="疑问">疑问
+</h2><p>对于事务和表锁一起用的情况，到底要使用set autocommit=0吗？why？</p>
+<ul>
+<li>The correct way to use <u><code><a href="https://dev.mysql.com/doc/refman/8.0/en/lock-tables.html">LOCK TABLES</a></code></u> and <u><code><a href="https://dev.mysql.com/doc/refman/8.0/en/lock-tables.html">UNLOCK TABLES</a></code></u> with transactional tables, such as <code>InnoDB</code> tables, is to begin a transaction with <code>SET autocommit = 0</code> (not <u><code><a href="https://dev.mysql.com/doc/refman/8.0/en/commit.html">START TRANSACTION</a></code></u>) followed by <u><code><a href="https://dev.mysql.com/doc/refman/8.0/en/lock-tables.html">LOCK TABLES</a></code></u>, and to not call <u><code><a href="https://dev.mysql.com/doc/refman/8.0/en/lock-tables.html">UNLOCK TABLES</a></code></u> until you commit the transaction explicitly. For example, if you need to write to table <code>t1</code> and read from table <code>t2</code>, you can do this:</li>
+</ul>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-SQL" data-lang="SQL"><span class="line"><span class="cl"><span class="k">SET</span><span class="w"> </span><span class="n">autocommit</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">LOCK</span><span class="w"> </span><span class="n">TABLES</span><span class="w"> </span><span class="n">t1</span><span class="w"> </span><span class="k">WRITE</span><span class="p">,</span><span class="w"> </span><span class="n">t2</span><span class="w"> </span><span class="k">READ</span><span class="p">,</span><span class="w"> </span><span class="p">...;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">...</span><span class="w"> </span><span class="k">do</span><span class="w"> </span><span class="n">something</span><span class="w"> </span><span class="k">with</span><span class="w"> </span><span class="n">tables</span><span class="w"> </span><span class="n">t1</span><span class="w"> </span><span class="k">and</span><span class="w"> </span><span class="n">t2</span><span class="w"> </span><span class="n">here</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">...</span><span class="k">COMMIT</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="n">UNLOCK</span><span class="w"> </span><span class="n">TABLES</span><span class="p">;</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
+<li>When you call <u><code><a href="https://dev.mysql.com/doc/refman/8.0/en/lock-tables.html">LOCK TABLES</a></code></u>, <code>InnoDB</code> internally takes its own table lock, and MySQL takes its own table lock. <code>InnoDB</code> releases its internal table lock at the next commit, but for MySQL to release its table lock, you have to call <u><code><a href="https://dev.mysql.com/doc/refman/8.0/en/lock-tables.html">UNLOCK TABLES</a></code></u>. You should not have <u><code><a href="https://dev.mysql.com/doc/refman/8.0/en/server-system-variables.html#sysvar_autocommit">autocommit = 1</a></code></u>, because then <code>InnoDB</code> releases its internal table lock immediately after the call of <u><code><a href="https://dev.mysql.com/doc/refman/8.0/en/lock-tables.html">LOCK TABLES</a></code></u>, and deadlocks can very easily happen. <code>InnoDB</code> does not acquire the internal table lock at all if <u><code><a href="https://dev.mysql.com/doc/refman/8.0/en/server-system-variables.html#sysvar_autocommit">autocommit = 1</a></code></u>, to help old applications avoid unnecessary deadlocks.</li>
+</ul>
+<h2 id="参考文档">参考文档
+</h2><p><a class="link" href="https://dev.mysql.com/doc/refman/8.0/en/innodb-locking.html#innodb-shared-exclusive-locks"  target="_blank" rel="noopener"
+    >https://dev.mysql.com/doc/refman/8.0/en/innodb-locking.html#innodb-shared-exclusive-locks</a></p>
+<p><a class="link" href="https://dev.mysql.com/doc/refman/8.0/en/lock-tables.html"  target="_blank" rel="noopener"
+    >https://dev.mysql.com/doc/refman/8.0/en/lock-tables.html</a></p>
+<p><a class="link" href="https://time.geekbang.org/column/article/69862"  target="_blank" rel="noopener"
+    >06 | 全局锁和表锁 ：给表加个字段怎么有这么多阻碍？-极客时间</a></p>
+<p><a class="link" href="https://blog.csdn.net/q2878948/article/details/96430129"  target="_blank" rel="noopener"
+    >mysql MDL读写锁阻塞，以及online ddl造成的“插队”现象_花落的速度的博客-CSDN博客</a></p>
+<p><a class="link" href="https://blog.csdn.net/zbh1957282580/article/details/122457542"  target="_blank" rel="noopener"
+    >MYSQL查看表是否被锁、以及解锁_mysql查看锁表_清石小猿的博客-CSDN博客</a></p>
+
+</section>
+
+
+    <footer class="article-footer">
+    
+    <section class="article-tags">
+        
+            <a href="/tags/mysql/">Mysql</a>
+        
+    </section>
+
+
+    
+    <section class="article-copyright">
+        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-copyright" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="12" cy="12" r="9" />
+  <path d="M14.5 9a3.5 4 0 1 0 0 6" />
+</svg>
+
+
+
+        <span>Licensed under CC BY-NC-SA 4.0</span>
+    </section>
+    </footer>
+
+
+    
+</article>
+
+    
+
+    
+
+<aside class="related-content--wrapper">
+    <h2 class="section-title">相关文章</h2>
+    <div class="related-content">
+        <div class="flex article-list--tile">
+            
+                
+<article class="">
+    <a href="/post/tech/mysql/undolog_redolog/">
+        
+        
+
+        <div class="article-details">
+            <h2 class="article-title">UndoLog和redoLog</h2>
+        </div>
+    </a>
+</article>
+
+            
+                
+<article class="has-image">
+    <a href="/post/tech/mysql/mvcc/">
+        
+        
+            <div class="article-image">
+                
+                    <img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=YTYwNTJjMmYzMWUyOGIxYjdkZGQ2ZTgxYWE4YjZjY2JfV2c4a1ZDOUhtRWh2a0xFMUxKRTJqRW9xSHBpTE00RFBfVG9rZW46VW9lNWJ6bUc1b2VMZUN4WmFHVGNDbVUybmdjXzE3MjMzNjM4Mzk6MTcyMzM2NzQzOV9WNA" loading="lazy" data-key="MVCC" data-hash="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=YTYwNTJjMmYzMWUyOGIxYjdkZGQ2ZTgxYWE4YjZjY2JfV2c4a1ZDOUhtRWh2a0xFMUxKRTJqRW9xSHBpTE00RFBfVG9rZW46VW9lNWJ6bUc1b2VMZUN4WmFHVGNDbVUybmdjXzE3MjMzNjM4Mzk6MTcyMzM2NzQzOV9WNA"/>
+                
+            </div>
+        
+
+        <div class="article-details">
+            <h2 class="article-title">MVCC机制</h2>
+        </div>
+    </a>
+</article>
+
+            
+                
+<article class="">
+    <a href="/post/tech/mysql/transaction_isolation/">
+        
+        
+
+        <div class="article-details">
+            <h2 class="article-title">事务隔离级别</h2>
+        </div>
+    </a>
+</article>
+
+            
+                
+<article class="">
+    <a href="/post/tech/distributed/zookeeper/zookeeper%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-watch%E6%9C%BA%E5%88%B6/">
+        
+        
+
+        <div class="article-details">
+            <h2 class="article-title">Zookeeper源码分析-watch机制</h2>
+        </div>
+    </a>
+</article>
+
+            
+                
+<article class="">
+    <a href="/post/tech/distributed/zookeeper/zookeeperservermain/">
+        
+        
+
+        <div class="article-details">
+            <h2 class="article-title">Zookeeper源码学习-单机部分通信组件</h2>
+        </div>
+    </a>
+</article>
+
+            
+        </div>
+    </div>
+</aside>
+
+     
+    
+        
+    <script src="//cdn.jsdelivr.net/npm/twikoo@1.6.21/dist/twikoo.all.min.js"></script>
+<div id="tcomment"></div>
+<style>
+    .twikoo {
+        background-color: var(--card-background);
+        border-radius: var(--card-border-radius);
+        box-shadow: var(--shadow-l1);
+        padding: var(--card-padding);
+    }
+    :root[data-scheme="dark"] {
+        --twikoo-body-text-color-main: rgba(255, 255, 255, 0.9);
+        --twikoo-body-text-color: rgba(255, 255, 255, 0.7);
+    }
+    .twikoo .el-input-group__prepend,
+    .twikoo .tk-action-icon,
+    .twikoo .tk-submit-action-icon,
+    .twikoo .tk-time,
+    .twikoo .tk-comments-no,
+    .twikoo .tk-comments-count {
+        color: var(--twikoo-body-text-color);
+    }
+    .twikoo .el-input__inner,
+    .twikoo .el-textarea__inner,
+    .twikoo .tk-preview-container,
+    .twikoo .tk-content,
+    .twikoo .tk-nick,
+    .twikoo .tk-send {
+        color: var(--twikoo-body-text-color-main);
+    }
+    .twikoo .el-button{
+        color: var(--twikoo-body-text-color)!important;
+    }
+    .twikoo .el-input__count {
+        color: var(--twikoo-body-text-color) !important;
+    }
+    .OwO .OwO-body {
+        background-color: var(--body-background) !important;
+        color: var(--body-text-color) !important;
+    }
+</style><script>
+    twikoo.init({
+        envId: 'https:\/\/qisiii-twikoo.hf.space',
+        el: '#tcomment',})
+</script>
+
+    
+
+    <footer class="site-footer">
+    <section class="copyright">
+        &copy; 
+        
+            2022 - 
+        
+        2024 起司
+    </section>
+    
+    <section class="powerby">
+        使用 <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> 构建 <br />
+        主题 <b><a href="https://github.com/CaiJimmy/hugo-theme-stack" target="_blank" rel="noopener" data-version="3.26.0">Stack</a></b> 由 <a href="https://jimmycai.com" target="_blank" rel="noopener">Jimmy</a> 设计
+    </section>
+</footer>
+
+
+    
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    
+    <div class="pswp__bg"></div>
+
+    
+    <div class="pswp__scroll-wrap">
+
+        
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                
+                
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"integrity="sha256-ePwmChbbvXbsO02lbM3HoHbSHTHFAeChekF1xKJdleo="crossorigin="anonymous"
+                defer
+                >
+            </script><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"integrity="sha256-UKkzOn/w1mBxRmLLGrSeyB4e1xbrp4xylgAWb3M42pU="crossorigin="anonymous"
+                defer
+                >
+            </script><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css"crossorigin="anonymous"
+            ><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css"crossorigin="anonymous"
+            >
+
+            </main>
+        </div>
+        <script 
+                src="https://cdn.jsdelivr.net/npm/node-vibrant@3.1.6/dist/vibrant.min.js"integrity="sha256-awcR2jno4kI5X0zL8ex0vi2z&#43;KMkF24hUW8WePSA9HM="crossorigin="anonymous"
+                
+                >
+            </script><script type="text/javascript" src="/ts/main.js" defer></script>
+<script>
+    (function () {
+        const customFont = document.createElement('link');
+        customFont.href = "https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap";
+
+        customFont.type = "text/css";
+        customFont.rel = "stylesheet";
+
+        document.head.appendChild(customFont);
+    }());
+</script>
+
+
+    </body>
+</html>

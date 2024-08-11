@@ -1,0 +1,1171 @@
+<!DOCTYPE html>
+<html lang="zh-cn" dir="ltr">
+    <head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset='utf-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1'><meta name='description' content="事务隔离级别遗留问题： 在读已提交的级别下，事务B可以读到事务A持有写锁的的记录，且读到的是未更新前的，为何写读没有冲突？ 可重复读级别，事务B">
+<title>MVCC机制</title>
+
+<link rel='canonical' href='http://localhost:1313/post/tech/mysql/mvcc%E6%9C%BA%E5%88%B6/'>
+
+<link rel="stylesheet" href="/scss/style.min.0304c6baf04e01a8fe70693791cb744d56a3578a3120a8796cefc66825aa39c7.css"><meta property='og:title' content="MVCC机制">
+<meta property='og:description' content="事务隔离级别遗留问题： 在读已提交的级别下，事务B可以读到事务A持有写锁的的记录，且读到的是未更新前的，为何写读没有冲突？ 可重复读级别，事务B">
+<meta property='og:url' content='http://localhost:1313/post/tech/mysql/mvcc%E6%9C%BA%E5%88%B6/'>
+<meta property='og:site_name' content='起司的博客'>
+<meta property='og:type' content='article'><meta property='article:section' content='Post' /><meta property='article:tag' content='mysql' /><meta property='article:published_time' content='2023-06-05T00:00:00&#43;00:00'/><meta property='article:modified_time' content='2023-06-05T00:00:00&#43;00:00'/><meta property='og:image' content='https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=YTYwNTJjMmYzMWUyOGIxYjdkZGQ2ZTgxYWE4YjZjY2JfV2c4a1ZDOUhtRWh2a0xFMUxKRTJqRW9xSHBpTE00RFBfVG9rZW46VW9lNWJ6bUc1b2VMZUN4WmFHVGNDbVUybmdjXzE3MjMzNjM4Mzk6MTcyMzM2NzQzOV9WNA' />
+<meta name="twitter:title" content="MVCC机制">
+<meta name="twitter:description" content="事务隔离级别遗留问题： 在读已提交的级别下，事务B可以读到事务A持有写锁的的记录，且读到的是未更新前的，为何写读没有冲突？ 可重复读级别，事务B"><meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:image" content='https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=YTYwNTJjMmYzMWUyOGIxYjdkZGQ2ZTgxYWE4YjZjY2JfV2c4a1ZDOUhtRWh2a0xFMUxKRTJqRW9xSHBpTE00RFBfVG9rZW46VW9lNWJ6bUc1b2VMZUN4WmFHVGNDbVUybmdjXzE3MjMzNjM4Mzk6MTcyMzM2NzQzOV9WNA' /><link rel="alternate" type="application/json" href="http://localhost:1313/post/tech/mysql/mvcc%E6%9C%BA%E5%88%B6/index.json">
+  
+    
+      <script async src="https://www.googletagmanager.com/gtag/js?id=G-8NDCRP4S7S"></script>
+      <script>
+        var doNotTrack = false;
+        if ( false ) {
+          var dnt = (navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack);
+          var doNotTrack = (dnt == "1" || dnt == "yes");
+        }
+        if (!doNotTrack) {
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-8NDCRP4S7S');
+        }
+      </script>
+    
+  
+
+
+    </head>
+    <body class="
+    article-page
+    ">
+    <script>
+        (function() {
+            const colorSchemeKey = 'StackColorScheme';
+            if(!localStorage.getItem(colorSchemeKey)){
+                localStorage.setItem(colorSchemeKey, "auto");
+            }
+        })();
+    </script><script>
+    (function() {
+        const colorSchemeKey = 'StackColorScheme';
+        const colorSchemeItem = localStorage.getItem(colorSchemeKey);
+        const supportDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches === true;
+
+        if (colorSchemeItem == 'dark' || colorSchemeItem === 'auto' && supportDarkMode) {
+            
+
+            document.documentElement.dataset.scheme = 'dark';
+        } else {
+            document.documentElement.dataset.scheme = 'light';
+        }
+    })();
+</script>
+<div class="container main-container flex on-phone--column extended"><aside class="sidebar left-sidebar sticky ">
+    <button class="hamburger hamburger--spin" type="button" id="toggle-menu" aria-label="切换菜单">
+        <span class="hamburger-box">
+            <span class="hamburger-inner"></span>
+        </span>
+    </button>
+
+    <header>
+        
+            
+            <figure class="site-avatar">
+                <a href="/">
+                
+                    
+                    
+                    
+                        
+                        <img src="/img/avatar_huf89847f5290877d03a6309f0caaa56f1_43584_300x0_resize_box_3.png" width="300"
+                            height="300" class="site-logo" loading="lazy" alt="Avatar">
+                    
+                
+                </a>
+                
+            </figure>
+            
+        
+        
+        <div class="site-meta">
+            <h1 class="site-name"><a href="/">起司的博客</a></h1>
+            <h2 class="site-description"></h2>
+        </div>
+    </header><ol class="menu-social">
+            
+                <li>
+                    <a 
+                        href='https://www.cnblogs.com/qisi'
+                        target="_blank"
+                        title="cnblog"
+                        rel="me"
+                    >
+                        
+                        
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-rss" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="5" cy="19" r="1" />
+  <path d="M4 4a16 16 0 0 1 16 16" />
+  <path d="M4 11a9 9 0 0 1 9 9" />
+</svg>
+
+
+
+                        
+                    </a>
+                </li>
+            
+                <li>
+                    <a 
+                        href='https://github.com/qisiii'
+                        target="_blank"
+                        title="GitHub"
+                        rel="me"
+                    >
+                        
+                        
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-brand-github" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+  <path d="M9 19c-4.3 1.4 -4.3 -2.5 -6 -3m12 5v-3.5c0 -1 .1 -1.4 -.5 -2c2.8 -.3 5.5 -1.4 5.5 -6a4.6 4.6 0 0 0 -1.3 -3.2a4.2 4.2 0 0 0 -.1 -3.2s-1.1 -.3 -3.5 1.3a12.3 12.3 0 0 0 -6.2 0c-2.4 -1.6 -3.5 -1.3 -3.5 -1.3a4.2 4.2 0 0 0 -.1 3.2a4.6 4.6 0 0 0 -1.3 3.2c0 4.6 2.7 5.7 5.5 6c-.6 .6 -.6 1.2 -.5 2v3.5" />
+</svg>
+
+
+
+                        
+                    </a>
+                </li>
+            
+        </ol><ol class="menu" id="main-menu">
+        
+        
+        <li class="menu-bottom-section">
+            <ol class="menu">
+
+                
+                    <li id="dark-mode-toggle">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-toggle-left" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="8" cy="12" r="2" />
+  <rect x="2" y="6" width="20" height="12" rx="6" />
+</svg>
+
+
+
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-toggle-right" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="16" cy="12" r="2" />
+  <rect x="2" y="6" width="20" height="12" rx="6" />
+</svg>
+
+
+
+                        <span>暗色模式</span>
+                    </li>
+                
+            </ol>
+        </li>
+    </ol>
+</aside>
+
+    <aside class="sidebar right-sidebar sticky">
+        
+            
+                
+    <section class="widget archives">
+        <div class="widget-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-hash" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <line x1="5" y1="9" x2="19" y2="9" />
+  <line x1="5" y1="15" x2="19" y2="15" />
+  <line x1="11" y1="4" x2="7" y2="20" />
+  <line x1="17" y1="4" x2="13" y2="20" />
+</svg>
+
+
+
+        </div>
+        <h2 class="widget-title section-title">目录</h2>
+        
+        <div class="widget--toc">
+            <nav id="TableOfContents">
+  <ol>
+    <li><a href="#事务隔离级别遗留问题">事务隔离级别遗留问题：</a></li>
+    <li><a href="#在学习了解mvcc机制中遇到的问题">在学习了解MVCC机制中遇到的问题：</a></li>
+  </ol>
+
+  <ol>
+    <li><a href="#版本链">版本链</a></li>
+    <li><a href="#readview">Readview</a>
+      <ol>
+        <li><a href="#理论">理论：</a></li>
+        <li><a href="#可见性规则底层实现">可见性规则底层实现</a>
+          <ol>
+            <li><a href="#readview类">ReadView类</a></li>
+            <li><a href="#初始化赋值的时候">初始化赋值的时候</a></li>
+            <li><a href="#判断某个版本的记录是否可见">判断某个版本的记录是否可见？</a></li>
+          </ol>
+        </li>
+        <li><a href="#事务的trx_id">事务的trx_id</a></li>
+        <li><a href="#生成快照时机不太确定">生成快照时机（不太确定）</a></li>
+        <li><a href="#快照读和当前读">快照读和当前读</a></li>
+      </ol>
+    </li>
+  </ol>
+</nav>
+        </div>
+    </section>
+
+            
+        
+    </aside>
+
+
+            <main class="main full-width">
+    <article class="has-image main-article">
+    <header class="article-header">
+        <div class="article-image">
+            <a href="/post/tech/mysql/mvcc%E6%9C%BA%E5%88%B6/">
+                
+                    <img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=YTYwNTJjMmYzMWUyOGIxYjdkZGQ2ZTgxYWE4YjZjY2JfV2c4a1ZDOUhtRWh2a0xFMUxKRTJqRW9xSHBpTE00RFBfVG9rZW46VW9lNWJ6bUc1b2VMZUN4WmFHVGNDbVUybmdjXzE3MjMzNjM4Mzk6MTcyMzM2NzQzOV9WNA" loading="lazy" alt="Featured image of post MVCC机制" />
+                
+            </a>
+        </div>
+    
+
+    <div class="article-details">
+    
+    <header class="article-category">
+        
+            <a href="/categories/%E6%8A%80%E6%9C%AF%E6%96%87%E6%A1%A3/" >
+                技术文档
+            </a>
+        
+    </header>
+    
+
+    <div class="article-title-wrapper">
+        <h2 class="article-title">
+            <a href="/post/tech/mysql/mvcc%E6%9C%BA%E5%88%B6/">MVCC机制</a>
+        </h2>
+    
+        
+    </div>
+
+    
+    
+    
+    
+    <footer class="article-time">
+        
+            <div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-calendar-time" width="56" height="56" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <path d="M11.795 21h-6.795a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v4" />
+  <circle cx="18" cy="18" r="4" />
+  <path d="M15 3v4" />
+  <path d="M7 3v4" />
+  <path d="M3 11h16" />
+  <path d="M18 16.496v1.504l1 1" />
+</svg>
+                <time class="article-time--published">2023-06-05</time>
+            </div>
+        
+
+        
+            <div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-clock" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="12" cy="12" r="9" />
+  <polyline points="12 7 12 12 15 15" />
+</svg>
+
+
+
+                <time class="article-time--reading">
+                    阅读时长: 11 分钟
+                </time>
+            </div>
+        
+    </footer>
+    
+
+    
+</div>
+
+</header>
+
+    <section class="article-content">
+    
+    
+    <h2 id="事务隔离级别遗留问题">事务隔离级别遗留问题：
+</h2><p>在读已提交的级别下，事务B可以读到事务A持有写锁的的记录，且读到的是未更新前的，为何写读没有冲突？</p>
+<p>可重复读级别，事务B可以更新事务A已经获取读锁的记录，且更新后，事务A依然可以获取读锁，为何读-写-读没有冲突？</p>
+<p>在可重复读级别，幻读没有产生？</p>
+<p>其中，前两个问题就是因为mvcc机制（读锁的一种优化机制），通过不加读锁，避免读写冲突，进而提高了性能。</p>
+<p>而第三个问题，一部分原因是由MVCC机制保证的，还有一部分则是由锁来保证的；</p>
+<p>两次查询都是当前读或快照读，不会出现幻读问题；</p>
+<p>第一次查询是快照读，第二次是当前读，会出现幻读问题；</p>
+<h2 id="在学习了解mvcc机制中遇到的问题">在学习了解MVCC机制中遇到的问题：
+</h2><ol>
+<li>
+<p>为什么更新操作必须使用当前读？</p>
+</li>
+<li>
+<p>只读事务突然更新的话，因为更新必须使用当前读，那是否需要重新生成事务id?</p>
+</li>
+<li>
+<p>只读事务分配的事务id是什么东西？如何参与运作？</p>
+</li>
+<li>
+<p>readview的范围</p>
+</li>
+<li>
+<p>知道了mvcc底层是undolog和readview后，怎么理解“版本”这个概念</p>
+</li>
+<li>
+<p>在只读视图能查到其他事务已经删除并且提交的记录吗？</p>
+</li>
+</ol>
+<h1 id="为什么要有mvcc机制">为什么要有MVCC机制？
+</h1><ol>
+<li>
+<p>在读已提交的级别下，由于是给读加锁来保证读已提交， 如果事务A持有写锁，为了保证读已提交，事务B必须等待事务A提交之后才可以读；其他的读事务也是这样的情况，效率太低</p>
+</li>
+<li>
+<p>在可重复读级别，为了保证可重复读，如果事务A持有读锁，为了第二次读到的一样，其他所有写事务必须等待读完才可以，同样效率低</p>
+</li>
+</ol>
+<p>那么很自然的想到，无论读事务是先产生还是后产生，如果这个时候还存在写事务没有执行，或者需要执行；那么就应该让读事务读到目前最新的值，且写事务可以更新；只不过读事务在写事务提交更新后，依据隔离级别是否可见最新更新即可。这就是MVCC机制的核心能力，将读锁干掉。</p>
+<h1 id="mvcc机制核心组件">MVCC机制核心组件
+</h1><p>MVCC机制由<strong>版本链、undolog、readview</strong>三大核心构成</p>
+<h2 id="版本链">版本链
+</h2><p>猜测很多人第一次看到MVCC的版本都是和我一样在各种各样的博客文章上，或者可能是在一些课程专栏或者《高性能mysql》这本书的mvcc部分看到的，那么在你的理解中，版本的底层是什么样子呢？</p>
+<p>innodb引擎数据库中的每一条记录上，我们都可以认为上面有3个隐藏字段，分别是DB_ROW_ID(不在此次讨论范围),DB_TRX_ID和DB_ROLL_PTR,如下图一样</p>
+<p><img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=MzA4ZGM4ZjBmMjVkYWEyNTBiOGRkZjgyODYxNThkNGVfTjM0Z0JpeU4wUTlySER6bHg1cWdWenZlczJxSFd2enBfVG9rZW46RHFvUWJYdUpnb0FLYnB4ODRYUGNNdlRvblVjXzE3MjMzNjM4Mzk6MTcyMzM2NzQzOV9WNA"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<p>在我的理解中，</p>
+<p>DB_TRX_ID就是插入或者更新时，当前事务的trx_id，由全局事务管理器分配的递增的一个id；</p>
+<p>DB_ROLL_PTR存储的undolog中当前记录上一个版本的指针，先姑且记住这是一个指针。</p>
+<p><strong>当插入一条记录时</strong></p>
+<p>在这条记录的DB_TRX_ID填入当前事务的id，由于没有历史版本，所以DB_ROLL_PTR为空</p>
+<p><strong>当更新一条记录时</strong></p>
+<p>由于这个时候存在历史版本，所以需要将老版本的数据写到undolog里，然后构建指针</p>
+<p>将DB_TRX_ID更新为当前事务的id,将DB_ROLL_PTR更新为刚才构建的指针，以及更新需要更新的字段。</p>
+<p><strong>当删除一条记录时</strong>（这个不太确定，主观猜测）</p>
+<p>猜测是将老记录写到undolog，然后构建指针</p>
+<p>新记录DB_TRX_ID更新为当前事务的id,将DB_ROLL_PTR更新为刚才构建的指针，但是没有需要更新的字段。</p>
+<p>mysql不会立即删除，记录上有一个info_bits字段，会标记上删除标识(REC_INFO_DELETED_FLAG)，后续由purge线程（不了解，姑且认为是个scheduleTask吧)删除</p>
+<p>这样，当多次更新之后，新记录存储的永远都是最新操作的事务id，并通过指针指向了老版本，老版本还指向了更老的版本&hellip;等等，最终构成了一个版本链</p>
+<h2 id="readview">Readview
+</h2><h3 id="理论">理论：
+</h3><p>在周志明老师的凤凰架构（或者极客时间的‘周志明的软件架构课’）中对mvcc简单介绍到</p>
+<blockquote>
+<p>隔离级别是可重复读：总是读取 CREATE_VERSION 小于或等于当前事务 ID 的记录，在这个前提下，如果数据仍有多个版本，则取最新（事务 ID 最大）的。</p>
+<p>隔离级别是读已提交：总是取最新的版本即可，即最近被 Commit 的那个版本的数据记录。</p>
+</blockquote>
+<p>在mysql官网中是这么描述的</p>
+<blockquote>
+<p>If the transaction <a class="link" href="https://dev.mysql.com/doc/refman/8.0/en/glossary.html#glos_isolation_level"  target="_blank" rel="noopener"
+    >isolation level</a> is <u><code><a href="https://dev.mysql.com/doc/refman/8.0/en/innodb-transaction-isolation-levels.html#isolevel_repeatable-read">REPEATABLE READ</a></code></u> (the default level), all consistent reads within the same transaction read the snapshot established by the first such read in that transaction. You can get a fresher snapshot for your queries by committing the current transaction and after that issuing new queries.</p>
+<p>With <u><code><a href="https://dev.mysql.com/doc/refman/8.0/en/innodb-transaction-isolation-levels.html#isolevel_read-committed">READ COMMITTED</a></code></u> isolation level, each consistent read within a transaction sets and reads its own fresh snapshot.</p>
+</blockquote>
+<p>翻译：</p>
+<p>隔离级别是可重复读：在同一个事务中，一致性视图是在总是去第一次读取时生成的快照。</p>
+<p>隔离级别是读已提交：事务中的每次读取都取自己新生成的快照。</p>
+<hr>
+<p>相比之下，周老师形容的更贴近隔离级别的概念上，官方的描述则是底层的具体实现逻辑。</p>
+<p>两者结合一下就是</p>
+<p><strong>可重复读：通过在每个事物只读取第一次select时生成的快照和undolog比较，根据一个可见性规则判断，是否可以读当前版本的记录，可以就返回，不行就继续比较再上一个版本，直到最老的版本；</strong></p>
+<p><strong>读已提交：除了每次读取都会使用最新的快照，后面的都和可重复读的逻辑一样。</strong></p>
+<p><strong>为什么我这里说的是可见性规则呢？</strong></p>
+<p>是因为周老师描述里“总是读取 CREATE_VERSION 小于或等于当前事务 ID 的记录”</p>
+<p>很容易错误的理解为当前版本记录里的trx_id&lt;=快照创建时的事务id(create_trx_id)就都可见，真正的判断逻辑并不只是一个create_trx_id就能搞定的。</p>
+<p>但这里先不展开讲，自己想一下为什么不行，下面的图可能会给你一点灵感，接下来我们先去读一下“可见性规则”的底层源码。</p>
+<p><img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=OGE4YmY1MTkxN2NjZDliZDg4ZGNhNDFjNTFkZDg4NGVfMHV0R212RExxTjhqNlBwZ1BXTzVzYkV5aGswb05tV1lfVG9rZW46Uzh5S2JEWE9Nb0o3U2F4bjZZNWN5U1R6bmZnXzE3MjMzNjM4Mzk6MTcyMzM2NzQzOV9WNA"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<h3 id="可见性规则底层实现">可见性规则底层实现
+</h3><h4 id="readview类">ReadView类
+</h4><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-C" data-lang="C"><span class="line"><span class="cl"><span class="n">storage</span><span class="o">/</span><span class="n">innobase</span><span class="o">/</span><span class="n">include</span><span class="o">/</span><span class="n">read0types</span><span class="p">.</span><span class="nl">h</span><span class="p">:</span><span class="mi">47</span>
+</span></span><span class="line"><span class="cl"><span class="c1">//ReadView类
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">class</span> <span class="n">ReadView</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl"><span class="p">...</span>
+</span></span><span class="line"><span class="cl"><span class="nl">private</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">  <span class="cm">/** trx id of creating transaction, set to TRX_ID_MAX for free
+</span></span></span><span class="line"><span class="cl"><span class="cm">  views. */</span>
+</span></span><span class="line"><span class="cl">  <span class="c1">//创建快照的时候，快照对应的事务id，只有含有写操作的才会分配真正的事务id
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>  <span class="kt">trx_id_t</span> <span class="n">m_creator_trx_id</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">  
+</span></span><span class="line"><span class="cl">  <span class="cm">/** Set of RW transactions that was active when this snapshot
+</span></span></span><span class="line"><span class="cl"><span class="cm">  was taken */</span>
+</span></span><span class="line"><span class="cl">  <span class="c1">//活跃的读写事务id列表，从trx_sys-&gt;rw_trx_ids抄过来的
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>  <span class="kt">ids_t</span> <span class="n">m_ids</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">  
+</span></span><span class="line"><span class="cl">  <span class="cm">/** The read should not see any transaction with trx id &gt;= this
+</span></span></span><span class="line"><span class="cl"><span class="cm">  value. In other words, this is the &#34;high water mark&#34;. */</span>
+</span></span><span class="line"><span class="cl">  <span class="c1">//赋值是即将分配的下一个事务id，所以大于等于这个id的记录对当前事务来说都是不可见的
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>  <span class="kt">trx_id_t</span> <span class="n">m_low_limit_id</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">  <span class="cm">/** The read should see all trx ids which are strictly
+</span></span></span><span class="line"><span class="cl"><span class="cm">  smaller (&lt;) than this value.  In other words, this is the
+</span></span></span><span class="line"><span class="cl"><span class="cm">  low water mark&#34;. */</span>
+</span></span><span class="line"><span class="cl">  <span class="c1">//m_ids不为空就是ids.get(0)，为空则是m_low_limit_id,所以小于这个事务id的就代表着快照建立的时候
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>  <span class="c1">//已经不是活跃事务了，即已经提交了，所以一定可以看到这些事务的改动记录
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>  <span class="kt">trx_id_t</span> <span class="n">m_up_limit_id</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">....</span>
+</span></span><span class="line"><span class="cl">  <span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h4 id="初始化赋值的时候">初始化赋值的时候
+</h4><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-C" data-lang="C"><span class="line"><span class="cl"><span class="c1">//read0read.cc
+</span></span></span><span class="line"><span class="cl"><span class="c1">//row_search_mvcc -&gt; trx_assign_read_view -&gt; MVCC::view_open -&gt;
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl"><span class="kt">void</span> <span class="n">ReadView</span><span class="o">::</span><span class="nf">prepare</span><span class="p">(</span><span class="kt">trx_id_t</span> <span class="n">id</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">  <span class="nf">ut_ad</span><span class="p">(</span><span class="nf">trx_sys_mutex_own</span><span class="p">());</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">  <span class="n">m_creator_trx_id</span> <span class="o">=</span> <span class="n">id</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">  <span class="n">m_low_limit_no</span> <span class="o">=</span> <span class="nf">trx_get_serialisation_min_trx_no</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">  <span class="n">m_low_limit_id</span> <span class="o">=</span> <span class="nf">trx_sys_get_next_trx_id_or_no</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">  <span class="nf">ut_a</span><span class="p">(</span><span class="n">m_low_limit_no</span> <span class="o">&lt;=</span> <span class="n">m_low_limit_id</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">trx_sys</span><span class="o">-&gt;</span><span class="n">rw_trx_ids</span><span class="p">.</span><span class="nf">empty</span><span class="p">())</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">copy_trx_ids</span><span class="p">(</span><span class="n">trx_sys</span><span class="o">-&gt;</span><span class="n">rw_trx_ids</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">  <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="n">m_ids</span><span class="p">.</span><span class="nf">clear</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">  <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">  <span class="cm">/* The first active transaction has the smallest id. */</span>
+</span></span><span class="line"><span class="cl">  <span class="n">m_up_limit_id</span> <span class="o">=</span> <span class="o">!</span><span class="n">m_ids</span><span class="p">.</span><span class="nf">empty</span><span class="p">()</span> <span class="o">?</span> <span class="n">m_ids</span><span class="p">.</span><span class="nf">front</span><span class="p">()</span> <span class="o">:</span> <span class="n">m_low_limit_id</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">  <span class="nf">ut_a</span><span class="p">(</span><span class="n">m_up_limit_id</span> <span class="o">&lt;=</span> <span class="n">m_low_limit_id</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">  <span class="nf">ut_d</span><span class="p">(</span><span class="n">m_view_low_limit_no</span> <span class="o">=</span> <span class="n">m_low_limit_no</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">  <span class="n">m_closed</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h4 id="判断某个版本的记录是否可见">判断某个版本的记录是否可见？
+</h4><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-C" data-lang="C"><span class="line"><span class="cl"> <span class="c1">//read0types.h
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span> <span class="kt">bool</span> <span class="nf">changes_visible</span><span class="p">(</span><span class="kt">trx_id_t</span> <span class="n">id</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                                   <span class="k">const</span> <span class="kt">table_name_t</span> <span class="o">&amp;</span><span class="n">name</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">  <span class="nf">ut_ad</span><span class="p">(</span><span class="n">id</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">  <span class="c1">//如果当前版本记录上的事务id（DB_TRX_ID）小于低水位或者等于当前事务，
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>  <span class="c1">//那么要么就是自己更改的，要么就是历史上已经提交了的，所以可以读到
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>  <span class="k">if</span> <span class="p">(</span><span class="n">id</span> <span class="o">&lt;</span> <span class="n">m_up_limit_id</span> <span class="o">||</span> <span class="n">id</span> <span class="o">==</span> <span class="n">m_creator_trx_id</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="p">(</span><span class="nb">true</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">  <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">  <span class="nf">check_trx_id_sanity</span><span class="p">(</span><span class="n">id</span><span class="p">,</span> <span class="n">name</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">  <span class="c1">//如果当前版本记录上的事务id（DB_TRX_ID）大于高水位，那么就是在当前快照生成后生成的事务，一律看不到
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>  <span class="k">if</span> <span class="p">(</span><span class="n">id</span> <span class="o">&gt;=</span> <span class="n">m_low_limit_id</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="p">(</span><span class="nb">false</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">  <span class="c1">//这一步我没有理解，
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>  <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">m_ids</span><span class="p">.</span><span class="nf">empty</span><span class="p">())</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="p">(</span><span class="nb">true</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">  <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">  <span class="k">const</span> <span class="kt">ids_t</span><span class="o">::</span><span class="n">value_type</span> <span class="o">*</span><span class="n">p</span> <span class="o">=</span> <span class="n">m_ids</span><span class="p">.</span><span class="nf">data</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">  <span class="c1">//二分查找，如果活跃的事务里面没有，那么就返回true
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>  <span class="c1">//这里我是这么理解的，[低水位,高水位]包含活水和死水，即活跃的事务和已经提交的事务
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>  <span class="c1">//假如存在事务1是活跃的，事物2是已提交的，事务3是活跃的，我们在事务4的时候开启快照，很明显我们只能读到事务2或者事务4的变更
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>  <span class="c1">//假如正在判断的是事务2，因为已经经过了上面的校验，
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>  <span class="c1">//所以我们知道当前版本记录的事务m_low_limit_id（高水位）&gt;id&gt;=m_up_limit_id（低水位)，且不是当前事务;
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>  <span class="c1">//所以就需要判断事务只要不是活跃的，那么就一定是已经提交的事务，那么就可读
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>  <span class="k">return</span> <span class="p">(</span><span class="o">!</span><span class="n">std</span><span class="o">::</span><span class="nf">binary_search</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">p</span> <span class="o">+</span> <span class="n">m_ids</span><span class="p">.</span><span class="nf">size</span><span class="p">(),</span> <span class="n">id</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=YTYwNTJjMmYzMWUyOGIxYjdkZGQ2ZTgxYWE4YjZjY2JfV2c4a1ZDOUhtRWh2a0xFMUxKRTJqRW9xSHBpTE00RFBfVG9rZW46VW9lNWJ6bUc1b2VMZUN4WmFHVGNDbVUybmdjXzE3MjMzNjM4Mzk6MTcyMzM2NzQzOV9WNA"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<h3 id="事务的trx_id">事务的trx_id
+</h3><p>在我还没开始看mysql源码，只是跟着博客学习写用例测试的时候，我发现，开启事务进行了第一次查询之后，确实有生成事务id，但后面我更新了之后，原来的事务id变了；就像下面这个图一样，最开始只有查询的时候是比较长的这个id,但执行了一条update语句后，事务id变成了一个短的。</p>
+<p><img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=MzVmOGQ4OGYxZTc2ZGEwYjZhZDk3MDczOTM3MWM4MDdfSjZSQVBLYVV1ZUZUZnNvUEsyckRGV2t4aURsa2pRaTRfVG9rZW46RHlhcGIyeWJab0xHMWt4VTI4ZWNGczJqbjRmXzE3MjMzNjM4Mzk6MTcyMzM2NzQzOV9WNA"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<p>这个时候我就产生了很多疑问？同一个事务里，事务id怎么还能变呢？变的话changes_visible里面的比较怎么算？搜索了一下之后了解到，只读事务是不会生成事务id的，是假的！于是我又疑惑，那这个假id怎么参与changes_visible呢？也就是这个时候，我才下定决心去看源码，也借此理解了高低水位的设计，并认识到自己之前的理解是错误的。</p>
+<p><strong>先上结论</strong></p>
+<p><strong>只读事务不会分配真正的事务id，他的值是0；</strong></p>
+<p><strong>只读事务参与change_visable的时候，create_trx_id也确实是0，是通过m_up_limit_id（低水位）来判断是否可见的，只有在变成读写事务是，create_trx_id才会起效并应用；</strong></p>
+<p>因为<strong>值是0，在通过下面sql查询的时候，那串id只是展示的时候特殊处理的</strong></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-C" data-lang="C"><span class="line"><span class="cl"><span class="n">select</span> <span class="o">*</span> <span class="n">from</span> <span class="n">information_schema</span><span class="p">.</span><span class="n">INNODB_TRX</span><span class="p">;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-C" data-lang="C"><span class="line"><span class="cl"> <span class="c1">//trx0trx.cc#trx_start_low
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span> <span class="c1">//这里可以看到只有读写事务才真正分配了id
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span> <span class="k">else</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">  <span class="n">trx</span><span class="o">-&gt;</span><span class="n">id</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span><span class="c1">//开始是0
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl">  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nf">trx_is_autocommit_non_locking</span><span class="p">(</span><span class="n">trx</span><span class="p">))</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="cm">/* If this is a read-only transaction that is writing
+</span></span></span><span class="line"><span class="cl"><span class="cm">    to a temporary table then it needs a transaction id
+</span></span></span><span class="line"><span class="cl"><span class="cm">    to write to the temporary table. */</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="n">read_write</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">      <span class="nf">trx_sys_mutex_enter</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">      <span class="nf">ut_ad</span><span class="p">(</span><span class="o">!</span><span class="n">srv_read_only_mode</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">      <span class="n">trx</span><span class="o">-&gt;</span><span class="n">state</span><span class="p">.</span><span class="nf">store</span><span class="p">(</span><span class="n">TRX_STATE_ACTIVE</span><span class="p">,</span> <span class="n">std</span><span class="o">::</span><span class="n">memory_order_relaxed</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">      <span class="n">trx</span><span class="o">-&gt;</span><span class="n">id</span> <span class="o">=</span> <span class="nf">trx_sys_allocate_trx_id</span><span class="p">();</span><span class="c1">//这里进行分配
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl">      <span class="n">trx_sys</span><span class="o">-&gt;</span><span class="n">rw_trx_ids</span><span class="p">.</span><span class="nf">push_back</span><span class="p">(</span><span class="n">trx</span><span class="o">-&gt;</span><span class="n">id</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">      <span class="nf">trx_sys_mutex_exit</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">      <span class="nf">trx_sys_rw_trx_add</span><span class="p">(</span><span class="n">trx</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">      <span class="n">trx</span><span class="o">-&gt;</span><span class="n">state</span><span class="p">.</span><span class="nf">store</span><span class="p">(</span><span class="n">TRX_STATE_ACTIVE</span><span class="p">,</span> <span class="n">std</span><span class="o">::</span><span class="n">memory_order_relaxed</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">  <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">ut_ad</span><span class="p">(</span><span class="o">!</span><span class="n">read_write</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="n">trx</span><span class="o">-&gt;</span><span class="n">state</span><span class="p">.</span><span class="nf">store</span><span class="p">(</span><span class="n">TRX_STATE_ACTIVE</span><span class="p">,</span> <span class="n">std</span><span class="o">::</span><span class="n">memory_order_relaxed</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">  <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-C" data-lang="C"><span class="line"><span class="cl"><span class="c1">//trx0trx.ic
+</span></span></span><span class="line"><span class="cl"><span class="c1">//这里是在展示的时候对只读事务的id做了处理
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="err">@</span><span class="k">return</span> <span class="n">transaction</span> <span class="n">id</span> <span class="err">*/</span>
+</span></span><span class="line"><span class="cl"><span class="k">static</span> <span class="kr">inline</span> <span class="kt">trx_id_t</span> <span class="nf">trx_get_id_for_print</span><span class="p">(</span><span class="k">const</span> <span class="kt">trx_t</span> <span class="o">*</span><span class="n">trx</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">  <span class="cm">/* DATA_TRX_ID_LEN is the storage size in bytes. */</span>
+</span></span><span class="line"><span class="cl">  <span class="k">static</span> <span class="k">const</span> <span class="kt">trx_id_t</span> <span class="n">max_trx_id</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1ULL</span> <span class="o">&lt;&lt;</span> <span class="p">(</span><span class="n">DATA_TRX_ID_LEN</span> <span class="o">*</span> <span class="n">CHAR_BIT</span><span class="p">))</span> <span class="o">-</span> <span class="mi">1</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">  <span class="nf">ut_ad</span><span class="p">(</span><span class="n">trx</span><span class="o">-&gt;</span><span class="n">id</span> <span class="o">&lt;=</span> <span class="n">max_trx_id</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">  <span class="cm">/* on some 32bit architectures casting trx_t* (4 bytes) directly to
+</span></span></span><span class="line"><span class="cl"><span class="cm">  trx_id_t (8 bytes unsigned) does sign extension and the resulting value
+</span></span></span><span class="line"><span class="cl"><span class="cm">  has highest 32 bits set to 1, so the number is unnecessarily huge.
+</span></span></span><span class="line"><span class="cl"><span class="cm">  Also there is no guarantee that we will obtain the same integer each time.
+</span></span></span><span class="line"><span class="cl"><span class="cm">  Casting to uintptr_t first, and then extending to 64 bits keeps the highest
+</span></span></span><span class="line"><span class="cl"><span class="cm">  bits clean. */</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">  <span class="k">return</span> <span class="p">(</span><span class="n">trx</span><span class="o">-&gt;</span><span class="n">id</span> <span class="o">!=</span> <span class="mi">0</span>
+</span></span><span class="line"><span class="cl">              <span class="o">?</span> <span class="n">trx</span><span class="o">-&gt;</span><span class="nl">id</span>
+</span></span><span class="line"><span class="cl">              <span class="p">:</span> <span class="kt">trx_id_t</span><span class="p">{</span><span class="n">reinterpret_cast</span><span class="o">&lt;</span><span class="kt">uintptr_t</span><span class="o">&gt;</span><span class="p">(</span><span class="n">trx</span><span class="p">)}</span> <span class="o">|</span> <span class="p">(</span><span class="n">max_trx_id</span> <span class="o">+</span> <span class="mi">1</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="生成快照时机不太确定">生成快照时机（不太确定）
+</h3><p>可重复读：只生成一次，后面继续使用</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-C" data-lang="C"><span class="line"><span class="cl"><span class="n">ReadView</span> <span class="o">*</span><span class="nf">trx_assign_read_view</span><span class="p">(</span><span class="kt">trx_t</span> <span class="o">*</span><span class="n">trx</span><span class="p">)</span> <span class="cm">/*!&lt; in/out: active transaction */</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">  <span class="nf">ut_ad</span><span class="p">(</span><span class="nf">trx_can_be_handled_by_current_thread_or_is_hp_victim</span><span class="p">(</span><span class="n">trx</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl">  <span class="nf">ut_ad</span><span class="p">(</span><span class="n">trx</span><span class="o">-&gt;</span><span class="n">state</span><span class="p">.</span><span class="nf">load</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">memory_order_relaxed</span><span class="p">)</span> <span class="o">==</span> <span class="n">TRX_STATE_ACTIVE</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">  <span class="k">if</span> <span class="p">(</span><span class="n">srv_read_only_mode</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">ut_ad</span><span class="p">(</span><span class="n">trx</span><span class="o">-&gt;</span><span class="n">read_view</span> <span class="o">==</span> <span class="n">nullptr</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="p">(</span><span class="n">nullptr</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">  <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">MVCC</span><span class="o">::</span><span class="nf">is_view_active</span><span class="p">(</span><span class="n">trx</span><span class="o">-&gt;</span><span class="n">read_view</span><span class="p">))</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="n">trx_sys</span><span class="o">-&gt;</span><span class="n">mvcc</span><span class="o">-&gt;</span><span class="nf">view_open</span><span class="p">(</span><span class="n">trx</span><span class="o">-&gt;</span><span class="n">read_view</span><span class="p">,</span> <span class="n">trx</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">  <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">  <span class="k">return</span> <span class="p">(</span><span class="n">trx</span><span class="o">-&gt;</span><span class="n">read_view</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>读已提交：好像是用完就关，所以每次再获取就得新开，但是这里的关有两个地方调，不太确定上层是不是sql执行完的方法</p>
+<p>ha_innodb.cc#store_lock 和ha_innodb.cc#external_lock</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-C" data-lang="C"><span class="line"><span class="cl"><span class="k">if</span> <span class="p">(</span><span class="n">lock_type</span> <span class="o">!=</span> <span class="n">TL_IGNORE</span> <span class="o">&amp;&amp;</span> <span class="n">trx</span><span class="o">-&gt;</span><span class="n">n_mysql_tables_in_use</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">  <span class="n">trx</span><span class="o">-&gt;</span><span class="n">isolation_level</span> <span class="o">=</span>
+</span></span><span class="line"><span class="cl">      <span class="nf">innobase_trx_map_isolation_level</span><span class="p">(</span><span class="nf">thd_get_trx_isolation</span><span class="p">(</span><span class="n">thd</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">  <span class="k">if</span> <span class="p">(</span><span class="n">trx</span><span class="o">-&gt;</span><span class="n">isolation_level</span> <span class="o">&lt;=</span> <span class="n">TRX_ISO_READ_COMMITTED</span> <span class="o">&amp;&amp;</span>
+</span></span><span class="line"><span class="cl">      <span class="n">MVCC</span><span class="o">::</span><span class="nf">is_view_active</span><span class="p">(</span><span class="n">trx</span><span class="o">-&gt;</span><span class="n">read_view</span><span class="p">))</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="cm">/* At low transaction isolation levels we let
+</span></span></span><span class="line"><span class="cl"><span class="cm">    each consistent read set its own snapshot */</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="nf">mutex_enter</span><span class="p">(</span><span class="o">&amp;</span><span class="n">trx_sys</span><span class="o">-&gt;</span><span class="n">mutex</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">trx_sys</span><span class="o">-&gt;</span><span class="n">mvcc</span><span class="o">-&gt;</span><span class="nf">view_close</span><span class="p">(</span><span class="n">trx</span><span class="o">-&gt;</span><span class="n">read_view</span><span class="p">,</span> <span class="nb">true</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="nf">mutex_exit</span><span class="p">(</span><span class="o">&amp;</span><span class="n">trx_sys</span><span class="o">-&gt;</span><span class="n">mutex</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">  <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="快照读和当前读">快照读和当前读
+</h3><p>快照读：当前执行的sql如果不存在锁，那么默认读到的就是readview里的快照，这种情况称之为快照读；</p>
+<p>当前读：如果当前执行的sql存在锁，比如使用了lock in share mode,for update，或者是insert、update、delete操作，对于这种需要锁的sql，必须读取最新的视图，这种行为称之为当前读；</p>
+<p>我个人理解只有在RR级别才需要区分对待，RC级别都是当前读；而且我认为二者的区别就只有加锁和不加锁这一个点</p>
+<h1 id="回答文章最开始的一些问题">回答文章最开始的一些问题：
+</h1><ol>
+<li>为什么更新操作必须使用当前读？</li>
+</ol>
+<p>更新操作后的如果不回滚那没有事，如果要回滚，应该回滚到最新一次的提交，所以undo log里必须是最新的视图</p>
+<ol start="2">
+<li>只读事务突然更新的话，因为更新必须使用当前读，那是否需要重新生成事务id?</li>
+</ol>
+<p>不算做重新，是只有在触发锁操作时会分配真正的事务id，只读事务分配的id其实就是0</p>
+<ol start="3">
+<li>只读事务分配的事务id是什么东西？如何参与运作？</li>
+</ol>
+<p>没有作为判断条件，作为判断条件的是up_limit记录的是最小活跃id，小于他的才能读，正规的事务id分配的在readview结构里其实是creator_trxid，用来判断当前是否能被当前事务看见</p>
+<ol start="4">
+<li>readview的范围</li>
+</ol>
+<p>有这个疑问还是因为最开始对change_visable掌握的不够清晰。</p>
+<p>之前想的场景是在事务A里，如果存在两条不同记录甚至不同表的查询，而事务B在第事务A两条查询中间的时候对第二条查询的记录做了更改并提交，那应该查到的是新的还是旧的。</p>
+<p>其实应该是旧的，因为就算是第二条查询，最新版本的改动的事务id会大于等于事务A的高水位，因此只能查询到更老的undolog里的记录</p>
+<ol start="5">
+<li>知道了mvcc底层是undolog和readview后，怎么理解“版本”这个概念</li>
+</ol>
+<p>创建版本肯定就是字段里那个隐藏字段，删除版本应该是回滚指针</p>
+<ol start="6">
+<li>在只读视图能查到其他事务已经删除并且提交的记录吗？</li>
+</ol>
+<p>经测试是可以的</p>
+<h1 id="怎么解决的幻读">怎么解决的幻读？
+</h1><p>在只读事务下，如上文所说的事务1读不到事务2的更新是因为事务2的版本号要大于当前快照的高水位，那对于新增的记录来说，其版本号也是同样的道理，因此事务1读不到比当前快照里的高水位高的，也就避免了幻读这种情况。</p>
+<p>但是在当前读下，由于必须读取最新的结果，所以版本号一定是当前事务可见的，那么这个时候mysql的表现是什么样子呢？又是为什么是这样子呢？通过下面的实例来认识一下</p>
+<p><strong>simple表的初始情况</strong></p>
+<p><img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=ZmE5YzVmNmFiZjk5OWZkNzk1NzE3ZWM1ZGY5OGM4YTJfaDlvOUx6cjlnZnBGTDh6WkxxSHRkWVcxdVZmQ0pJeG9fVG9rZW46SmhnbGJ2NmlJbzJESmV4QkxaNGNtRXMzbnViXzE3MjMzNjM4Mzk6MTcyMzM2NzQzOV9WNA"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span><span class="lnt">9
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-Bash" data-lang="Bash"><span class="line"><span class="cl">//console1
+</span></span><span class="line"><span class="cl"><span class="k">select</span> * from simple<span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="k">select</span> * from simple where id &lt;<span class="m">10</span> lock in share mode <span class="p">;</span>
+</span></span><span class="line"><span class="cl">//console2
+</span></span><span class="line"><span class="cl">start transaction <span class="p">;</span>
+</span></span><span class="line"><span class="cl">insert into simple <span class="o">(</span>id,name,seq,type<span class="o">)</span> value <span class="o">(</span>6,3,3,1<span class="o">)</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">这个时候理论上事务2应该可以顺利插入id为6的记录，毕竟我们虽然加了读锁；但是记录都不存在必然也锁不住；
+</span></span><span class="line"><span class="cl">但是我们会发现insert这条语句被阻塞了，在等待一会之后会报下面的错
+</span></span><span class="line"><span class="cl">Lock <span class="nb">wait</span> timeout exceeded<span class="p">;</span> try restarting transaction
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>既然锁等待了，就必然存在一个锁，不过锁的部分我还需要再研究研究。</p>
+<p>预计将在下一篇文章中介绍，敬请期待&hellip;</p>
+<h1 id="参考资料">参考资料：
+</h1><p><a class="link" href="https://juejin.cn/post/6949909210339639326"  target="_blank" rel="noopener"
+    >MySQL 8.0 MVCC 源码解析 - 掘金</a></p>
+<p><a class="link" href="https://dev.mysql.com/doc/refman/8.0/en/innodb-consistent-read.html"  target="_blank" rel="noopener"
+    >https://dev.mysql.com/doc/refman/8.0/en/innodb-consistent-read.html</a></p>
+<p><a class="link" href="https://blog.csdn.net/Win_Dan/article/details/119171531"  target="_blank" rel="noopener"
+    >MySQL事务ID的分配时机_mysql事务id什么时候分配_哲学长的博客-CSDN博客</a></p>
+<p><a class="link" href="http://blog.itpub.net/7728585/viewspace-2142302/"  target="_blank" rel="noopener"
+    >MYSQL innodb中的只读事物以及事物id的分配方式_ITPUB博客</a></p>
+<p><a class="link" href="https://blog.csdn.net/scugxl/article/details/102911145"  target="_blank" rel="noopener"
+    >Mysql如何实现隔离级别 - 可重复读和读提交 源码分析_mysql 可重复度源码_择维士的博客-CSDN博客</a></p>
+
+</section>
+
+
+    <footer class="article-footer">
+    
+    <section class="article-tags">
+        
+            <a href="/tags/mysql/">Mysql</a>
+        
+    </section>
+
+
+    
+    <section class="article-copyright">
+        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-copyright" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="12" cy="12" r="9" />
+  <path d="M14.5 9a3.5 4 0 1 0 0 6" />
+</svg>
+
+
+
+        <span>Licensed under CC BY-NC-SA 4.0</span>
+    </section>
+    </footer>
+
+
+    
+</article>
+
+    
+
+    
+
+<aside class="related-content--wrapper">
+    <h2 class="section-title">相关文章</h2>
+    <div class="related-content">
+        <div class="flex article-list--tile">
+            
+                
+<article class="">
+    <a href="/post/tech/mysql/transaction_isolation/">
+        
+        
+
+        <div class="article-details">
+            <h2 class="article-title">事务隔离级别</h2>
+        </div>
+    </a>
+</article>
+
+            
+                
+<article class="">
+    <a href="/post/tech/distributed/zookeeper/zookeeperservermain/">
+        
+        
+
+        <div class="article-details">
+            <h2 class="article-title">Zookeeper源码学习-单机部分通信组件</h2>
+        </div>
+    </a>
+</article>
+
+            
+                
+<article class="">
+    <a href="/post/tech/lang/jstack/">
+        
+        
+
+        <div class="article-details">
+            <h2 class="article-title">Jstack使用</h2>
+        </div>
+    </a>
+</article>
+
+            
+                
+<article class="">
+    <a href="/post/tech/problem/springactuator_fullgc/">
+        
+        
+
+        <div class="article-details">
+            <h2 class="article-title">偷偷开启的监控在吃内存</h2>
+        </div>
+    </a>
+</article>
+
+            
+                
+<article class="">
+    <a href="/post/tech/lang/java_security/">
+        
+        
+
+        <div class="article-details">
+            <h2 class="article-title">Java安全机制之一——SecurityManager和AccessController</h2>
+        </div>
+    </a>
+</article>
+
+            
+        </div>
+    </div>
+</aside>
+
+     
+    
+        
+    <script src="//cdn.jsdelivr.net/npm/twikoo@1.6.21/dist/twikoo.all.min.js"></script>
+<div id="tcomment"></div>
+<style>
+    .twikoo {
+        background-color: var(--card-background);
+        border-radius: var(--card-border-radius);
+        box-shadow: var(--shadow-l1);
+        padding: var(--card-padding);
+    }
+    :root[data-scheme="dark"] {
+        --twikoo-body-text-color-main: rgba(255, 255, 255, 0.9);
+        --twikoo-body-text-color: rgba(255, 255, 255, 0.7);
+    }
+    .twikoo .el-input-group__prepend,
+    .twikoo .tk-action-icon,
+    .twikoo .tk-submit-action-icon,
+    .twikoo .tk-time,
+    .twikoo .tk-comments-no,
+    .twikoo .tk-comments-count {
+        color: var(--twikoo-body-text-color);
+    }
+    .twikoo .el-input__inner,
+    .twikoo .el-textarea__inner,
+    .twikoo .tk-preview-container,
+    .twikoo .tk-content,
+    .twikoo .tk-nick,
+    .twikoo .tk-send {
+        color: var(--twikoo-body-text-color-main);
+    }
+    .twikoo .el-button{
+        color: var(--twikoo-body-text-color)!important;
+    }
+    .twikoo .el-input__count {
+        color: var(--twikoo-body-text-color) !important;
+    }
+    .OwO .OwO-body {
+        background-color: var(--body-background) !important;
+        color: var(--body-text-color) !important;
+    }
+</style><script>
+    twikoo.init({
+        envId: 'https:\/\/qisiii-twikoo.hf.space',
+        el: '#tcomment',})
+</script>
+
+    
+
+    <footer class="site-footer">
+    <section class="copyright">
+        &copy; 
+        
+            2022 - 
+        
+        2024 起司
+    </section>
+    
+    <section class="powerby">
+        使用 <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> 构建 <br />
+        主题 <b><a href="https://github.com/CaiJimmy/hugo-theme-stack" target="_blank" rel="noopener" data-version="3.26.0">Stack</a></b> 由 <a href="https://jimmycai.com" target="_blank" rel="noopener">Jimmy</a> 设计
+    </section>
+</footer>
+
+
+    
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    
+    <div class="pswp__bg"></div>
+
+    
+    <div class="pswp__scroll-wrap">
+
+        
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                
+                
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"integrity="sha256-ePwmChbbvXbsO02lbM3HoHbSHTHFAeChekF1xKJdleo="crossorigin="anonymous"
+                defer
+                >
+            </script><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"integrity="sha256-UKkzOn/w1mBxRmLLGrSeyB4e1xbrp4xylgAWb3M42pU="crossorigin="anonymous"
+                defer
+                >
+            </script><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css"crossorigin="anonymous"
+            ><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css"crossorigin="anonymous"
+            >
+
+            </main>
+        </div>
+        <script 
+                src="https://cdn.jsdelivr.net/npm/node-vibrant@3.1.6/dist/vibrant.min.js"integrity="sha256-awcR2jno4kI5X0zL8ex0vi2z&#43;KMkF24hUW8WePSA9HM="crossorigin="anonymous"
+                
+                >
+            </script><script type="text/javascript" src="/ts/main.js" defer></script>
+<script>
+    (function () {
+        const customFont = document.createElement('link');
+        customFont.href = "https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap";
+
+        customFont.type = "text/css";
+        customFont.rel = "stylesheet";
+
+        document.head.appendChild(customFont);
+    }());
+</script>
+
+
+    </body>
+</html>
