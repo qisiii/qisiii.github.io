@@ -637,10 +637,10 @@
         </item>
         <item>
         <title>记一次内存飙升、gc频繁、cpu飙高</title>
-        <link>https://qisiii.github.io/post/tech/problem/%E5%86%85%E5%AD%98%E9%A3%99%E5%8D%87gc%E9%A2%91%E7%B9%81cpu%E9%A3%99%E9%AB%98/</link>
+        <link>https://qisiii.github.io/post/tech/problem/task_fullgc/</link>
         <pubDate>Sat, 19 Aug 2023 00:00:00 +0000</pubDate>
         
-        <guid>https://qisiii.github.io/post/tech/problem/%E5%86%85%E5%AD%98%E9%A3%99%E5%8D%87gc%E9%A2%91%E7%B9%81cpu%E9%A3%99%E9%AB%98/</guid>
+        <guid>https://qisiii.github.io/post/tech/problem/task_fullgc/</guid>
         <description>&lt;h2 id=&#34;紧急排查&#34;&gt;紧急排查：
 &lt;/h2&gt;&lt;p&gt;一个普通工作日的晚上8点，突然收到大量接口超时的报警，最高甚至有超100s，于是开始紧急排查。&lt;/p&gt;
 &lt;p&gt;首先是看监控面板里的内存监控和cpu监控，说到这里不得不吐槽一句公司的内存监控没什么软用（当时并不会熟练使用arthas)，监控的是pod节点内存情况，也就是说一直展示的都是历史最高的，因为jvm申请内存后是不会返还给实例的，所以并不能看出来什么。倒是cpu确实彪的很高。&lt;/p&gt;
@@ -806,10 +806,10 @@
         </item>
         <item>
         <title>线程异常增长</title>
-        <link>https://qisiii.github.io/post/tech/problem/%E7%BA%BF%E7%A8%8B%E5%BC%82%E5%B8%B8%E5%A2%9E%E9%95%BF/</link>
+        <link>https://qisiii.github.io/post/tech/problem/thread_exception/</link>
         <pubDate>Fri, 18 Aug 2023 00:00:00 +0000</pubDate>
         
-        <guid>https://qisiii.github.io/post/tech/problem/%E7%BA%BF%E7%A8%8B%E5%BC%82%E5%B8%B8%E5%A2%9E%E9%95%BF/</guid>
+        <guid>https://qisiii.github.io/post/tech/problem/thread_exception/</guid>
         <description>&lt;p&gt;小组群内leader甩出来一个截图，说是线程有些异常，一直在增长，从pool-1-thread一直到pool-285-thread，每个pool都只有三个线程：thread-1 thread-2 thread-3，第一反应感觉肯定和定时任务有关，这种稳定的有规律的一般都是和定时任务有关。&lt;/p&gt;
 &lt;ol&gt;
 &lt;li&gt;

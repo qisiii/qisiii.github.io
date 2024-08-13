@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html lang="zh-cn" dir="ltr">
     <head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset='utf-8'>
-<meta name='viewport' content='width=device-width, initial-scale=1'><meta name='description' content="部署 在单机上部署伪集群，需要根据不同的配置文件启动不同的进程。 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 #这是zoo1.cfg的内容 tickTime=2000 initLimit=10 syncLimit=5 dataDir=/opt/soft/zookeeper/data/1 clientPort=2181 #第一个">
+<meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='description' content="部署 在单机上部署伪集群，需要根据不同的配置文件启动不同的进程。 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 #这是zoo1.cfg的内容 tickTime=2000 initLimit=10 syncLimit=5 dataDir=/opt/soft/zookeeper/data/1 clientPort=2181 #第一个">
 <title>Zookeeper学习 集群</title>
 
 <link rel='canonical' href='http://localhost:1313/post/tech/distributed/zookeeper/zookeeper%E5%AD%A6%E4%B9%A0-%E9%9B%86%E7%BE%A4/'>
@@ -31,6 +32,7 @@
       </script>
     
   
+
 
 
     </head>
@@ -189,7 +191,16 @@
             <nav id="TableOfContents">
   <ol>
     <li><a href="#部署">部署</a></li>
-    <li><a href="#源码分析">源码分析</a></li>
+    <li><a href="#源码分析">源码分析</a>
+      <ol>
+        <li><a href="#选举逻辑">选举逻辑：</a>
+          <ol>
+            <li><a href="#建立连接">建立连接</a></li>
+            <li><a href="#选举">选举</a></li>
+          </ol>
+        </li>
+      </ol>
+    </li>
     <li><a href="#参考文档">参考文档：</a></li>
   </ol>
 </nav>
@@ -247,17 +258,32 @@
 
 
                 <time class="article-time--reading">
-                    阅读时长: 1 分钟
+                    阅读时长: 5 分钟
                 </time>
             </div>
         
-    </footer>
     
 
+    
+        
+
+        
+        
+            <span id="busuanzi_container_value_page_pv"><i class="far fa-eye fa-fw"></i>
+                
+                <span id="busuanzi_value_page_pv"></span>&nbsp;次阅读
+                </span>
+        
+    
+
+
+</footer>
+    
     
 </div>
 
 </header>
+
 
     <section class="article-content">
     
@@ -350,7 +376,391 @@
 	
 ></p>
 <h2 id="源码分析">源码分析
-</h2><h2 id="参考文档">参考文档：
+</h2><h3 id="选举逻辑">选举逻辑：
+</h3><p><img src="https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/13-10-01-00-image.png"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<p>集群模式的核心类是QuorumPeer，其启动方法中核心的就只有startLeaderElection和super.start这两个方法的调用</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="kd">public</span><span class="w"> </span><span class="kd">synchronized</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">start</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">getView</span><span class="p">().</span><span class="na">containsKey</span><span class="p">(</span><span class="n">myid</span><span class="p">))</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="k">throw</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">RuntimeException</span><span class="p">(</span><span class="s">&#34;My id &#34;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">myid</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">&#34; not in the peer list&#34;</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">loadDataBase</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="c1">//同单机逻辑一样</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">startServerCnxnFactory</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="k">try</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="n">adminServer</span><span class="p">.</span><span class="na">start</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="n">AdminServerException</span><span class="w"> </span><span class="n">e</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="n">LOG</span><span class="p">.</span><span class="na">warn</span><span class="p">(</span><span class="s">&#34;Problem starting AdminServer&#34;</span><span class="p">,</span><span class="w"> </span><span class="n">e</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="c1">//创建QuorumCnxManager和FastLeaderElection两个类，一个是管理连接，一个是处理选举时收发消息</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">startLeaderElection</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">startJvmPauseMonitor</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="c1">//真正的选举逻辑在这里，QuorumPeer也是个线程，所以要看run的逻辑</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="kd">super</span><span class="p">.</span><span class="na">start</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="p">}</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>其中，QuorumCnxManager负责节点之间的通信，节点中两两之间都需要建立连接。</p>
+<p>QuorumCnxManager通过给每个节点地址分配了一个ListenerHandler，来接受或者建立连接。ListenerHandler内的SendWorker和RecvWorker则是建立连接后进行真正进行发送和接受消息的类。</p>
+<p>FastLeaderElection是专门负责选举工作的，其内部针对于通信有两个组件，分别是workerSender和workerReceiver，这两个类只是负责将选票信息封装为ByteBuffer，然后转发到queueSendMap，由QuorumCnxManager的SendWorker去进行发送。</p>
+<h4 id="建立连接">建立连接
+</h4><p>首次发起建立连接的地方是在FastLeaderElection发消息前，如果判断没有建立好连接，就要建立连接</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="kd">public</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">toSend</span><span class="p">(</span><span class="n">Long</span><span class="w"> </span><span class="n">sid</span><span class="p">,</span><span class="w"> </span><span class="n">ByteBuffer</span><span class="w"> </span><span class="n">b</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="na">mySid</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">sid</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="n">b</span><span class="p">.</span><span class="na">position</span><span class="p">(</span><span class="n">0</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="c1">//发给自己的消息，直接添加到接受队列，不走网络请求了</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="n">addToRecvQueue</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">Message</span><span class="p">(</span><span class="n">b</span><span class="p">.</span><span class="na">duplicate</span><span class="p">(),</span><span class="w"> </span><span class="n">sid</span><span class="p">));</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="cm">/*
+</span></span></span><span class="line"><span class="cl"><span class="cm">             * Otherwise send to the corresponding thread to send.
+</span></span></span><span class="line"><span class="cl"><span class="cm">             */</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="n">BlockingQueue</span><span class="o">&lt;</span><span class="n">ByteBuffer</span><span class="o">&gt;</span><span class="w"> </span><span class="n">bq</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">queueSendMap</span><span class="p">.</span><span class="na">computeIfAbsent</span><span class="p">(</span><span class="n">sid</span><span class="p">,</span><span class="w"> </span><span class="n">serverId</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">CircularBlockingQueue</span><span class="o">&lt;&gt;</span><span class="p">(</span><span class="n">SEND_CAPACITY</span><span class="p">));</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="n">addToSendQueue</span><span class="p">(</span><span class="n">bq</span><span class="p">,</span><span class="w"> </span><span class="n">b</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="c1">//发消息给其他节点之前要建立连接</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="n">connectOne</span><span class="p">(</span><span class="n">sid</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="kd">synchronized</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">connectOne</span><span class="p">(</span><span class="kt">long</span><span class="w"> </span><span class="n">sid</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="c1">//如果已经存在连接，直接返回；senderWorkerMap中存在对应的senderWorker类表明已经建立好连接</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">senderWorkerMap</span><span class="p">.</span><span class="na">get</span><span class="p">(</span><span class="n">sid</span><span class="p">)</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">null</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="n">LOG</span><span class="p">.</span><span class="na">debug</span><span class="p">(</span><span class="s">&#34;There is a connection already for server {}&#34;</span><span class="p">,</span><span class="w"> </span><span class="n">sid</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">self</span><span class="p">.</span><span class="na">isMultiAddressEnabled</span><span class="p">()</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">self</span><span class="p">.</span><span class="na">isMultiAddressReachabilityCheckEnabled</span><span class="p">())</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                  </span><span class="n">senderWorkerMap</span><span class="p">.</span><span class="na">get</span><span class="p">(</span><span class="n">sid</span><span class="p">).</span><span class="na">asyncValidateIfSocketIsStillReachable</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="k">return</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="p">}</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>建立的逻辑，就不细分析了；主要是通过QuorumConnectionReqThread类去实现的，且当建立成功后会在senderWorkerMap中存储对应的线程，对应上面代码判断存在线程直接返回。</p>
+<p><img src="https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/13-10-24-15-image.png"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<p>接受连接请求的地方就是在ListenerHandler中</p>
+<p><img src="https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/13-10-26-58-image.png"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<p>由于是每两个节点都要建立连接，且两个节点都可能发起连接，那么以哪个为主呢？zookeeper的设计是以myId大的为主，即只能myid大的发起连接，这样才会判定有效</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">sid</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">self</span><span class="p">.</span><span class="na">getMyId</span><span class="p">())</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="n">SendWorker</span><span class="w"> </span><span class="n">sw</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">senderWorkerMap</span><span class="p">.</span><span class="na">get</span><span class="p">(</span><span class="n">sid</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">sw</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">null</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                </span><span class="n">sw</span><span class="p">.</span><span class="na">finish</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="cm">/*
+</span></span></span><span class="line"><span class="cl"><span class="cm">             * Now we start a new connection
+</span></span></span><span class="line"><span class="cl"><span class="cm">             */</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="n">LOG</span><span class="p">.</span><span class="na">debug</span><span class="p">(</span><span class="s">&#34;Create new connection to server: {}&#34;</span><span class="p">,</span><span class="w"> </span><span class="n">sid</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="n">closeSocket</span><span class="p">(</span><span class="n">sock</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="c1">//如果是小id连大id，那就重新建立连接</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">electionAddr</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">null</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                </span><span class="n">connectOne</span><span class="p">(</span><span class="n">sid</span><span class="p">,</span><span class="w"> </span><span class="n">electionAddr</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                </span><span class="n">connectOne</span><span class="p">(</span><span class="n">sid</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">sid</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">self</span><span class="p">.</span><span class="na">getMyId</span><span class="p">())</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="c1">// we saw this case in ZOOKEEPER-2164</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="n">LOG</span><span class="p">.</span><span class="na">warn</span><span class="p">(</span><span class="s">&#34;We got a connection request from a server with our own ID. &#34;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                     </span><span class="o">+</span><span class="w"> </span><span class="s">&#34;This should be either a configuration error, or a bug.&#34;</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="c1">// Otherwise start worker threads to receive data.</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="n">SendWorker</span><span class="w"> </span><span class="n">sw</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">SendWorker</span><span class="p">(</span><span class="n">sock</span><span class="p">,</span><span class="w"> </span><span class="n">sid</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="n">RecvWorker</span><span class="w"> </span><span class="n">rw</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">RecvWorker</span><span class="p">(</span><span class="n">sock</span><span class="p">,</span><span class="w"> </span><span class="n">din</span><span class="p">,</span><span class="w"> </span><span class="n">sid</span><span class="p">,</span><span class="w"> </span><span class="n">sw</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="n">sw</span><span class="p">.</span><span class="na">setRecv</span><span class="p">(</span><span class="n">rw</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="n">SendWorker</span><span class="w"> </span><span class="n">vsw</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">senderWorkerMap</span><span class="p">.</span><span class="na">get</span><span class="p">(</span><span class="n">sid</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">vsw</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">null</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                </span><span class="n">vsw</span><span class="p">.</span><span class="na">finish</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="n">senderWorkerMap</span><span class="p">.</span><span class="na">put</span><span class="p">(</span><span class="n">sid</span><span class="p">,</span><span class="w"> </span><span class="n">sw</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="n">queueSendMap</span><span class="p">.</span><span class="na">putIfAbsent</span><span class="p">(</span><span class="n">sid</span><span class="p">,</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">CircularBlockingQueue</span><span class="o">&lt;&gt;</span><span class="p">(</span><span class="n">SEND_CAPACITY</span><span class="p">));</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="n">sw</span><span class="p">.</span><span class="na">start</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="n">rw</span><span class="p">.</span><span class="na">start</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="p">}</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><h4 id="选举">选举
+</h4><p>ELECTION 选举</p>
+<p>Vote 是选票的意思，结构是（myid,LastZxid,currentEpoch）(节点id，最大事务id，当前任期)</p>
+<p>Epoch是当前任期，类比于第15届领导中的这个15，选票需要表明这个是为哪期领导投票的</p>
+<p>ServerState  节点状态</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="kd">public</span><span class="w"> </span><span class="kd">enum</span><span class="w"> </span><span class="n">ServerState</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">LOOKING</span><span class="p">,</span><span class="c1">//正在选举</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">FOLLOWING</span><span class="p">,</span><span class="c1">//节点处理跟从者状态，拥有投票的权利</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">LEADING</span><span class="p">,</span><span class="c1">//节点处于领导状态，拥有投票的权利</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">OBSERVING</span><span class="c1">//节点无投票权利</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="p">}</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>QuorumPeer本身就是一个线程，其真正的选举逻辑也在run方法中，去除掉杂七杂八的逻辑后，其核心逻辑如下：</p>
+<p>默认是LOOKING状态，所以会进入到LOOKING的分支：根据readonlymode.enabled决定是否启动一个只读的服务器，然后进入选举，核心代码是<code>setCurrentVote(makeLEStrategy().lookForLeader());</code></p>
+<p>当选举结果出来之后，每个节点会更改自身的状态，所以会进入到其他分支，处理不同的逻辑，以Leader为例，会创建一个LeaderZooKeeperServer来接受客户端请求，并做好一些转发工作等，这里先不展开讲。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span><span class="lnt">47
+</span><span class="lnt">48
+</span><span class="lnt">49
+</span><span class="lnt">50
+</span><span class="lnt">51
+</span><span class="lnt">52
+</span><span class="lnt">53
+</span><span class="lnt">54
+</span><span class="lnt">55
+</span><span class="lnt">56
+</span><span class="lnt">57
+</span><span class="lnt">58
+</span><span class="lnt">59
+</span><span class="lnt">60
+</span><span class="lnt">61
+</span><span class="lnt">62
+</span><span class="lnt">63
+</span><span class="lnt">64
+</span><span class="lnt">65
+</span><span class="lnt">66
+</span><span class="lnt">67
+</span><span class="lnt">68
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="kd">public</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">run</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="n">running</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                </span><span class="k">switch</span><span class="w"> </span><span class="p">(</span><span class="n">getPeerState</span><span class="p">())</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                </span><span class="k">case</span><span class="w"> </span><span class="n">LOOKING</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                    </span><span class="n">LOG</span><span class="p">.</span><span class="na">info</span><span class="p">(</span><span class="s">&#34;LOOKING&#34;</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                    </span><span class="n">ServerMetrics</span><span class="p">.</span><span class="na">getMetrics</span><span class="p">().</span><span class="na">LOOKING_COUNT</span><span class="p">.</span><span class="na">add</span><span class="p">(</span><span class="n">1</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">Boolean</span><span class="p">.</span><span class="na">getBoolean</span><span class="p">(</span><span class="s">&#34;readonlymode.enabled&#34;</span><span class="p">))</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                        </span><span class="n">LOG</span><span class="p">.</span><span class="na">info</span><span class="p">(</span><span class="s">&#34;Attempting to start ReadOnlyZooKeeperServer&#34;</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                        </span><span class="c1">//选举期间启动一个只读的server，不提供写的能力，其processor是ReadOnlyRequestProcessor</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                        </span><span class="kd">final</span><span class="w"> </span><span class="n">ReadOnlyZooKeeperServer</span><span class="w"> </span><span class="n">roZk</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">ReadOnlyZooKeeperServer</span><span class="p">(</span><span class="n">logFactory</span><span class="p">,</span><span class="w"> </span><span class="k">this</span><span class="p">,</span><span class="w"> </span><span class="k">this</span><span class="p">.</span><span class="na">zkDb</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                        </span><span class="n">roZk</span><span class="p">.</span><span class="na">startup</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                        </span><span class="k">try</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                            </span><span class="c1">//发起选举并记录最终成功的选票</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                            </span><span class="n">setCurrentVote</span><span class="p">(</span><span class="n">makeLEStrategy</span><span class="p">().</span><span class="na">lookForLeader</span><span class="p">());</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                            </span><span class="n">checkSuspended</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                        </span><span class="p">}</span><span class="w"> </span><span class="k">finally</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                            </span><span class="n">roZkMgr</span><span class="p">.</span><span class="na">interrupt</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                            </span><span class="n">roZk</span><span class="p">.</span><span class="na">shutdown</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                        </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                    </span><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                         </span><span class="n">setCurrentVote</span><span class="p">(</span><span class="n">makeLEStrategy</span><span class="p">().</span><span class="na">lookForLeader</span><span class="p">());</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                    </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                    </span><span class="k">break</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                </span><span class="k">case</span><span class="w"> </span><span class="n">OBSERVING</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                    </span><span class="k">try</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                        </span><span class="n">LOG</span><span class="p">.</span><span class="na">info</span><span class="p">(</span><span class="s">&#34;OBSERVING&#34;</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                        </span><span class="n">setObserver</span><span class="p">(</span><span class="n">makeObserver</span><span class="p">(</span><span class="n">logFactory</span><span class="p">));</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                        </span><span class="n">observer</span><span class="p">.</span><span class="na">observeLeader</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                    </span><span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="n">Exception</span><span class="w"> </span><span class="n">e</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                        </span><span class="n">LOG</span><span class="p">.</span><span class="na">warn</span><span class="p">(</span><span class="s">&#34;Unexpected exception&#34;</span><span class="p">,</span><span class="w"> </span><span class="n">e</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                    </span><span class="p">}</span><span class="w"> </span><span class="k">finally</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                        </span><span class="n">observer</span><span class="p">.</span><span class="na">shutdown</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                        </span><span class="n">setObserver</span><span class="p">(</span><span class="kc">null</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                        </span><span class="n">updateServerState</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                    </span><span class="k">break</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                </span><span class="k">case</span><span class="w"> </span><span class="n">FOLLOWING</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                    </span><span class="k">try</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                        </span><span class="n">LOG</span><span class="p">.</span><span class="na">info</span><span class="p">(</span><span class="s">&#34;FOLLOWING&#34;</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                        </span><span class="n">setFollower</span><span class="p">(</span><span class="n">makeFollower</span><span class="p">(</span><span class="n">logFactory</span><span class="p">));</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                        </span><span class="n">follower</span><span class="p">.</span><span class="na">followLeader</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                    </span><span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="n">Exception</span><span class="w"> </span><span class="n">e</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                        </span><span class="n">LOG</span><span class="p">.</span><span class="na">warn</span><span class="p">(</span><span class="s">&#34;Unexpected exception&#34;</span><span class="p">,</span><span class="w"> </span><span class="n">e</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                    </span><span class="p">}</span><span class="w"> </span><span class="k">finally</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                        </span><span class="n">follower</span><span class="p">.</span><span class="na">shutdown</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                        </span><span class="n">setFollower</span><span class="p">(</span><span class="kc">null</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                        </span><span class="n">updateServerState</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                    </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                    </span><span class="k">break</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                </span><span class="k">case</span><span class="w"> </span><span class="n">LEADING</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                    </span><span class="n">LOG</span><span class="p">.</span><span class="na">info</span><span class="p">(</span><span class="s">&#34;LEADING&#34;</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                    </span><span class="k">try</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                        </span><span class="n">setLeader</span><span class="p">(</span><span class="n">makeLeader</span><span class="p">(</span><span class="n">logFactory</span><span class="p">));</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                        </span><span class="n">leader</span><span class="p">.</span><span class="na">lead</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                        </span><span class="n">setLeader</span><span class="p">(</span><span class="kc">null</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                    </span><span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="n">Exception</span><span class="w"> </span><span class="n">e</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                        </span><span class="n">LOG</span><span class="p">.</span><span class="na">warn</span><span class="p">(</span><span class="s">&#34;Unexpected exception&#34;</span><span class="p">,</span><span class="w"> </span><span class="n">e</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                    </span><span class="p">}</span><span class="w"> </span><span class="k">finally</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">leader</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">null</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                            </span><span class="n">leader</span><span class="p">.</span><span class="na">shutdown</span><span class="p">(</span><span class="s">&#34;Forcing shutdown&#34;</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                            </span><span class="n">setLeader</span><span class="p">(</span><span class="kc">null</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                        </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                        </span><span class="n">updateServerState</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                    </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                    </span><span class="k">break</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="p">}</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>下面具体分析一下选举逻辑</p>
+<p><code>makeLEStrategy().lookForLeader()</code>实际上是<code>FastLeaderElection.lookForLeader</code></p>
+<h2 id="参考文档">参考文档：
 </h2><p><a class="link" href="https://blog.csdn.net/y510662669/article/details/106624186"  target="_blank" rel="noopener"
     >Zookeeper系列 - Leader选举_zk集群查看哪个节点是leader-CSDN博客</a></p>
 <p><a class="link" href="https://zookeeper.apache.org/doc/current/zookeeperStarted.html"  target="_blank" rel="noopener"
@@ -383,6 +793,7 @@
 
     
 </article>
+
 
     
 
@@ -450,7 +861,44 @@
     <section class="powerby">
         使用 <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> 构建 <br />
         主题 <b><a href="https://github.com/CaiJimmy/hugo-theme-stack" target="_blank" rel="noopener" data-version="3.26.0">Stack</a></b> 由 <a href="https://jimmycai.com" target="_blank" rel="noopener">Jimmy</a> 设计
-    </section>
+    
+        
+        <script async src=" //busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js "></script>
+   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+
+ 
+
+    
+        
+            <section>
+                
+                    <span id="busuanzi_container_value_site_pv"><i class="far fa-eye fa-fw"></i>
+                        
+                        <span id="busuanzi_value_site_pv"></span>次
+                        
+			</span>
+                
+
+                
+                    &nbsp;|&nbsp;              
+                
+
+                
+                    <span id="busuanzi_container_value_site_uv"><i class="fa fa-user" aria-hidden="true"></i>
+                        
+                        <span id="busuanzi_value_site_uv"></span>人次
+                        
+                    </span>
+                
+            </section>
+        
+
+        
+        
+    
+
+
+</section>
 </footer>
 
 

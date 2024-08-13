@@ -39,18 +39,21 @@
     <lastmod>2024-08-09T18:01:30+08:00</lastmod>
   </url><url>
     <loc>https://qisiii.github.io/tags/zookeeper/</loc>
-    <lastmod>2024-08-08T23:34:10+08:00</lastmod>
+    <lastmod>2024-08-09T18:01:30+08:00</lastmod>
   </url><url>
-    <loc>https://qisiii.github.io/post/tech/distributed/zookeeper/zookeeper%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-watch%E6%9C%BA%E5%88%B6/</loc>
-    <lastmod>2024-08-08T23:34:10+08:00</lastmod>
+    <loc>https://qisiii.github.io/post/tech/distributed/zookeeper/election/</loc>
+    <lastmod>2024-08-09T18:01:30+08:00</lastmod>
   </url><url>
     <loc>https://qisiii.github.io/categories/%E6%8A%80%E6%9C%AF%E6%96%87%E6%A1%A3/</loc>
-    <lastmod>2024-08-08T23:34:10+08:00</lastmod>
+    <lastmod>2024-08-09T18:01:30+08:00</lastmod>
   </url><url>
     <loc>https://qisiii.github.io/tags/%E4%B8%AD%E9%97%B4%E4%BB%B6/</loc>
-    <lastmod>2024-08-08T23:34:10+08:00</lastmod>
+    <lastmod>2024-08-09T18:01:30+08:00</lastmod>
   </url><url>
     <loc>https://qisiii.github.io/tags/%E6%B3%A8%E5%86%8C%E4%B8%AD%E5%BF%83/</loc>
+    <lastmod>2024-08-09T18:01:30+08:00</lastmod>
+  </url><url>
+    <loc>https://qisiii.github.io/post/tech/distributed/zookeeper/watch/</loc>
     <lastmod>2024-08-08T23:34:10+08:00</lastmod>
   </url><url>
     <loc>https://qisiii.github.io/post/biz/</loc>
@@ -92,7 +95,7 @@
     <loc>https://qisiii.github.io/tags/spring/</loc>
     <lastmod>2024-06-20T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>https://qisiii.github.io/post/tech/spring/cycle_/</loc>
+    <loc>https://qisiii.github.io/post/tech/spring/cycle_bean/</loc>
     <lastmod>2024-06-20T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://qisiii.github.io/post/tech/spring/refershscope/</loc>
@@ -167,16 +170,16 @@
     <loc>https://qisiii.github.io/post/tech/distributed/skywalking/skywalkingagent/</loc>
     <lastmod>2023-08-29T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>https://qisiii.github.io/post/tech/problem/%E5%86%85%E5%AD%98%E9%A3%99%E5%8D%87gc%E9%A2%91%E7%B9%81cpu%E9%A3%99%E9%AB%98/</loc>
+    <loc>https://qisiii.github.io/post/tech/problem/task_fullgc/</loc>
     <lastmod>2023-08-19T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>https://qisiii.github.io/post/tech/problem/%E7%BA%BF%E7%A8%8B%E5%BC%82%E5%B8%B8%E5%A2%9E%E9%95%BF/</loc>
+    <loc>https://qisiii.github.io/post/tech/problem/thread_exception/</loc>
     <lastmod>2023-08-18T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://qisiii.github.io/tags/idea/</loc>
     <lastmod>2023-07-10T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>https://qisiii.github.io/post/tech/tool/idea%E8%BF%9B%E7%A8%8B%E8%BF%9C%E7%A8%8Bdebug/</loc>
+    <loc>https://qisiii.github.io/post/tech/tool/remote_debug/</loc>
     <lastmod>2023-07-10T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://qisiii.github.io/post/tech/mysql/db_lock/</loc>
@@ -188,7 +191,7 @@
     <loc>https://qisiii.github.io/post/tech/mysql/transaction_isolation/</loc>
     <lastmod>2023-05-30T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>https://qisiii.github.io/post/tech/lang/java%E7%9A%84spi%E6%9C%BA%E5%88%B6/</loc>
+    <loc>https://qisiii.github.io/post/tech/lang/java_spi/</loc>
     <lastmod>2023-03-17T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://qisiii.github.io/post/tech/lang/javacollection/</loc>
