@@ -71,7 +71,7 @@
 &lt;h2 id=&#34;javalanginstrumentation&#34;&gt;java.lang.Instrumentation
 &lt;/h2&gt;&lt;h3 id=&#34;instrumentation&#34;&gt;Instrumentation
 &lt;/h3&gt;&lt;p&gt;Instrumentation相关的类都在java.lang.Instrumentation包下，两个异常，两个接口，一个类。
-&lt;img src=&#34;https://cdn.jsdelivr.net/gh/qisiii/imagehost@main/imgpicgo/picgo-clipboard-images/202407299e1128f6310d99cc3d00227b4a2055db.png&#34;
+&lt;img src=&#34;http://picgo.qisiii.asia/post/202407299e1128f6310d99cc3d00227b4a2055db.png&#34;
 	
 	
 	
@@ -80,7 +80,7 @@
 	
 &gt;&lt;/p&gt;
 &lt;p&gt;两个异常在这里不做介绍，功能就像类名一样。核心的其实是Instrumentation接口，本文仅关注红框内的几个方法。这几个方法都是通过permain和agentmain获取到的instrumentation实例进行的操作。&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://cdn.jsdelivr.net/gh/qisiii/imagehost@main/imgpicgo/picgo-clipboard-images/2024072959dadc1a00d2567d75bced09ca36b3f0.png&#34;
+&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/2024072959dadc1a00d2567d75bced09ca36b3f0.png&#34;
 	
 	
 	

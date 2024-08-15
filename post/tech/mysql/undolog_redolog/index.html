@@ -7,13 +7,13 @@
 
 <link rel='canonical' href='https://qisiii.github.io/post/tech/mysql/undolog_redolog/'>
 
-<link rel="stylesheet" href="/scss/style.min.0304c6baf04e01a8fe70693791cb744d56a3578a3120a8796cefc66825aa39c7.css"><meta property='og:title' content="UndoLog和redoLog">
+<link rel="stylesheet" href="/scss/style.min.7657e19dfcc00117e827b40bd92bcea286037ffa4a33e95fc533eaea79d078f9.css"><meta property='og:title' content="UndoLog和redoLog">
 <meta property='og:description' content="redolog 从ACID了解到，对于数据库来说，原子性和持久性是为了保证数据修改之后就不会再有变换，但是持久性这个动作不是一个原子性的操作，包含写入、未">
 <meta property='og:url' content='https://qisiii.github.io/post/tech/mysql/undolog_redolog/'>
 <meta property='og:site_name' content='起司的博客'>
 <meta property='og:type' content='article'><meta property='article:section' content='Post' /><meta property='article:tag' content='mysql' /><meta property='article:published_time' content='2023-12-30T00:00:00&#43;00:00'/><meta property='article:modified_time' content='2023-12-30T00:00:00&#43;00:00'/>
 <meta name="twitter:title" content="UndoLog和redoLog">
-<meta name="twitter:description" content="redolog 从ACID了解到，对于数据库来说，原子性和持久性是为了保证数据修改之后就不会再有变换，但是持久性这个动作不是一个原子性的操作，包含写入、未"><link rel="alternate" type="application/json" href="https://qisiii.github.io/post/tech/mysql/undolog_redolog/index.json">
+<meta name="twitter:description" content="redolog 从ACID了解到，对于数据库来说，原子性和持久性是为了保证数据修改之后就不会再有变换，但是持久性这个动作不是一个原子性的操作，包含写入、未"><link rel="alternate" type="application/json" href="https://qisiii.github.io/post/tech/mysql/undolog_redolog/index.json"><link rel="alternate" type="application/rss&#43;xml" href="https://qisiii.github.io/post/tech/mysql/undolog_redolog/index.xml">
   
     
       <script async src="https://www.googletagmanager.com/gtag/js?id=G-8NDCRP4S7S"></script>
@@ -33,7 +33,7 @@
     
   
 
-
+<span id="top"></span>
 
     </head>
     <body class="
@@ -96,28 +96,6 @@
             
                 <li>
                     <a 
-                        href='https://www.cnblogs.com/qisi'
-                        target="_blank"
-                        title="cnblog"
-                        rel="me"
-                    >
-                        
-                        
-                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-rss" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-  <path stroke="none" d="M0 0h24v24H0z"/>
-  <circle cx="5" cy="19" r="1" />
-  <path d="M4 4a16 16 0 0 1 16 16" />
-  <path d="M4 11a9 9 0 0 1 9 9" />
-</svg>
-
-
-
-                        
-                    </a>
-                </li>
-            
-                <li>
-                    <a 
                         href='https://github.com/qisiii'
                         target="_blank"
                         title="GitHub"
@@ -136,8 +114,81 @@
                     </a>
                 </li>
             
+                <li>
+                    <a 
+                        href='/index.xml'
+                        target="_blank"
+                        title="rss"
+                        rel="me"
+                    >
+                        
+                        
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-rss" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="5" cy="19" r="1" />
+  <path d="M4 4a16 16 0 0 1 16 16" />
+  <path d="M4 11a9 9 0 0 1 9 9" />
+</svg>
+
+
+
+                        
+                    </a>
+                </li>
+            
         </ol><ol class="menu" id="main-menu">
         
+        
+        
+        <li >
+            <a href='/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-home" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <polyline points="5 12 3 12 12 3 21 12 19 12" />
+  <path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" />
+  <path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" />
+</svg>
+
+
+
+                
+                <span>首页|Home</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/post/friends' target="_blank">
+                
+                
+                
+                    <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-heart-handshake"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M19.5 12.572l-7.5 7.428l-7.5 -7.428a5 5 0 1 1 7.5 -6.566a5 5 0 1 1 7.5 6.572" /><path d="M12 6l-3.293 3.293a1 1 0 0 0 0 1.414l.543 .543c.69 .69 1.81 .69 2.5 0l1 -1a3.182 3.182 0 0 1 4.5 0l2.25 2.25" /><path d="M12.5 15.5l2 2" /><path d="M15 13l2 2" /></svg>
+                
+                <span>友链|Friends</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/post/search' target="_blank">
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-search" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="10" cy="10" r="7" />
+  <line x1="21" y1="21" x2="15" y2="15" />
+</svg>
+
+
+
+                
+                <span>搜索|Search</span>
+            </a>
+        </li>
         
         <li class="menu-bottom-section">
             <ol class="menu">
@@ -212,8 +263,8 @@
     
     <header class="article-category">
         
-            <a href="/categories/%E6%8A%80%E6%9C%AF%E6%96%87%E6%A1%A3/" >
-                技术文档
+            <a href="/categories/tech/" >
+                技术人生
             </a>
         
     </header>
@@ -514,6 +565,19 @@
 </script>
 
     
+    <a href="#top" aria-label="go to top"  class="top-link" id="top-link" accesskey="g" style="visibility: visible; opacity: 1;">
+<svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-chevron-up"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M6 15l6 -6l6 6" /></svg>
+</a>
+<script src="https://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
+<script type="text/javascript">
+      $(window).scroll(function(){
+           if($(this).scrollTop()>300){
+                $("#top-link").show()
+           }else{
+                $("#top-link").hide()
+           }
+      })
+</script>
 
     <footer class="site-footer">
     <section class="copyright">

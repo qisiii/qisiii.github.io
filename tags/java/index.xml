@@ -20,7 +20,7 @@
 &lt;p&gt;可以通过-h或者-help来了解每个参数具体的作用，pid指的是java项目所属的进程Id，一般通过jps命令或者top、ps等命令获取。&lt;/p&gt;
 &lt;h3 id=&#34;jstack文件分析&#34;&gt;Jstack文件分析
 &lt;/h3&gt;&lt;h4 id=&#34;参数分析&#34;&gt;参数分析
-&lt;/h4&gt;&lt;p&gt;&lt;img src=&#34;https://cdn.jsdelivr.net/gh/qisiii/imagehost@main/imgpicgo/picgo-clipboard-images/202407283188d3b762db93252b8fe9318264d476.png&#34;
+&lt;/h4&gt;&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/202407283188d3b762db93252b8fe9318264d476.png&#34;
 	
 	
 	
@@ -39,7 +39,7 @@
 &lt;h4 id=&#34;状态&#34;&gt;状态
 &lt;/h4&gt;&lt;p&gt;Java中线程的状态有六种：NEW、RUNNABLE、BLOCKED、WAITING、TIMED_WAITING、TERMINATED&lt;/p&gt;
 &lt;p&gt;其中，NEW和TERMINATED是创建和销毁时的状态，在stack中没有见到过，基本上都是其他四种状态在流转。)
-&lt;img src=&#34;https://cdn.jsdelivr.net/gh/qisiii/imagehost@main/imgpicgo/picgo-clipboard-images/20240729b959e899f9a391eecb650ee6a786e976.png&#34;
+&lt;img src=&#34;http://picgo.qisiii.asia/post/20240729b959e899f9a391eecb650ee6a786e976.png&#34;
 	
 	
 	
@@ -623,7 +623,7 @@
 &lt;/h2&gt;&lt;p&gt;在jdk1.0的时代，applet依然是前端的一种可用的技术方案，比如可以嵌入在网页里运行。那个时候jdk的设计者们认为本地代码是安全的、远端代码是有风险的，而applet就是属于远端代码。因此，为了保证用户主机的安全和隐私，设计者参考了沙箱的思想，依托于当时jdk的体量很小，使用SecurityManager来分隔本地代码和远程代码，一个有权限，一个没有权限。&lt;/p&gt;
 &lt;p&gt;当时还出现了签名相关的机制(本文不关心，所以没做了解），随着java发展，1.1的时候出现了JAVABEAN、JDBC、反射等新概念，于是有了更多的新权限。设计者发现完全授予本地代码所有权限变得不合理，在1.2的时候重构了SecurityManager，变成了现在这样以最小粒度控制权限。这个时候的SecurityManager有两个功能，一是防御远程代码、二是防御本地代码的漏洞。&lt;/p&gt;
 &lt;p&gt;不知道是什么时候起，安全机制引入了域（ProtectDomain）的概念，也可以视作将一个大沙箱拆分为多个小沙箱。一个域对应一个沙箱，不同的代码（Codesource）被划分到不同域中，不同的域有着不同的权限（Permission），就像下图一样。同时可以给不同的域配置不同的权限，静态和动态均可，这个配置被称为策略(Policy)。
-&lt;img src=&#34;https://cdn.jsdelivr.net/gh/qisiii/imagehost@main/imgpicgo/picgo-clipboard-images/20240729f745258652dc174547b669498d053847.png&#34;
+&lt;img src=&#34;http://picgo.qisiii.asia/post/20240729f745258652dc174547b669498d053847.png&#34;
 	
 	
 	
@@ -713,7 +713,7 @@
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
 &lt;/div&gt;&lt;p&gt;代码执行的时候，每一次方法的调用都代表着一次入栈，而权限校验的时候则正好是从栈顶开始，依次判断每个栈帧是否具有权限，一直到栈底。
-&lt;img src=&#34;https://cdn.jsdelivr.net/gh/qisiii/imagehost@main/imgpicgo/picgo-clipboard-images/2024072941a244f2fb0cc49d443daef8016f2140.png&#34;
+&lt;img src=&#34;http://picgo.qisiii.asia/post/2024072941a244f2fb0cc49d443daef8016f2140.png&#34;
 	
 	
 	
@@ -802,7 +802,7 @@
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
 &lt;/div&gt;&lt;p&gt;从栈帧的角度来看的话，判断到doPrivilege对应的那层之后，校验就直接返回了，不校验下面层是否存在权限。
-&lt;img src=&#34;https://cdn.jsdelivr.net/gh/qisiii/imagehost@main/imgpicgo/picgo-clipboard-images/20240729e6ac0c020bf517a6047fcaaf00888f5d.png&#34;
+&lt;img src=&#34;http://picgo.qisiii.asia/post/20240729e6ac0c020bf517a6047fcaaf00888f5d.png&#34;
 	
 	
 	
@@ -812,7 +812,7 @@
 &gt;&lt;/p&gt;
 &lt;h2 id=&#34;protectdomain&#34;&gt;ProtectDomain
 &lt;/h2&gt;&lt;p&gt;protectDomain类由codeSource和permission构成
-&lt;img src=&#34;https://cdn.jsdelivr.net/gh/qisiii/imagehost@main/imgpicgo/picgo-clipboard-images/20240729ce4b8b3a012225b7ad7e9bbf0612ca99.png&#34;
+&lt;img src=&#34;http://picgo.qisiii.asia/post/20240729ce4b8b3a012225b7ad7e9bbf0612ca99.png&#34;
 	
 	
 	
@@ -820,7 +820,7 @@
 	
 	
 &gt;&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://cdn.jsdelivr.net/gh/qisiii/imagehost@main/imgpicgo/picgo-clipboard-images/20240729ed7a6012769be9a09f74a0adda74bea7.png&#34;
+&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/20240729ed7a6012769be9a09f74a0adda74bea7.png&#34;
 	
 	
 	
@@ -951,7 +951,7 @@
 &lt;h2 id=&#34;javalanginstrumentation&#34;&gt;java.lang.Instrumentation
 &lt;/h2&gt;&lt;h3 id=&#34;instrumentation&#34;&gt;Instrumentation
 &lt;/h3&gt;&lt;p&gt;Instrumentation相关的类都在java.lang.Instrumentation包下，两个异常，两个接口，一个类。
-&lt;img src=&#34;https://cdn.jsdelivr.net/gh/qisiii/imagehost@main/imgpicgo/picgo-clipboard-images/202407299e1128f6310d99cc3d00227b4a2055db.png&#34;
+&lt;img src=&#34;http://picgo.qisiii.asia/post/202407299e1128f6310d99cc3d00227b4a2055db.png&#34;
 	
 	
 	
@@ -960,7 +960,7 @@
 	
 &gt;&lt;/p&gt;
 &lt;p&gt;两个异常在这里不做介绍，功能就像类名一样。核心的其实是Instrumentation接口，本文仅关注红框内的几个方法。这几个方法都是通过permain和agentmain获取到的instrumentation实例进行的操作。&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://cdn.jsdelivr.net/gh/qisiii/imagehost@main/imgpicgo/picgo-clipboard-images/2024072959dadc1a00d2567d75bced09ca36b3f0.png&#34;
+&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/2024072959dadc1a00d2567d75bced09ca36b3f0.png&#34;
 	
 	
 	

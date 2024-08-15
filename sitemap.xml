@@ -2,6 +2,24 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
+    <loc>https://qisiii.github.io/post/algorithm/</loc>
+    <lastmod>2024-08-14T15:43:27+08:00</lastmod>
+  </url><url>
+    <loc>https://qisiii.github.io/post/</loc>
+    <lastmod>2024-08-14T15:43:27+08:00</lastmod>
+  </url><url>
+    <loc>https://qisiii.github.io/</loc>
+    <lastmod>2024-08-14T15:43:27+08:00</lastmod>
+  </url><url>
+    <loc>https://qisiii.github.io/post/tech/</loc>
+    <lastmod>2024-08-14T15:08:39+08:00</lastmod>
+  </url><url>
+    <loc>https://qisiii.github.io/post/tech/distributed/</loc>
+    <lastmod>2024-08-14T15:08:39+08:00</lastmod>
+  </url><url>
+    <loc>https://qisiii.github.io/post/tech/distributed/zookeeper/</loc>
+    <lastmod>2024-08-14T15:08:39+08:00</lastmod>
+  </url><url>
     <loc>https://qisiii.github.io/post/site/</loc>
     <lastmod>2024-08-10T16:32:55+08:00</lastmod>
   </url><url>
@@ -14,29 +32,14 @@
     <loc>https://qisiii.github.io/post/site/hugo_stack_record/</loc>
     <lastmod>2024-08-10T16:32:55+08:00</lastmod>
   </url><url>
-    <loc>https://qisiii.github.io/post/</loc>
-    <lastmod>2024-08-10T16:32:55+08:00</lastmod>
-  </url><url>
     <loc>https://qisiii.github.io/tags/stack/</loc>
     <lastmod>2024-08-10T16:32:55+08:00</lastmod>
   </url><url>
     <loc>https://qisiii.github.io/tags/</loc>
     <lastmod>2024-08-10T16:32:55+08:00</lastmod>
   </url><url>
-    <loc>https://qisiii.github.io/categories/%E4%B8%AA%E4%BA%BA%E7%BD%91%E7%AB%99/</loc>
+    <loc>https://qisiii.github.io/categories/site/</loc>
     <lastmod>2024-08-10T16:32:55+08:00</lastmod>
-  </url><url>
-    <loc>https://qisiii.github.io/</loc>
-    <lastmod>2024-08-10T16:32:55+08:00</lastmod>
-  </url><url>
-    <loc>https://qisiii.github.io/post/tech/</loc>
-    <lastmod>2024-08-09T18:01:30+08:00</lastmod>
-  </url><url>
-    <loc>https://qisiii.github.io/post/tech/distributed/</loc>
-    <lastmod>2024-08-09T18:01:30+08:00</lastmod>
-  </url><url>
-    <loc>https://qisiii.github.io/post/tech/distributed/zookeeper/</loc>
-    <lastmod>2024-08-09T18:01:30+08:00</lastmod>
   </url><url>
     <loc>https://qisiii.github.io/tags/zookeeper/</loc>
     <lastmod>2024-08-09T18:01:30+08:00</lastmod>
@@ -44,7 +47,7 @@
     <loc>https://qisiii.github.io/post/tech/distributed/zookeeper/election/</loc>
     <lastmod>2024-08-09T18:01:30+08:00</lastmod>
   </url><url>
-    <loc>https://qisiii.github.io/categories/%E6%8A%80%E6%9C%AF%E6%96%87%E6%A1%A3/</loc>
+    <loc>https://qisiii.github.io/categories/tech/</loc>
     <lastmod>2024-08-09T18:01:30+08:00</lastmod>
   </url><url>
     <loc>https://qisiii.github.io/tags/%E4%B8%AD%E9%97%B4%E4%BB%B6/</loc>
@@ -55,9 +58,6 @@
   </url><url>
     <loc>https://qisiii.github.io/post/tech/distributed/zookeeper/watch/</loc>
     <lastmod>2024-08-08T23:34:10+08:00</lastmod>
-  </url><url>
-    <loc>https://qisiii.github.io/post/biz/</loc>
-    <lastmod>2024-08-05T22:54:35+08:00</lastmod>
   </url><url>
     <loc>https://qisiii.github.io/post/tech/distributed/zookeeper/zookeeperservermain/</loc>
     <lastmod>2024-08-05T12:59:08+08:00</lastmod>
@@ -203,10 +203,14 @@
     <loc>https://qisiii.github.io/tags/lock/</loc>
     <lastmod>2022-02-14T00:00:00+00:00</lastmod>
   </url><url>
+    <loc>https://qisiii.github.io/post/friends/</loc>
+  </url><url>
     <loc>https://qisiii.github.io/post/tech/distributed/mq/</loc>
   </url><url>
     <loc>https://qisiii.github.io/post/archives/</loc>
   </url><url>
     <loc>https://qisiii.github.io/post/search/</loc>
+  </url><url>
+    <loc>https://qisiii.github.io/categories/algorithm/</loc>
   </url>
 </urlset>

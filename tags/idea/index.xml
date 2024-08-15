@@ -15,7 +15,7 @@
         <guid>https://qisiii.github.io/post/tech/tool/remote_debug/</guid>
         <description>&lt;h2 id=&#34;普通的应用启动&#34;&gt;普通的应用启动
 &lt;/h2&gt;&lt;p&gt;新建一个Remote_JVM_Debug配置&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=MTg2NDQ5OWQ3YzMxMDU2ZGQ3Yzk2MDcyY2MxNzQxZDZfbkg0Tm5JZmkzSmo3dmlkb1VVZk5TMTBMNTNsU2lGMFBfVG9rZW46WFZ1WmI5NmVob3N6Z0J4dUtaOWNMcUR2bnBoXzE3MjMzNjAyNjA6MTcyMzM2Mzg2MF9WNA&#34;
+&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/1723664070953.jpg&#34;
 	
 	
 	
@@ -32,7 +32,7 @@
 &lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;o&#34;&gt;-&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;agentlib&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;jdwp&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;transport&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;dt_socket&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;server&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;y&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;suspend&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;n&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;address&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;8100&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
-&lt;/div&gt;&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/11-15-13-27-image.png&#34;
+&lt;/div&gt;&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/1723664128443.jpg&#34;
 	
 	
 	
@@ -50,7 +50,7 @@
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
 &lt;/div&gt;&lt;p&gt;在确认服务器启动之后，在本地点debug启动按钮，如果打印了下面这个语句，就证明连接成功&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/11-15-13-47-image.png&#34;
+&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/1723664107079.jpg&#34;
 	
 	
 	
@@ -59,7 +59,7 @@
 	
 &gt;&lt;/p&gt;
 &lt;p&gt;之后在你需要排查的地方打上断点，然后触发接口就可以了，就会发现就进入了熟悉的debug的模式里&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=OTZlNWExYTY1NTI1NDU0ZWZmNjdjMjEyMmEzMjkzNTZfeG51MndLRUN4eEhtUUs4T3hKbldIaFk2S0VTMzc1OTRfVG9rZW46UzhEQWJWTGFNb1dwNFJ4MXZuNGN6MVlwbjhnXzE3MjMzNjAyNjA6MTcyMzM2Mzg2MF9WNA&#34;
+&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/1723664149754.jpg&#34;
 	
 	
 	
@@ -190,7 +190,7 @@
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
 &lt;/div&gt;&lt;p&gt;这个时候本地idea启动debug，打上断点，远程触发访问&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=MGZiMDBkMzNiZGRlMDMwMDcwOGM2OTNhMmM5ZGU5N2ZfNEJDMGRCOWVQWDFaSE12a0xQYlhSM05VNzVnSGFGcUVfVG9rZW46V1VCZWJyZkVpb3ZVbXJ4YVJZd2NtSzhQbnFmXzE3MjMzNjAyNjA6MTcyMzM2Mzg2MF9WNA&#34;
+&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/1723664166715.jpg&#34;
 	
 	
 	
