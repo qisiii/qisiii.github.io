@@ -390,7 +390,7 @@
 </span></span><span class="line"><span class="cl">    -cp <span class="s2">&#34;</span><span class="nv">$CLASSPATH</span><span class="s2">&#34;</span> <span class="nv">$JVMFLAGS</span> <span class="nv">$ZOOMAIN</span> <span class="s2">&#34;</span><span class="nv">$ZOOCFG</span><span class="s2">&#34;</span> &gt; <span class="s2">&#34;</span><span class="nv">$_ZOO_DAEMON_OUT</span><span class="s2">&#34;</span> 2&gt;<span class="p">&amp;</span><span class="m">1</span> &lt; /dev/null <span class="p">&amp;</span>
 </span></span></code></pre></td></tr></table>
 </div>
-</div><p><img src="https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/08-09-44-21-image.png"
+</div><p><img src="http://picgo.qisiii.asia/post/08-09-44-21-image.png"
 	
 	
 	
@@ -403,7 +403,7 @@
 <li>
 <p>设置启动参数</p>
 <p>由于shell脚本通过命令行模式执行的时候拼接了非常多的参数，虽然大部分参数都可以忽略，但是config参数确是必须的，即ZOOMAIN 后的 &ldquo;ZOOCFG&rdquo;。因此在通过idea等编辑器进行debug的时候，要设置program arguments为zk的配置文件(这里的zoo.cfg是复制的zoo_sample.cfg)</p>
-<p><img src="https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/08-09-53-45-image.png"
+<p><img src="http://picgo.qisiii.asia/post/08-09-53-45-image.png"
 	
 	
 	
@@ -418,7 +418,7 @@
 </li>
 <li>
 <p>当涉及到客户端和服务端通信时，建议session过期时间设置的长一些，不然在debug的时候总是会session过期，连接关闭</p>
-<p><img src="https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/09-15-52-41-image.png"
+<p><img src="http://picgo.qisiii.asia/post/09-15-52-41-image.png"
 	
 	
 	
@@ -427,7 +427,7 @@
 	
 ></p>
 <p>但是由于有最大限制，因此建议临时注释掉最大限制的逻辑</p>
-<p><img src="https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/09-15-54-09-image.png"
+<p><img src="http://picgo.qisiii.asia/post/09-15-54-09-image.png"
 	
 	
 	
@@ -507,7 +507,7 @@
 </span></span></code></pre></td></tr></table>
 </div>
 </div><h3 id="zookeeperservermain">ZooKeeperServerMain
-</h3><p><img src="https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/08-13-01-25-image.png"
+</h3><p><img src="http://picgo.qisiii.asia/post/08-13-01-25-image.png"
 	
 	
 	
@@ -576,7 +576,7 @@
 </span></span></span></code></pre></td></tr></table>
 </div>
 </div><h3 id="通信流程">通信流程
-</h3><p><img src="https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/08-11-30-03-image.png"
+</h3><p><img src="http://picgo.qisiii.asia/post/08-11-30-03-image.png"
 	
 	
 	
@@ -1489,7 +1489,7 @@
 </div>
 </div><p>pRequestHelper方法里根据不同的OpCode有各自的处理方法，但是总共依旧可以区分为两大类：需要创建事务和不需要创建事务</p>
 <p>不需要创建事务的如下，就只执行checkSession方法，就是校验一下session是否正常</p>
-<p><img src="https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/08-16-57-44-image.png"
+<p><img src="http://picgo.qisiii.asia/post/08-16-57-44-image.png"
 	
 	
 	
@@ -1498,7 +1498,7 @@
 	
 ></p>
 <p>而需要创建事务的逻辑则也差不多，大多数都是封装为一个Request对象，然后执行pRequest2Txn方法</p>
-<p><img src="https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/08-17-00-50-image.png"
+<p><img src="http://picgo.qisiii.asia/post/08-17-00-50-image.png"
 	
 	
 	
@@ -1928,7 +1928,7 @@
 </span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="p">}</span><span class="w">
 </span></span></span></code></pre></td></tr></table>
 </div>
-</div><p><img src="https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/08-18-10-27-image.png"
+</div><p><img src="http://picgo.qisiii.asia/post/08-18-10-27-image.png"
 	
 	
 	
@@ -1936,7 +1936,7 @@
 	
 	
 ></p>
-<p><img src="https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/08-18-11-39-image.png"
+<p><img src="http://picgo.qisiii.asia/post/08-18-11-39-image.png"
 	
 	
 	
@@ -1945,7 +1945,7 @@
 	
 ></p>
 <p>将其执行结果封装为response，并发送出去</p>
-<p><img src="https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/08-18-14-23-image.png"
+<p><img src="http://picgo.qisiii.asia/post/08-18-14-23-image.png"
 	
 	
 	
@@ -1953,7 +1953,7 @@
 	
 	
 ></p>
-<p><img src="https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/08-18-15-29-image.png"
+<p><img src="http://picgo.qisiii.asia/post/08-18-15-29-image.png"
 	
 	
 	
@@ -1965,7 +1965,7 @@
 <li>
 <p>查询数据（getData）</p>
 <p>由于查询数据不是事务，所以在applyRequest中并没有啥操作，直接走到下面的switch，封装request，然后从zkDataBase获取节点，再获取数据封装为response并返回</p>
-<p><img src="https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/08-18-17-46-image.png"
+<p><img src="http://picgo.qisiii.asia/post/08-18-17-46-image.png"
 	
 	
 	
@@ -1973,7 +1973,7 @@
 	
 	
 ></p>
-<p><img src="https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/08-18-18-31-image.png"
+<p><img src="http://picgo.qisiii.asia/post/08-18-18-31-image.png"
 	
 	
 	
@@ -1981,7 +1981,7 @@
 	
 	
 ></p>
-<p><img src="https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/08-18-19-46-image.png"
+<p><img src="http://picgo.qisiii.asia/post/08-18-19-46-image.png"
 	
 	
 	
@@ -2002,7 +2002,7 @@
 	loading="lazy"
 	
 	
-><img src="https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/08-23-06-04-image.png"
+><img src="http://picgo.qisiii.asia/post/08-23-06-04-image.png"
 	
 	
 	
@@ -2055,7 +2055,7 @@
 <p>ExpiryQueue持有两个集合对象elemMap和expiryMap，</p>
 <p>elemMap的key为连接对象，在这里就是指session，在connect逻辑中就是指connect，value是其过期时间。</p>
 <p>expiryMap的key是过期时间，value是当前过期时间下对应的连接的集合。结构大概如下图。</p>
-<p><img src="https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/08-23-22-07-image.png"
+<p><img src="http://picgo.qisiii.asia/post/08-23-22-07-image.png"
 	
 	
 	

@@ -359,7 +359,7 @@
 <p>分析：找到所有没有end record的事务</p>
 <p>重做：将所有有Commit record的数据落入磁盘，并追加end record</p>
 <p>回滚：将经历过上两个状态的剩余的事务，即没有Commit record的数据，根据undolog进行回滚。</p>
-<p><img src="https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/11-16-54-37-image.png"
+<p><img src="http://picgo.qisiii.asia/post/11-16-54-37-image.png"
 	
 	
 	
@@ -380,7 +380,7 @@
 <p>当redolog做完，在写binlog的时候crash的话，binlog中也没有，因此还是回滚。</p>
 <p>当binlog写完的时候，crash的话，由于binlog中存在，已找到最新的事务id，然后在redolog重做，没有commit record的要追加commit record；</p>
 <p>但是这里的前提是，开始了binlog，因为binlog 是有可能不开启的。</p>
-<p><img src="https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/11-16-55-12-image.png"
+<p><img src="http://picgo.qisiii.asia/post/11-16-55-12-image.png"
 	
 	
 	

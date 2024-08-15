@@ -1732,7 +1732,7 @@
 &lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt; tab[i = (n - 1) &amp;amp; hash]
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
-&lt;/div&gt;&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/11-09-55-34-image.png&#34;
+&lt;/div&gt;&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/11-09-55-34-image.png&#34;
 	
 	
 	
@@ -1740,7 +1740,7 @@
 	
 	
 &gt;&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/11-09-56-00-image.png&#34;
+&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/11-09-56-00-image.png&#34;
 	
 	
 	
@@ -2139,7 +2139,7 @@
 &lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
-&lt;/div&gt;&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/11-09-57-47-image.png&#34;
+&lt;/div&gt;&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/11-09-57-47-image.png&#34;
 	
 	
 	
@@ -2147,7 +2147,7 @@
 	
 	
 &gt;&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/11-09-57-59-image.png&#34;
+&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/11-09-57-59-image.png&#34;
 	
 	
 	
@@ -3215,7 +3215,7 @@
 &lt;p&gt;这一步则是释放锁，当释放锁的时候，会判断如果head节点的waitStatus如果不等于0，然后就唤醒下一个可用的节点&amp;mdash;-Thread2，因为在acquireQueued方法开始继续执行，然后尝试获取锁，获取成功的话，就将自己设置为了head；&lt;/p&gt;
 &lt;/li&gt;
 &lt;/ol&gt;
-&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/11-09-08-14-image.png&#34;
+&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/11-09-08-14-image.png&#34;
 	
 	
 	
@@ -3408,7 +3408,7 @@
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
 &lt;/div&gt;&lt;p&gt;可以看出ConditionObject只持有首尾，而串联起来Node的则是Node的nextWaiter字段，所以这是个单链表&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/11-09-09-00-image.png&#34;
+&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/11-09-09-00-image.png&#34;
 	
 	
 	

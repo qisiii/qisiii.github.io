@@ -437,7 +437,7 @@
 </span></span></code></pre></td></tr></table>
 </div>
 </div><p>全部启动完之后，可以通过<code>ps -ef | grep redis</code>来确认正常启动，且是cluster模式</p>
-<p><img src="https://raw.githubusercontent.com/qisiii/imagehost/main/2024/07/30-23-48-11-image.png"
+<p><img src="http://picgo.qisiii.asia/post/30-23-48-11-image.png"
 	
 	
 	
@@ -502,7 +502,7 @@
 </div>
 </div><h3 id="删除集群">删除集群
 </h3><p>删除集群需要先关闭集群的所有节点，然后删除每个节点的集群自动生成的文件，可以通过命令批量删除<code>rm -rf 700*/nodes.conf 700*/dump.rdb 700*/appendonlydir</code></p>
-<p><img src="https://raw.githubusercontent.com/qisiii/imagehost/main/2024/07/31-09-14-53-image.png"
+<p><img src="http://picgo.qisiii.asia/post/31-09-14-53-image.png"
 	
 	
 	
@@ -513,7 +513,7 @@
 <h2 id="使用">使用
 </h2><h3 id="redis-cli">redis-cli
 </h3><p>通过redis-cli 连接任一节点，添加或者获取缓存时会计算key落到哪个节点（crc16(key)%16384)，然后重定向到该节点再去获取或者赋值。</p>
-<p><img src="https://raw.githubusercontent.com/qisiii/imagehost/main/2024/07/31-08-48-25-image.png"
+<p><img src="http://picgo.qisiii.asia/post/31-08-48-25-image.png"
 	
 	
 	
@@ -523,7 +523,7 @@
 ></p>
 <h3 id="redisinsight">redisinsight
 </h3><p>创建新的db连接，Host中是公网ip，创建成功后会显示类别是OSS Cluster，普通的单机类型则是Standalone</p>
-<p><img src="https://raw.githubusercontent.com/qisiii/imagehost/main/2024/07/31-08-53-25-image.png"
+<p><img src="http://picgo.qisiii.asia/post/31-08-53-25-image.png"
 	
 	
 	
@@ -531,7 +531,7 @@
 	
 	
 ></p>
-<p><img src="https://raw.githubusercontent.com/qisiii/imagehost/main/2024/07/31-08-55-03-image.png"
+<p><img src="http://picgo.qisiii.asia/post/31-08-55-03-image.png"
 	
 	
 	
@@ -540,7 +540,7 @@
 	
 ></p>
 <p>里面会显示所有的节点的key，刚才在redis-cli设置值的时候，key【hello】是7000节点，key【hello】是7002节点，这里都会显示出来</p>
-<p><img src="https://raw.githubusercontent.com/qisiii/imagehost/main/2024/07/31-08-55-46-image.png"
+<p><img src="http://picgo.qisiii.asia/post/31-08-55-46-image.png"
 	
 	
 	
@@ -548,7 +548,7 @@
 	
 	
 >同时，在Analysis Tool看板会显示集群的一些信息</p>
-<p><img src="https://raw.githubusercontent.com/qisiii/imagehost/main/2024/07/31-08-57-45-image.png"
+<p><img src="http://picgo.qisiii.asia/post/31-08-57-45-image.png"
 	
 	
 	

@@ -68,7 +68,7 @@
 &lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;echo 3 &amp;gt;3/myid
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
-&lt;/div&gt;&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/09-18-03-28-image.png&#34;
+&lt;/div&gt;&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/09-18-03-28-image.png&#34;
 	
 	
 	
@@ -92,7 +92,7 @@
 &lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;c1&#34;&gt;#然后可以查看三个节点的状态&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
-&lt;/div&gt;&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/09-18-01-36-image.png&#34;
+&lt;/div&gt;&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/09-18-01-36-image.png&#34;
 	
 	
 	
@@ -101,7 +101,7 @@
 	
 &gt;&lt;/p&gt;
 &lt;h2 id=&#34;选举逻辑&#34;&gt;选举逻辑：
-&lt;/h2&gt;&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/13-10-01-00-image.png&#34;
+&lt;/h2&gt;&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/13-10-01-00-image.png&#34;
 	
 	
 	
@@ -212,7 +212,7 @@
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
 &lt;/div&gt;&lt;p&gt;建立的逻辑，就不细分析了；主要是通过QuorumConnectionReqThread类去实现的，且当建立成功后会在senderWorkerMap中存储对应的线程，对应上面代码判断存在线程直接返回。&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/13-10-24-15-image.png&#34;
+&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/13-10-24-15-image.png&#34;
 	
 	
 	
@@ -221,7 +221,7 @@
 	
 &gt;&lt;/p&gt;
 &lt;p&gt;接受连接请求的地方就是在ListenerHandler中&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/13-10-26-58-image.png&#34;
+&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/13-10-26-58-image.png&#34;
 	
 	
 	
@@ -525,7 +525,7 @@
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
 &lt;/div&gt;&lt;h4 id=&#34;lookforleader流程图&#34;&gt;lookForLeader流程图：
-&lt;/h4&gt;&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/13-11-58-20-image.png&#34;
+&lt;/h4&gt;&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/13-11-58-20-image.png&#34;
 	
 	
 	
@@ -747,7 +747,7 @@
 &lt;/div&gt;
 &lt;/div&gt;&lt;h4 id=&#34;votetracker&#34;&gt;VoteTracker
 &lt;/h4&gt;&lt;p&gt;该类是选票记录器，主要工作是在当前节点确定了自己的选票后，统计所有节点选票和自己选票相符的数量，可以理解为画正&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/13-12-09-29-image.png&#34;
+&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/13-12-09-29-image.png&#34;
 	
 	
 	
@@ -842,7 +842,7 @@
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;w&#34;&gt;    &lt;/span&gt;&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
-&lt;/div&gt;&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/13-12-21-29-image.png&#34;
+&lt;/div&gt;&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/13-12-21-29-image.png&#34;
 	
 	
 	
@@ -851,7 +851,7 @@
 	
 &gt;&lt;/p&gt;
 &lt;p&gt;对于所有的写入命令，都直接抛异常&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/13-12-23-24-image.png&#34;
+&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/13-12-23-24-image.png&#34;
 	
 	
 	
@@ -926,7 +926,7 @@
 &lt;/h2&gt;&lt;p&gt;zookeeper的客户端本质上也是一个socket客户端，主要分为两个线程，一个是sendThread，主要用于发送和接受消息。另一个则是eventThread，就是用来处理诸如watcher的回调信息的。&lt;/p&gt;
 &lt;p&gt;当我们通过getData方法添加了一个watcher时，底层做了两件事情：&lt;/p&gt;
 &lt;p&gt;一是在request中标识watch为true，告诉服务端我对于这个路径注册了watcher&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/09-15-27-35-image.png&#34;
+&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/09-15-27-35-image.png&#34;
 	
 	
 	
@@ -935,7 +935,7 @@
 	
 &gt;&lt;/p&gt;
 &lt;p&gt;二是当请求执行完的时候，将watcher添加到watchManager中的集合中去。&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/09-15-25-15-image.png&#34;
+&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/09-15-25-15-image.png&#34;
 	
 	
 	
@@ -943,7 +943,7 @@
 	
 	
 &gt;&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/09-15-26-20-image.png&#34;
+&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/09-15-26-20-image.png&#34;
 	
 	
 	
@@ -951,7 +951,7 @@
 	
 	
 &gt;&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/09-15-26-41-image.png&#34;
+&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/09-15-26-41-image.png&#34;
 	
 	
 	
@@ -960,7 +960,7 @@
 	
 &gt;&lt;/p&gt;
 &lt;p&gt;当收到服务端回调的时候，本质上是一个code为NOTIFICATION_XID的消息，在sendThread接收到消息后，会通过调用EventThread的queueEvent方法通过队列解耦，让eventThread去异步处理事件&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/09-15-33-10-image.png&#34;
+&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/09-15-33-10-image.png&#34;
 	
 	
 	
@@ -1006,7 +1006,7 @@
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;w&#34;&gt;        &lt;/span&gt;&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
-&lt;/div&gt;&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/09-15-30-25-image.png&#34;
+&lt;/div&gt;&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/09-15-30-25-image.png&#34;
 	
 	
 	
@@ -1014,7 +1014,7 @@
 	
 	
 &gt;&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/09-15-31-07-image.png&#34;
+&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/09-15-31-07-image.png&#34;
 	
 	
 	
@@ -1024,7 +1024,7 @@
 &gt;&lt;/p&gt;
 &lt;h2 id=&#34;服务端&#34;&gt;服务端
 &lt;/h2&gt;&lt;p&gt;服务端核心的类是WatchManager。在DataTree类中实例化了两个对象，分别是dataWatchers（对应getData)和childWatches(对应getChildren)&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/09-14-35-58-image.png&#34;
+&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/09-14-35-58-image.png&#34;
 	
 	
 	
@@ -1049,7 +1049,7 @@
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;w&#34;&gt;    &lt;/span&gt;&lt;span class=&#34;p&#34;&gt;;&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
-&lt;/div&gt;&lt;p&gt;当接收到getData、exist、getChildren、setWatcher的请求时,会调用WatchManager的两个addWatch重载方法中的一个，将其添加到watchTable的map中，key为nodePath，value是watcher的集合。&lt;img src=&#34;https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/09-14-38-51-image.png&#34;
+&lt;/div&gt;&lt;p&gt;当接收到getData、exist、getChildren、setWatcher的请求时,会调用WatchManager的两个addWatch重载方法中的一个，将其添加到watchTable的map中，key为nodePath，value是watcher的集合。&lt;img src=&#34;http://picgo.qisiii.asia/post/09-14-38-51-image.png&#34;
 	
 	
 	
@@ -1059,7 +1059,7 @@
 &gt;&lt;/p&gt;
 &lt;p&gt;这里需要强调一下！map中的value虽然类型是Watcher，但是其本质上确实一个socket连接，即客户端和服务端的连接。&lt;/p&gt;
 &lt;p&gt;以getData为例追溯一下这个watcher的赋值&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/09-14-56-41-image.png&#34;
+&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/09-14-56-41-image.png&#34;
 	
 	
 	
@@ -1067,7 +1067,7 @@
 	
 	
 &gt;&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/09-14-58-24-image.png&#34;
+&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/09-14-58-24-image.png&#34;
 	
 	
 	
@@ -1075,7 +1075,7 @@
 	
 	
 &gt;&lt;/p&gt;
-&lt;p&gt;这里又对应上客户端组装request时，给watch赋值的情况&lt;img src=&#34;https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/09-15-02-20-image.png&#34;
+&lt;p&gt;这里又对应上客户端组装request时，给watch赋值的情况&lt;img src=&#34;http://picgo.qisiii.asia/post/09-15-02-20-image.png&#34;
 	
 	
 	
@@ -1084,7 +1084,7 @@
 	
 &gt;&lt;/p&gt;
 &lt;p&gt;当发生了对应的事件，比如createNode、deleteNode、setData等变更事件时，会调用WatchManager.triggerWatch方法来触达&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/09-14-45-17-image.png&#34;
+&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/09-14-45-17-image.png&#34;
 	
 	
 	
@@ -1093,7 +1093,7 @@
 	
 &gt;&lt;/p&gt;
 &lt;p&gt;这里先了解一下WatchStats是什么，其实就是各个模式的组合，然后看源码&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/09-15-04-10-image.png&#34;
+&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/09-15-04-10-image.png&#34;
 	
 	
 	
@@ -1270,7 +1270,7 @@
 &lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    -cp &lt;span class=&#34;s2&#34;&gt;&amp;#34;&lt;/span&gt;&lt;span class=&#34;nv&#34;&gt;$CLASSPATH&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;&lt;/span&gt; &lt;span class=&#34;nv&#34;&gt;$JVMFLAGS&lt;/span&gt; &lt;span class=&#34;nv&#34;&gt;$ZOOMAIN&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;&lt;/span&gt;&lt;span class=&#34;nv&#34;&gt;$ZOOCFG&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;&lt;/span&gt; &amp;gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;&lt;/span&gt;&lt;span class=&#34;nv&#34;&gt;$_ZOO_DAEMON_OUT&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;&lt;/span&gt; 2&amp;gt;&lt;span class=&#34;p&#34;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&#34;m&#34;&gt;1&lt;/span&gt; &amp;lt; /dev/null &lt;span class=&#34;p&#34;&gt;&amp;amp;&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
-&lt;/div&gt;&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/08-09-44-21-image.png&#34;
+&lt;/div&gt;&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/08-09-44-21-image.png&#34;
 	
 	
 	
@@ -1283,7 +1283,7 @@
 &lt;li&gt;
 &lt;p&gt;设置启动参数&lt;/p&gt;
 &lt;p&gt;由于shell脚本通过命令行模式执行的时候拼接了非常多的参数，虽然大部分参数都可以忽略，但是config参数确是必须的，即ZOOMAIN 后的 &amp;ldquo;ZOOCFG&amp;rdquo;。因此在通过idea等编辑器进行debug的时候，要设置program arguments为zk的配置文件(这里的zoo.cfg是复制的zoo_sample.cfg)&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/08-09-53-45-image.png&#34;
+&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/08-09-53-45-image.png&#34;
 	
 	
 	
@@ -1298,7 +1298,7 @@
 &lt;/li&gt;
 &lt;li&gt;
 &lt;p&gt;当涉及到客户端和服务端通信时，建议session过期时间设置的长一些，不然在debug的时候总是会session过期，连接关闭&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/09-15-52-41-image.png&#34;
+&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/09-15-52-41-image.png&#34;
 	
 	
 	
@@ -1307,7 +1307,7 @@
 	
 &gt;&lt;/p&gt;
 &lt;p&gt;但是由于有最大限制，因此建议临时注释掉最大限制的逻辑&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/09-15-54-09-image.png&#34;
+&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/09-15-54-09-image.png&#34;
 	
 	
 	
@@ -1387,7 +1387,7 @@
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
 &lt;/div&gt;&lt;h3 id=&#34;zookeeperservermain&#34;&gt;ZooKeeperServerMain
-&lt;/h3&gt;&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/08-13-01-25-image.png&#34;
+&lt;/h3&gt;&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/08-13-01-25-image.png&#34;
 	
 	
 	
@@ -1456,7 +1456,7 @@
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
 &lt;/div&gt;&lt;h3 id=&#34;通信流程&#34;&gt;通信流程
-&lt;/h3&gt;&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/08-11-30-03-image.png&#34;
+&lt;/h3&gt;&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/08-11-30-03-image.png&#34;
 	
 	
 	
@@ -2369,7 +2369,7 @@
 &lt;/div&gt;
 &lt;/div&gt;&lt;p&gt;pRequestHelper方法里根据不同的OpCode有各自的处理方法，但是总共依旧可以区分为两大类：需要创建事务和不需要创建事务&lt;/p&gt;
 &lt;p&gt;不需要创建事务的如下，就只执行checkSession方法，就是校验一下session是否正常&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/08-16-57-44-image.png&#34;
+&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/08-16-57-44-image.png&#34;
 	
 	
 	
@@ -2378,7 +2378,7 @@
 	
 &gt;&lt;/p&gt;
 &lt;p&gt;而需要创建事务的逻辑则也差不多，大多数都是封装为一个Request对象，然后执行pRequest2Txn方法&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/08-17-00-50-image.png&#34;
+&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/08-17-00-50-image.png&#34;
 	
 	
 	
@@ -2808,7 +2808,7 @@
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;w&#34;&gt;        &lt;/span&gt;&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
-&lt;/div&gt;&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/08-18-10-27-image.png&#34;
+&lt;/div&gt;&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/08-18-10-27-image.png&#34;
 	
 	
 	
@@ -2816,7 +2816,7 @@
 	
 	
 &gt;&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/08-18-11-39-image.png&#34;
+&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/08-18-11-39-image.png&#34;
 	
 	
 	
@@ -2825,7 +2825,7 @@
 	
 &gt;&lt;/p&gt;
 &lt;p&gt;将其执行结果封装为response，并发送出去&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/08-18-14-23-image.png&#34;
+&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/08-18-14-23-image.png&#34;
 	
 	
 	
@@ -2833,7 +2833,7 @@
 	
 	
 &gt;&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/08-18-15-29-image.png&#34;
+&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/08-18-15-29-image.png&#34;
 	
 	
 	
@@ -2845,7 +2845,7 @@
 &lt;li&gt;
 &lt;p&gt;查询数据（getData）&lt;/p&gt;
 &lt;p&gt;由于查询数据不是事务，所以在applyRequest中并没有啥操作，直接走到下面的switch，封装request，然后从zkDataBase获取节点，再获取数据封装为response并返回&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/08-18-17-46-image.png&#34;
+&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/08-18-17-46-image.png&#34;
 	
 	
 	
@@ -2853,7 +2853,7 @@
 	
 	
 &gt;&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/08-18-18-31-image.png&#34;
+&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/08-18-18-31-image.png&#34;
 	
 	
 	
@@ -2861,7 +2861,7 @@
 	
 	
 &gt;&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/08-18-19-46-image.png&#34;
+&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/08-18-19-46-image.png&#34;
 	
 	
 	
@@ -2882,7 +2882,7 @@
 	loading=&#34;lazy&#34;
 	
 	
-&gt;&lt;img src=&#34;https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/08-23-06-04-image.png&#34;
+&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/08-23-06-04-image.png&#34;
 	
 	
 	
@@ -2935,7 +2935,7 @@
 &lt;p&gt;ExpiryQueue持有两个集合对象elemMap和expiryMap，&lt;/p&gt;
 &lt;p&gt;elemMap的key为连接对象，在这里就是指session，在connect逻辑中就是指connect，value是其过期时间。&lt;/p&gt;
 &lt;p&gt;expiryMap的key是过期时间，value是当前过期时间下对应的连接的集合。结构大概如下图。&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/08-23-22-07-image.png&#34;
+&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/08-23-22-07-image.png&#34;
 	
 	
 	
@@ -3173,7 +3173,7 @@
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
 &lt;/div&gt;&lt;p&gt;全部启动完之后，可以通过&lt;code&gt;ps -ef | grep redis&lt;/code&gt;来确认正常启动，且是cluster模式&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/qisiii/imagehost/main/2024/07/30-23-48-11-image.png&#34;
+&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/30-23-48-11-image.png&#34;
 	
 	
 	
@@ -3238,7 +3238,7 @@
 &lt;/div&gt;
 &lt;/div&gt;&lt;h3 id=&#34;删除集群&#34;&gt;删除集群
 &lt;/h3&gt;&lt;p&gt;删除集群需要先关闭集群的所有节点，然后删除每个节点的集群自动生成的文件，可以通过命令批量删除&lt;code&gt;rm -rf 700*/nodes.conf 700*/dump.rdb 700*/appendonlydir&lt;/code&gt;&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/qisiii/imagehost/main/2024/07/31-09-14-53-image.png&#34;
+&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/31-09-14-53-image.png&#34;
 	
 	
 	
@@ -3249,7 +3249,7 @@
 &lt;h2 id=&#34;使用&#34;&gt;使用
 &lt;/h2&gt;&lt;h3 id=&#34;redis-cli&#34;&gt;redis-cli
 &lt;/h3&gt;&lt;p&gt;通过redis-cli 连接任一节点，添加或者获取缓存时会计算key落到哪个节点（crc16(key)%16384)，然后重定向到该节点再去获取或者赋值。&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/qisiii/imagehost/main/2024/07/31-08-48-25-image.png&#34;
+&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/31-08-48-25-image.png&#34;
 	
 	
 	
@@ -3259,7 +3259,7 @@
 &gt;&lt;/p&gt;
 &lt;h3 id=&#34;redisinsight&#34;&gt;redisinsight
 &lt;/h3&gt;&lt;p&gt;创建新的db连接，Host中是公网ip，创建成功后会显示类别是OSS Cluster，普通的单机类型则是Standalone&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/qisiii/imagehost/main/2024/07/31-08-53-25-image.png&#34;
+&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/31-08-53-25-image.png&#34;
 	
 	
 	
@@ -3267,7 +3267,7 @@
 	
 	
 &gt;&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/qisiii/imagehost/main/2024/07/31-08-55-03-image.png&#34;
+&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/31-08-55-03-image.png&#34;
 	
 	
 	
@@ -3276,7 +3276,7 @@
 	
 &gt;&lt;/p&gt;
 &lt;p&gt;里面会显示所有的节点的key，刚才在redis-cli设置值的时候，key【hello】是7000节点，key【hello】是7002节点，这里都会显示出来&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/qisiii/imagehost/main/2024/07/31-08-55-46-image.png&#34;
+&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/31-08-55-46-image.png&#34;
 	
 	
 	
@@ -3284,7 +3284,7 @@
 	
 	
 &gt;同时，在Analysis Tool看板会显示集群的一些信息&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/qisiii/imagehost/main/2024/07/31-08-57-45-image.png&#34;
+&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/31-08-57-45-image.png&#34;
 	
 	
 	
@@ -4028,7 +4028,7 @@
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;w&#34;&gt;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
-&lt;/div&gt;&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/11-17-02-57-image.png&#34;
+&lt;/div&gt;&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/11-17-02-57-image.png&#34;
 	
 	
 	
@@ -5007,7 +5007,7 @@
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
 &lt;/div&gt;&lt;h3 id=&#34;增强流程&#34;&gt;增强流程
-&lt;/h3&gt;&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/11-17-20-10-image.png&#34;
+&lt;/h3&gt;&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/11-17-20-10-image.png&#34;
 	
 	
 	
@@ -6976,7 +6976,7 @@
 &lt;p&gt;分析：找到所有没有end record的事务&lt;/p&gt;
 &lt;p&gt;重做：将所有有Commit record的数据落入磁盘，并追加end record&lt;/p&gt;
 &lt;p&gt;回滚：将经历过上两个状态的剩余的事务，即没有Commit record的数据，根据undolog进行回滚。&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/11-16-54-37-image.png&#34;
+&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/11-16-54-37-image.png&#34;
 	
 	
 	
@@ -6997,7 +6997,7 @@
 &lt;p&gt;当redolog做完，在写binlog的时候crash的话，binlog中也没有，因此还是回滚。&lt;/p&gt;
 &lt;p&gt;当binlog写完的时候，crash的话，由于binlog中存在，已找到最新的事务id，然后在redolog重做，没有commit record的要追加commit record；&lt;/p&gt;
 &lt;p&gt;但是这里的前提是，开始了binlog，因为binlog 是有可能不开启的。&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/11-16-55-12-image.png&#34;
+&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/11-16-55-12-image.png&#34;
 	
 	
 	
@@ -7541,7 +7541,7 @@
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;w&#34;&gt;&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;assertThat&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;ctx&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;na&#34;&gt;containsBean&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;noteBean&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)).&lt;/span&gt;&lt;span class=&#34;na&#34;&gt;isTrue&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;();&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;ctx&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;na&#34;&gt;close&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;();&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
-&lt;/div&gt;&lt;p&gt;&lt;img src=&#34;https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=MTM0YzFlMGViZDg0Mzc2MGUzMzkyNGJhNzg1NzQ1MjlfREtDempmbWJOSktBV0dLQWdhWWJ0OXRzU2hmVEM3WHFfVG9rZW46VnVhaGJuN0tub3dUTjV4bDg1eGNpd1JjbmVmXzE3MjMzNTkwNTI6MTcyMzM2MjY1Ml9WNA&#34;
+&lt;/div&gt;&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/w39dhfwj7v37x15wz_psyqmc0000gn/T/202408156df18ebc5eba0a98d330d5f2bb3556e9.jpg&#34;
 	
 	
 	
@@ -7569,7 +7569,7 @@
 &lt;/h2&gt;&lt;h3 id=&#34;component&#34;&gt;@Component
 &lt;/h3&gt;&lt;p&gt;所有的@Component标注的类需要被扫描到才可以，不然不会加载，因此，也可以确定@Component标注的类是通过doScan来处理的&lt;/p&gt;
 &lt;p&gt;对于这种的bean是需要通过beanDefinition的后处理器来加载bean，也就是refresh的invokeBeanFactoryPostProcessors方法&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=YjBmZjNhZTA2YjE3NmQ2NmQyMGZlOGE2ZGM1MDJhMTZfdHlXaXZaQ2huUkczMVBJT2wxc0Fyb0luTTJIbHRwVERfVG9rZW46TURUcGJYcnd0b2NBUzB4TnFPMWNoeU5PbmRjXzE3MjMzNTkwNTI6MTcyMzM2MjY1Ml9WNA&#34;
+&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/w39dhfwj7v37x15wz_psyqmc0000gn/T/bb61d2d5d8f0e2abc92e789908810daf.jpg&#34;
 	
 	
 	
@@ -7577,7 +7577,7 @@
 	
 	
 &gt;&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=YmQyYzQ0NmI4NGU3ODkxYzc1NWVkMjIyYWMyZTQ2YzBfV3BUbjRmbkJPUkVKTVp6dDEySlIyMk9pMW9wMEx6RXpfVG9rZW46U1lWd2I4c0tQb3FJc2p4THp2Y2NqZXU1blRlXzE3MjMzNTkwNTI6MTcyMzM2MjY1Ml9WNA&#34;
+&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/w39dhfwj7v37x15wz_psyqmc0000gn/T/616f982c76f4e936b2863824969fe82d.jpg&#34;
 	
 	
 	
@@ -9260,7 +9260,7 @@
 &lt;/div&gt;
 &lt;/div&gt;&lt;h2 id=&#34;instancemethodsaroundinterceptor&#34;&gt;InstanceMethodsAroundInterceptor
 &lt;/h2&gt;&lt;p&gt;在InstanceMethodsAroundInterceptor的before和after方法上都打上断点，请求hello接口，其核心链路如下图所示。&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/11-18-10-50-image.png&#34;
+&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/11-18-10-50-image.png&#34;
 	
 	
 	
@@ -13742,7 +13742,7 @@
 &lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt; tab[i = (n - 1) &amp;amp; hash]
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
-&lt;/div&gt;&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/11-09-55-34-image.png&#34;
+&lt;/div&gt;&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/11-09-55-34-image.png&#34;
 	
 	
 	
@@ -13750,7 +13750,7 @@
 	
 	
 &gt;&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/11-09-56-00-image.png&#34;
+&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/11-09-56-00-image.png&#34;
 	
 	
 	
@@ -14149,7 +14149,7 @@
 &lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
-&lt;/div&gt;&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/11-09-57-47-image.png&#34;
+&lt;/div&gt;&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/11-09-57-47-image.png&#34;
 	
 	
 	
@@ -14157,7 +14157,7 @@
 	
 	
 &gt;&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/11-09-57-59-image.png&#34;
+&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/11-09-57-59-image.png&#34;
 	
 	
 	
@@ -15225,7 +15225,7 @@
 &lt;p&gt;这一步则是释放锁，当释放锁的时候，会判断如果head节点的waitStatus如果不等于0，然后就唤醒下一个可用的节点&amp;mdash;-Thread2，因为在acquireQueued方法开始继续执行，然后尝试获取锁，获取成功的话，就将自己设置为了head；&lt;/p&gt;
 &lt;/li&gt;
 &lt;/ol&gt;
-&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/11-09-08-14-image.png&#34;
+&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/11-09-08-14-image.png&#34;
 	
 	
 	
@@ -15418,7 +15418,7 @@
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
 &lt;/div&gt;&lt;p&gt;可以看出ConditionObject只持有首尾，而串联起来Node的则是Node的nextWaiter字段，所以这是个单链表&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/11-09-09-00-image.png&#34;
+&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/11-09-09-00-image.png&#34;
 	
 	
 	

@@ -101,7 +101,7 @@
 &lt;/div&gt;
 &lt;/div&gt;&lt;h2 id=&#34;instancemethodsaroundinterceptor&#34;&gt;InstanceMethodsAroundInterceptor
 &lt;/h2&gt;&lt;p&gt;在InstanceMethodsAroundInterceptor的before和after方法上都打上断点，请求hello接口，其核心链路如下图所示。&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/11-18-10-50-image.png&#34;
+&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/11-18-10-50-image.png&#34;
 	
 	
 	

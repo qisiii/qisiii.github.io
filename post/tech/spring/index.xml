@@ -57,7 +57,7 @@
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;w&#34;&gt;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
-&lt;/div&gt;&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/11-17-02-57-image.png&#34;
+&lt;/div&gt;&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/11-17-02-57-image.png&#34;
 	
 	
 	
@@ -1036,7 +1036,7 @@
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
 &lt;/div&gt;&lt;h3 id=&#34;增强流程&#34;&gt;增强流程
-&lt;/h3&gt;&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/qisiii/imagehost/main/2024/08/11-17-20-10-image.png&#34;
+&lt;/h3&gt;&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/11-17-20-10-image.png&#34;
 	
 	
 	
@@ -2270,7 +2270,7 @@
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;w&#34;&gt;&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;assertThat&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;ctx&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;na&#34;&gt;containsBean&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;noteBean&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)).&lt;/span&gt;&lt;span class=&#34;na&#34;&gt;isTrue&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;();&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;ctx&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;na&#34;&gt;close&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;();&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
-&lt;/div&gt;&lt;p&gt;&lt;img src=&#34;https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=MTM0YzFlMGViZDg0Mzc2MGUzMzkyNGJhNzg1NzQ1MjlfREtDempmbWJOSktBV0dLQWdhWWJ0OXRzU2hmVEM3WHFfVG9rZW46VnVhaGJuN0tub3dUTjV4bDg1eGNpd1JjbmVmXzE3MjMzNTkwNTI6MTcyMzM2MjY1Ml9WNA&#34;
+&lt;/div&gt;&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/w39dhfwj7v37x15wz_psyqmc0000gn/T/202408156df18ebc5eba0a98d330d5f2bb3556e9.jpg&#34;
 	
 	
 	
@@ -2298,7 +2298,7 @@
 &lt;/h2&gt;&lt;h3 id=&#34;component&#34;&gt;@Component
 &lt;/h3&gt;&lt;p&gt;所有的@Component标注的类需要被扫描到才可以，不然不会加载，因此，也可以确定@Component标注的类是通过doScan来处理的&lt;/p&gt;
 &lt;p&gt;对于这种的bean是需要通过beanDefinition的后处理器来加载bean，也就是refresh的invokeBeanFactoryPostProcessors方法&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=YjBmZjNhZTA2YjE3NmQ2NmQyMGZlOGE2ZGM1MDJhMTZfdHlXaXZaQ2huUkczMVBJT2wxc0Fyb0luTTJIbHRwVERfVG9rZW46TURUcGJYcnd0b2NBUzB4TnFPMWNoeU5PbmRjXzE3MjMzNTkwNTI6MTcyMzM2MjY1Ml9WNA&#34;
+&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/w39dhfwj7v37x15wz_psyqmc0000gn/T/bb61d2d5d8f0e2abc92e789908810daf.jpg&#34;
 	
 	
 	
@@ -2306,7 +2306,7 @@
 	
 	
 &gt;&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=YmQyYzQ0NmI4NGU3ODkxYzc1NWVkMjIyYWMyZTQ2YzBfV3BUbjRmbkJPUkVKTVp6dDEySlIyMk9pMW9wMEx6RXpfVG9rZW46U1lWd2I4c0tQb3FJc2p4THp2Y2NqZXU1blRlXzE3MjMzNTkwNTI6MTcyMzM2MjY1Ml9WNA&#34;
+&lt;p&gt;&lt;img src=&#34;http://picgo.qisiii.asia/post/w39dhfwj7v37x15wz_psyqmc0000gn/T/616f982c76f4e936b2863824969fe82d.jpg&#34;
 	
 	
 	
