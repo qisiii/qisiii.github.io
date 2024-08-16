@@ -1,0 +1,37 @@
+[
+    {
+        "title": "锦鲤",
+        "website": "https://jinli.io/",
+        "image": "/link-img/jinli.jpeg",
+        "description": "",
+        "notes": "就是看了这个网站才开始搞hugo的"
+    },
+    {
+        "title": "第三夏尔 | Third Shire",
+        "website": "https://thirdshire.com/",
+        "image": "/link-img/thirdshire.jpg",
+        "description": "",
+        "notes": "热爱生活的塔罗厨"
+    },
+    {
+        "title": "leeliangliang",
+        "website": "https://learn.lianglianglee.com/",
+        "image": "/link-img/default.jpeg",
+        "description": "",
+        "notes": "真真技术大佬"
+    },
+    {
+        "title": "sulv",
+        "website": "https://www.sulvblog.cn/",
+        "image": "/link-img/sulv.gif",
+        "description": "",
+        "notes": ""
+    },
+    {
+        "title": "javadoop",
+        "website": "https://javadoop.com/",
+        "image": "/link-img/javadoop.png",
+        "description": "",
+        "notes": "源码分析写的特别好的大佬，是我读源码的领路人"
+    }
+]

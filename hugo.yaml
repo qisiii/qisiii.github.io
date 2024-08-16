@@ -1,0 +1,166 @@
+baseurl: https://qisiii.github.io/
+languageCode: zh-cn
+theme: hugo-theme-stack
+paginate: 10
+title: 起司的博客
+copyright: 起司
+DefaultContentLanguage: zh-cn
+outputs:
+  home:
+    - HTML
+    - JSON
+    - RSS
+  page:
+    - HTML
+    - JSON
+    - RSS
+hasCJKLanguage: true
+languages:
+  zh-cn:
+    languageName: 中文
+    title: 起司的博客
+    weight: 2
+    params:
+      description: 起司的博客
+services:
+  disqus:
+    shortname: hugo-theme-stack
+  googleAnalytics:
+    id: G-8NDCRP4S7S
+permalinks:
+  post: /:sections/:slug
+  page: /:slug/
+params:
+  busuanzi:
+    enable: true
+    site_uv: true
+    site_uv_pre: <i class="fa fa-user" aria-hidden="true"></i>
+    site_uv_post: '人次'
+    site_pv: true
+    site_pv_pre: <i class="far fa-eye fa-fw"></i>
+    site_pv_post: '次'
+    page_pv: true
+    page_pv_pre: <i class="far fa-eye fa-fw"></i>
+    page_pv_post: '次阅读'
+  mainSections:
+    - post
+  featuredImageField: image
+  rssFullContent: true
+  favicon: null
+  footer:
+    since: 2022
+    customText: null
+  dateFormat:
+    published: 2006-01-02
+    lastUpdated: 2006-01-02 15:04:05
+  sidebar:
+    avatar:
+      enabled: true
+      local: true
+      src: img/avatar.png
+  article:
+    math: false
+    toc: true
+    readingTime: true
+    license:
+      enabled: true
+      default: Licensed under CC BY-NC-SA 4.0
+  comments:
+    enabled: true
+    provider: twikoo
+    twikoo:
+      envId: https://qisiii-twikoo.hf.space
+      region: null
+      path: null
+      lang: null
+  widgets:
+    homepage:
+      - type: search
+      - type: archives
+        params:
+          limit: 5
+      - type: categories
+        params:
+          limit: 10
+      - type: tag-cloud
+        params:
+          limit: 10
+    page:
+      - type: toc
+  opengraph:
+    twitter:
+      site: null
+      card: summary_large_image
+  defaultImage:
+    opengraph:
+      enabled: false
+      local: false
+      src: null
+  colorScheme:
+    toggle: true
+    default: auto
+  imageProcessing:
+    cover:
+      enabled: true
+    content:
+      enabled: true
+menu:
+  main:
+        - identifier: home
+          name: 首页|Home
+          url: /
+          weight: 1
+          params:
+            icon: home
+            newTab: false
+        - identifier: friends
+          name: 友链|Friends
+          url: /post/friends
+          weight: 2
+          params:
+            icon: friends
+            newTab: true
+        - identifier: search
+          name: 搜索|Search
+          url: /post/search
+          weight: 3
+          params:
+            icon: search
+            newTab: true
+  social:
+    - identifier: github
+      name: GitHub
+      url: https://github.com/qisiii
+      params:
+        icon: brand-github
+    - identifier: rss
+      name: rss
+      url: /index.xml
+      params:
+        icon: rss
+related:
+  includeNewer: true
+  threshold: 60
+  toLower: false
+  indices:
+    - name: tags
+      weight: 100
+    - name: categories
+      weight: 200
+markup:
+  goldmark:
+    renderer:
+      unsafe: true
+  tableOfContents:
+    endLevel: 4
+    ordered: true
+    startLevel: 2
+  highlight:
+    noClasses: false
+    codeFences: true
+    guessSyntax: true
+    lineNoStart: 1
+    lineNos: true
+    lineNumbersInTable: true
+    tabWidth: 4
+
