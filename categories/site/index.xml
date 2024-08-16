@@ -1,0 +1,452 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>个人网站 on 起司的博客</title><link>https://qisiii.github.io/categories/site/</link><description>Recent content in 个人网站 on 起司的博客</description><generator>Hugo -- gohugo.io</generator><language>zh-cn</language><copyright>起司</copyright><lastBuildDate>Sat, 10 Aug 2024 16:32:55 +0800</lastBuildDate><atom:link href="https://qisiii.github.io/categories/site/index.xml" rel="self" type="application/rss+xml"/><item><title>Hugo&amp;Stack主题的使用记录</title><link>https://qisiii.github.io/post/site/hugo_stack_record/</link><pubDate>Sat, 10 Aug 2024 16:32:55 +0800</pubDate><guid>https://qisiii.github.io/post/site/hugo_stack_record/</guid><description>&lt;p>&lt;a class="link" href="https://gohugo.io/about/" target="_blank" rel="noopener"
+>hugo官网&lt;/a>|&lt;a class="link" href="https://stack.jimmycai.com/config/" target="_blank" rel="noopener"
+>Stack官网&lt;/a>&lt;/p>
+&lt;h2 id="通过github-action进行部署">通过Github Action进行部署
+&lt;/h2>&lt;p>&lt;a class="link" href="https://www.lixueduan.com/posts/blog/01-github-action-deploy-hugo/" target="_blank" rel="noopener"
+>基于 Github Action 自动构建 Hugo 博客 -&lt;/a>&lt;/p>
+&lt;p>&lt;a class="link" href="https://eddyblog.cn/posts/tech/github-action-hugo/" target="_blank" rel="noopener"
+>【Hugo网站搭建】GitHub Action自动化部署Hugo博客 | Eddy's blog&lt;/a>&lt;/p>
+&lt;h2 id="标签云增加数量统计归档页增加标签云">标签云增加数量统计&amp;amp;归档页增加标签云:
+&lt;/h2>&lt;p>&lt;a class="link" href="https://thirdshire.com/hugo-stack-renovation/#%E5%9C%A8%E5%BD%92%E6%A1%A3%E9%A1%B5%E5%A2%9E%E5%8A%A0%E6%A0%87%E7%AD%BE%E4%BA%91tags" target="_blank" rel="noopener"
+>Hugo Stack主题装修笔记&lt;/a>&lt;/p>
+&lt;h2 id="增加返回顶部按钮">增加返回顶部按钮：
+&lt;/h2>&lt;p>&lt;a class="link" href="https://chowray.netlify.app/posts/it%E5%B0%8F%E8%AE%B0/2021-01-06-%E4%B8%80%E9%94%AE%E8%BF%94%E5%9B%9E%E9%A1%B6%E9%83%A8/" target="_blank" rel="noopener"
+>添加一键返回顶部功能 | Dlog&lt;/a>&lt;/p>
+&lt;h2 id="增加友链">增加友链:
+&lt;/h2>&lt;p>参考&lt;a class="link" href="https://thirdshire.com/hugo-stack-renovation-part-two/#%E5%8F%8C%E6%A0%8F%E5%8F%8B%E6%83%85%E9%93%BE%E6%8E%A5%E5%B9%B6%E5%A2%9E%E5%8A%A0%E5%8D%9A%E4%B8%BB%E5%A4%87%E6%B3%A8" target="_blank" rel="noopener"
+>Hugo Stack主题装修笔记Part 2&lt;/a>，结合自己的版本和主题略有修改&lt;/p>
+&lt;ol>
+&lt;li>
+&lt;p>我的links.html是放在 layouts/_default下才有效，在layouts/page下面没起效&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>data/json中指定的图片路径按博客所说需要放置在assets下再挂载到static中，我直接放在了static/link-img下&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>菜单-友链需要格外的配置，这里的路径是你对应的文件，我这里不是新建了一个friend文件夹，然后在下面再创建index.md,而是在post下直接创建了个friend.md&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;span class="lnt">6
+&lt;/span>&lt;span class="lnt">7
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-yaml" data-lang="yaml">&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>- &lt;span class="nt">identifier&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">friends&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">name&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">友链|Friends&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">url&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">/post/friends&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">weight&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="m">2&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">params&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">icon&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">friends&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">newTab&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="kc">true&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>&lt;img src="http://picgo.qisiii.asia/post/1723690756125.jpg"
+loading="lazy"
+>&lt;/p>
+&lt;/li>
+&lt;/ol>
+&lt;h2 id="url">URL：
+&lt;/h2>&lt;h3 id="slug">slug:
+&lt;/h3>&lt;p>一个正常的网址格式是下面这样的，其中路径的最后一段就是slug。&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl"> &amp;lt;协议&amp;gt;://&amp;lt;主机名&amp;gt;/&amp;lt;路径&amp;gt;/&amp;lt;文件slug&amp;gt;?&amp;lt;查询字符串&amp;gt;#&amp;lt;片段&amp;gt;`
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>据说简短清晰的slug有助于SEO，但哪怕没有这个功能，我们的文件名很多时候也是中文的，经过编码后可读性太差。因此，设置一个简短的slug是很有必要的。&lt;/p>
+&lt;p>建议在模板文件archetypes/default.md直接新增slug字段，这样就不用每个文件手动添加了&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;span class="lnt">6
+&lt;/span>&lt;span class="lnt">7
+&lt;/span>&lt;span class="lnt">8
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-toml" data-lang="toml">&lt;span class="line">&lt;span class="cl">&lt;span class="err">+++&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">title&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="s2">&amp;#34;{{ replace .Name &amp;#34;&lt;/span>&lt;span class="nx">-&lt;/span>&lt;span class="s2">&amp;#34; &amp;#34;&lt;/span> &lt;span class="s2">&amp;#34; | title }}&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">description&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="s2">&amp;#34;&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">date&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="p">{{&lt;/span> &lt;span class="p">.&lt;/span>&lt;span class="nx">Date&lt;/span> &lt;span class="p">}}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">image&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="s2">&amp;#34;&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">draft&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="kc">true&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">slug&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="s2">&amp;#34;{{ replace .Name &amp;#34;&lt;/span>&lt;span class="nx">-&lt;/span>&lt;span class="s2">&amp;#34; &amp;#34;&lt;/span> &lt;span class="s2">&amp;#34; | title }}&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">+++&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;h3 id="permalinks">permalinks:
+&lt;/h3>&lt;p>如果只设置slug，stack主题配置默认路径是 域名/p/slug这样子，其实对于文件的组织管理和展示路径依然不是很明朗，因此，我这里是以文件夹层级的方式生成路径。&lt;/p>
+&lt;p>在总配置中，修改或者新增&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">permalinks:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> post: /:sections/:slug
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>这里的:sections是指多个路径，但是hugo默认处理顶级目录会自动识别为section外，其他目录需要手动添加_index.md文件才行。&lt;/p>
+&lt;h2 id="评论">评论：
+&lt;/h2>&lt;p>hugo支持许多评论框架，具体可以看&lt;a class="link" href="https://gohugo.io/content-management/comments/" target="_blank" rel="noopener"
+>hugo-comments&lt;/a>|&lt;a class="link" href="https://stack.jimmycai.com/config/comments" target="_blank" rel="noopener"
+>Comments | Stack&lt;/a>，我选择的是&lt;/p>
+&lt;ul>
+&lt;li>&lt;a class="link" href="https://twikoo.js.org/" target="_blank" rel="noopener"
+>Twikoo&lt;/a>&lt;/li>
+&lt;/ul>
+&lt;p>建议跟着&lt;a class="link" href="https://twikoo.js.org/quick-start.html" target="_blank" rel="noopener"
+>快速上手 | Twikoo 文档&lt;/a>去部署一遍，我这里选用的是&lt;a class="link" href="https://twikoo.js.org/backend.html#hugging-face-%E9%83%A8%E7%BD%B2" target="_blank" rel="noopener"
+>Hugging Face&lt;/a>免费部署的方案。&lt;/p>
+&lt;p>部署主要有两部分：一部分是生成一个mogodb的密钥串，二部分则是在hugging face上新建空间和项目，最终获得envId&lt;/p>
+&lt;p>然后修改站点配置文件&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;span class="lnt">6
+&lt;/span>&lt;span class="lnt">7
+&lt;/span>&lt;span class="lnt">8
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl"> comments:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> enabled: true
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> provider: twikoo
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">     twikoo:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> envId: https://你的项目空间.hf.space
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> region:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> path:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> lang:
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;h2 id="小部件">小部件：
+&lt;/h2>&lt;p>&lt;a class="link" href="https://stack.jimmycai.com/config/widgets" target="_blank" rel="noopener"
+>Widgets | Stack&lt;/a>&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-yaml" data-lang="yaml">&lt;span class="line">&lt;span class="cl">&lt;span class="nt">widgets&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">homepage&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>- &lt;span class="nt">type&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">search&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>- &lt;span class="nt">type&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">archives&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">params&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">limit&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="m">5&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>- &lt;span class="nt">type&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">categories&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">params&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">limit&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="m">10&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>- &lt;span class="nt">type&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">tag-cloud&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">params&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">limit&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="m">10&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>在stack的配置文件中，搜索工具、归档工具、分类和标签都是启用的。但是启用并不代表默认会出现，依然需要各种地方指定了值才能出现。&lt;/p>
+&lt;h3 id="分类标签">分类&amp;amp;标签
+&lt;/h3>&lt;p>在你的内容文件的front matter中，需要指定tag的值和categories的值，我这里的front matter是toml格式&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-toml" data-lang="toml">&lt;span class="line">&lt;span class="cl">&lt;span class="nx">tag&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;hugo&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="s1">&amp;#39;stack&amp;#39;&lt;/span>&lt;span class="p">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">categories&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="s2">&amp;#34;个人网站&amp;#34;&lt;/span>&lt;span class="p">]&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;h3 id="归档">归档：
+&lt;/h3>&lt;p>需要在content/post目录下新建archives.md，内容如下，不需要任何正文内容&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;span class="lnt">6
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-toml" data-lang="toml">&lt;span class="line">&lt;span class="cl">&lt;span class="err">+++&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">title&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="s1">&amp;#39;Archives&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">layout&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="s2">&amp;#34;archives&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">hidden&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="kc">true&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">comments&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="kc">false&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">+++&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>layout是指定为分类样式，hidden表示该文件不会被展示出来，comments表示评论区关闭.&lt;/p>
+&lt;p>其次，需要在 项目/layouts/_default 或者 主题/layouts/_default下存在archives.html，由于stack主题下默认就有这个文件，所以正常来说添加了archives.md就可以使用归档功能了。&lt;/p>
+&lt;h3 id="搜索">搜索:
+&lt;/h3>&lt;h4 id="增加searchmd">增加search.md
+&lt;/h4>&lt;p>首先是同归档类似，需要在content/post目录下新建search.md，内容如下，不需要任何正文内容&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;span class="lnt">6
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-toml" data-lang="toml">&lt;span class="line">&lt;span class="cl">&lt;span class="err">+++&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">title&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="s2">&amp;#34;search&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">layout&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="s2">&amp;#34;search&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">hidden&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="kc">true&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">comments&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="kc">false&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">+++&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;h4 id="增加搜索引擎的文件">增加搜索引擎的文件
+&lt;/h4>&lt;p>静态网站的搜索本质上是将你的文档进行分词汇总到一个json文件，实际搜索的时候就是在搜索这个json文件。比较常用的是&lt;a class="link" href="https://www.fusejs.io/" target="_blank" rel="noopener"
+>fuse.js&lt;/a>,&lt;a class="link" href="https://lunrjs.com/" target="_blank" rel="noopener"
+>lunr.js&lt;/a>或者主题自己封装的搜索能力。&lt;/p>
+&lt;ol>
+&lt;li>
+&lt;p>stack主题&lt;/p>
+&lt;p>增加search.html和search.json&lt;/p>
+&lt;p>需要在 项目/layouts/_default 或者 主题/layouts/_default 存在两个文件（对于stack来说），分别是search.html和search.json。&lt;/p>
+&lt;p>在我clone的stack版本中，这两个文件在_default并不存在，但是在/layouts/page下面是有的，所以从cp layouts/page/* layouts/_default&lt;/p>
+&lt;p>成功的话，会在public/post/search目录下生成index.html index.json两个文件，主要是index.json文件&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>fuse&lt;/p>
+&lt;p>我有看过两个文章是使用fuse的，但是我自己都没有实验成功，加上对hugo的模板还不熟，先不折腾了。&lt;/p>
+&lt;p>&lt;a class="link" href="https://sobaigu.com/hugo-set-featuer-search.html" target="_blank" rel="noopener"
+>给hugo添加搜索功能 | 搜百谷&lt;/a>&lt;/p>
+&lt;p>&lt;a class="link" href="https://ttys3.dev/blog/hugo-fast-search" target="_blank" rel="noopener"
+>https://ttys3.dev/blog/hugo-fast-search&lt;/a>&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>Docsy主题&lt;/p>
+&lt;p>可以参考官方文档&lt;a class="link" href="https://www.docsy.dev/docs/adding-content/search/#algolia-docsearch" target="_blank" rel="noopener"
+>Search | Docsy&lt;/a>&lt;/p>
+&lt;/li>
+&lt;/ol>
+&lt;h4 id="修改总配置hugoyaml">修改总配置hugo.yaml
+&lt;/h4>&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;span class="lnt">6
+&lt;/span>&lt;span class="lnt">7
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-yaml" data-lang="yaml">&lt;span class="line">&lt;span class="cl">&lt;span class="nt">outputs&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">home&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>- &lt;span class="l">HTML&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>- &lt;span class="l">JSON&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">page&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>- &lt;span class="l">HTML&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>- &lt;span class="l">JSON&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>这里home和page两种kind都配置的原因是:&lt;/p>
+&lt;p>假如你没有修改过总配置中的permalinks，那么你的博客的路径应该是 域名/p/文章名，这种情况下kind对应的是home类型&lt;/p>
+&lt;p>&lt;img src="http://picgo.qisiii.asia/post/1723663347953.jpg"
+loading="lazy"
+>&lt;/p>
+&lt;p>但是假如你像我一下修改了permalinks，比如我改成了&lt;code> post: /:sections/:slug&lt;/code>，这个是为了让我的博客地址以路径+文件名来显示，但是由于有了层级关系，里面的博客文章的kind就变成了page，因此在配置的时候，将home和page两个都指定是最好的&lt;/p>
+&lt;p>&lt;img src="http://picgo.qisiii.asia/post/1723663319408.jpg"
+loading="lazy"
+>&lt;/p>
+&lt;p>说实话，我其实还是不能理解这个kind的设计~&lt;/p>
+&lt;h2 id="网站收录">网站收录：
+&lt;/h2>&lt;p>bing &lt;a class="link" href="https://www.cnblogs.com/RainbowC0/p/18107581" target="_blank" rel="noopener"
+>将 Github Pages 个人博客录入搜索引擎（以 Bing 为例） - RainbowC0 - 博客园&lt;/a>&lt;/p>
+&lt;p>google &lt;a class="link" href="https://winxuan.github.io/posts/blog-google-search-include/" target="_blank" rel="noopener"
+>Google搜索收录Github Pages（Blog可以被Google搜索到） | Marvin&amp;rsquo;s blog&lt;/a>&lt;/p>
+&lt;h2 id="参考文档">参考文档:
+&lt;/h2>&lt;p>&lt;a class="link" href="https://huweim.github.io/post/blog_hugo_%E5%BD%92%E6%A1%A3%E9%A1%B5%E9%9D%A2%E5%88%B6%E4%BD%9C/" target="_blank" rel="noopener"
+>Hugo 归档页面制作 - Cory&lt;/a>&lt;/p></description></item><item><title>搭建自己的博客</title><link>https://qisiii.github.io/post/site/personsite/</link><pubDate>Tue, 23 Jul 2024 00:00:00 +0000</pubDate><guid>https://qisiii.github.io/post/site/personsite/</guid><description>&lt;h2 id="建站方式">建站方式
+&lt;/h2>&lt;p>选择建站方式，是使用动态建站（如WordPress、halo），还是使用静态建站（Jekyll、hexo、hugo）。&lt;/p>
+&lt;p>前者更偏向于传统的CMS管理系统，有后台管理页面，可以在管理页面发布，修改文章。除了需要服务器之外，需要同时了解前端、后端、数据库相关的知识，当然现有的项目完全可以简单配置后就可以开箱使用。&lt;/p>
+&lt;p>后者一般是使用各种开源项目，将文档转为静态资源（html），部署在服务器或者以GithubPages的方式供他人访问。而使用哪个开源项目进行建站，可以去&lt;a class="link" href="https://jamstack.org/generators/" target="_blank" rel="noopener"
+>Static Site Generators -Jamstack&lt;/a>选择个人喜欢的项目，本文使用hugo项目进行搭建。&lt;/p>
+&lt;h2 id="hugo安装和使用">hugo安装和使用
+&lt;/h2>&lt;p>参考&lt;a class="link" href="https://hugo.opendocs.io/getting-started/quick-start/" target="_blank" rel="noopener"
+>hugo中文官网&lt;/a>，进行安装，我这里是mac os系统，所以直接使用&lt;code> brew install hugo&lt;/code>进行安装。&lt;/p>
+&lt;p>使用命令&lt;code>hugo new site [路径]&lt;/code>创建项目根目录，比如我这边路径是/Users/qisi/Research/hugo，则会在/Users/qisi/Research/hugo目录下创建以下文件夹&lt;/p>
+&lt;p>&lt;img src="http://picgo.qisiii.asia/post/2024072938213899385d1f11e71816a675ddadec.png"
+loading="lazy"
+>&lt;/p>
+&lt;p>其中，content文件夹用来存储你的文档，themes文件夹用来存储你想要的主题，hugo.toml是总的配置，其他的后面可以跟着官网慢慢熟悉。&lt;/p>
+&lt;p>在&lt;a class="link" href="https://themes.gohugo.io/themes/" target="_blank" rel="noopener"
+>主题网站&lt;/a>安装想要的主题，我这里是使用的stack主题，可以通过两种方式安装&lt;/p>
+&lt;p>通过git命令，在当前目录执行&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">git init
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">git submodule add --depth=1 https://github.com/CaiJimmy/hugo-theme-stack.git themes/hugo-theme-stack
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>手动安装则是自己新建文件夹，然后clone&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">&lt;span class="nb">cd&lt;/span> themes
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">mkdir hugo-theme-stack
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">git clone https://github.com/CaiJimmy/hugo-theme-stack.git
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>安装完成之后，将stack主题的配置复制一份到hugo根目录，并删除hugo.toml文件&lt;/p>
+&lt;p>&lt;code> cp themes/hugo-theme-stack/exampleSite/hugo.yaml ./&lt;/code>&lt;/p>
+&lt;p>执行以下命令来新建文件，会自动在content/post目录下新建test.md&lt;/p>
+&lt;p>&lt;code>hugo new post/test.md&lt;/code>&lt;/p>
+&lt;p>文件内容是,draft表示是草稿&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;span class="lnt">6
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-toml" data-lang="toml">&lt;span class="line">&lt;span class="cl">&lt;span class="err">+++&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">title&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="s1">&amp;#39;Test&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">date&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="ld">2024-07-29T14:25:00+08:00&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">draft&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="kc">true&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">+++&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">## 这里是我手动添加的内容&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>通过&lt;code>hugo server --buildDrafts &lt;/code>启动后台，&amp;ndash;buildDrafts 表示会编译draft=true的文档，通过在浏览器访问http://localhost:1313打开网站，页面如图&lt;/p>
+&lt;p>&lt;img src="http://picgo.qisiii.asia/post/202407297e4c4da75b240a356d0733d5a61fe2ac.png"
+loading="lazy"
+>&lt;/p>
+&lt;h2 id="github-page">Github Page
+&lt;/h2>&lt;p>通过hugo server已经可以在本地电脑进行访问了，但如果想要通过互联网访问，则需要进行额外的设置。&lt;/p>
+&lt;p>如果拥有自己的服务器，可以在服务器上启动hugo，然后使用nginx监听并转发到public目录；但如果没有服务器，则可以通过&lt;a class="link" href="[https://pages.github.com/]%28https://pages.github.com/%29" >Github Page&lt;/a>功能来托管自己的项目。&lt;/p>
+&lt;p>首先需要创建一个项目，项目名称以github.io结尾，前缀一般用自己的用户名或者有标识的单词&lt;/p>
+&lt;p>&lt;img src="http://picgo.qisiii.asia/post/202407290cafabcbc2855b8990127a750aa7b8e1.png"
+loading="lazy"
+>&lt;/p>
+&lt;p>将hugo项目的public文件夹作为一个git项目，推送到刚新建的这个Repository中&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;span class="lnt">6
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">cd public
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">git init
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">git add .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">git commit -am 首次commit
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">git remote add origin git@github.com:qisiii/qisiii.github.io.git
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">git push --set-upstream origin master
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>在setting-pages下进行一些设置，如下图所示，保存后就可以通过[关键词].github.io来访问了&lt;/p>
+&lt;p>&lt;img src="http://picgo.qisiii.asia/post/20240729c3ac3627f8d52fc949f594f3c6e4effe.png"
+loading="lazy"
+>&lt;/p>
+&lt;p>如果想要更个性化的域名，则需要购买一个域名，添加一个cname类型的解析，同时在上图Custom domain的文本框中填入对应的域名，这样子就可以以自己的域名访问了。&lt;/p>
+&lt;h2 id="markdown工具">Markdown工具
+&lt;/h2>&lt;p>市面上的markdown工具还是蛮多的，各种开发用的ide，或者专门用于markdown的编辑器。我使用的是MarkText(&lt;a class="link" href="https://github.com/marktext/marktext" target="_blank" rel="noopener"
+>GitHub - marktext/marktext: 📝A simple and elegant markdown editor, available for Linux, macOS and Windows.&lt;/a>)，建议直接安装&lt;a class="link" href="https://marktext.weero.net/" target="_blank" rel="noopener"
+>中文版markText&lt;/a>。&lt;/p>
+&lt;p>MarkText的图床功能存在bug：&lt;/p>
+&lt;h3 id="uploader为github时上传失败">uploader为github时上传失败
+&lt;/h3>&lt;p>原因是GithubApi要求content是base64格式的，所以需要额外做一下处理，参考&lt;a class="link" href="https://github.com/marktext/marktext/pull/3589" target="_blank" rel="noopener"
+>pr&lt;/a>&lt;/p>
+&lt;p>&lt;img src="http://picgo.qisiii.asia/post/30-00-10-06-image.png"
+loading="lazy"
+>&lt;/p>
+&lt;h3 id="无法上传剪贴板的图片">无法上传剪贴板的图片
+&lt;/h3>&lt;p>其中，无法上传剪贴板图片的bug是由于项目中fileSystem.js中path.join方法参数类型错误导致的；参考&lt;a class="link" href="https://github.com/marktext/marktext/pull/3366" target="_blank" rel="noopener"
+>Fix Failure when uploading clipboard images with PicGo （#3360） by Jakentop · Pull Request #3366 · marktext/marktext · GitHub&lt;/a>&lt;/p>
+&lt;p>&lt;img src="http://picgo.qisiii.asia/post/30-00-06-41-image.png"
+loading="lazy"
+>&lt;/p>
+&lt;h3 id="无法检测到picgo存在">无法检测到picgo存在
+&lt;/h3>&lt;p>这个可能是由于env的路径并不包含picgo所在的路径，在env.js有一段逻辑是这样的&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-js" data-lang="js">&lt;span class="line">&lt;span class="cl">&lt;span class="kr">const&lt;/span> &lt;span class="nx">patchEnvPath&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="p">()&lt;/span> &lt;span class="p">=&amp;gt;&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">process&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">platform&lt;/span> &lt;span class="o">===&lt;/span> &lt;span class="s1">&amp;#39;darwin&amp;#39;&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">process&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">env&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">PATH&lt;/span> &lt;span class="o">+=&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">process&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">env&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">PATH&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">endsWith&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">path&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">delimiter&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">?&lt;/span> &lt;span class="s1">&amp;#39;&amp;#39;&lt;/span> &lt;span class="o">:&lt;/span> &lt;span class="nx">path&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">delimiter&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="s1">&amp;#39;/Library/TeX/texbin:/opt/homebrew/bin:/usr/local/bin&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>修改为下面这样，我是用yarn 安装的picgo，路径在/opt/homebrew/bin 下面，我为了省事，就将/opt/homebrew/bin和/usr/local/bin都追加在后面了&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;span class="lnt">6
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-js" data-lang="js">&lt;span class="line">&lt;span class="cl">&lt;span class="kr">const&lt;/span> &lt;span class="nx">patchEnvPath&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="p">()&lt;/span> &lt;span class="p">=&amp;gt;&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">process&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">platform&lt;/span> &lt;span class="o">===&lt;/span> &lt;span class="s1">&amp;#39;darwin&amp;#39;&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">process&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">env&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">PATH&lt;/span> &lt;span class="o">+=&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">process&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">env&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">PATH&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">endsWith&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">path&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">delimiter&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">?&lt;/span> &lt;span class="s1">&amp;#39;&amp;#39;&lt;/span> &lt;span class="o">:&lt;/span> &lt;span class="nx">path&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">delimiter&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="s1">&amp;#39;/Library/TeX/texbin:/opt/homebrew/bin:/usr/local/bin&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>修改完之后打包会是下面这样，就能识别到picgo了&lt;/p>
+&lt;p>&lt;img src="http://picgo.qisiii.asia/post/1723657557974.jpg"
+loading="lazy"
+>&lt;/p>
+&lt;p>但是可能依然会存在上传截图失败的情况，这种场景下是找不到node，可以自己给node建立一个软连接到/usr/local/bin下，比如我这边是nvm管理的node 18，通过&lt;code>ln -s /Users/hkc/.nvm/versions/node/v18.15.0/bin/node /usr/local/bin/node&lt;/code> 建立软链接&lt;/p>
+&lt;p>&lt;img src="http://picgo.qisiii.asia/post/1723657486782.jpg"
+loading="lazy"
+>&lt;/p>
+&lt;h2 id="参考博客">参考博客：
+&lt;/h2>&lt;p>&lt;a class="link" href="https://jinli.io/p/%E4%B8%AA%E4%BA%BA%E7%BD%91%E7%AB%99%E7%9A%84%E5%BB%BA%E7%AB%8B%E8%BF%87%E7%A8%8B%E4%BA%8C%E4%BD%BF%E7%94%A8hugo%E6%A1%86%E6%9E%B6%E6%90%AD%E5%BB%BA%E4%B8%AA%E4%BA%BA%E7%BD%91%E7%AB%99/" target="_blank" rel="noopener"
+>个人网站的建立过程（二）：使用Hugo框架搭建个人网站&lt;/a>&lt;/p>
+&lt;p>&lt;a class="link" href="https://jinli.io/p/%E4%B8%AA%E4%BA%BA%E7%BD%91%E7%AB%99%E7%9A%84%E5%BB%BA%E7%AB%8B%E8%BF%87%E7%A8%8B%E4%BA%8C%E4%BD%BF%E7%94%A8hugo%E6%A1%86%E6%9E%B6%E6%90%AD%E5%BB%BA%E4%B8%AA%E4%BA%BA%E7%BD%91%E7%AB%99/" target="_blank" rel="noopener"
+>个人网站的建立过程（二）：使用Hugo框架搭建个人网站&lt;/a>&lt;/p></description></item></channel></rss>

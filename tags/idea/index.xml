@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Idea on 起司的博客</title><link>https://qisiii.github.io/tags/idea/</link><description>Recent content in Idea on 起司的博客</description><generator>Hugo -- gohugo.io</generator><language>zh-cn</language><copyright>起司</copyright><lastBuildDate>Mon, 10 Jul 2023 00:00:00 +0000</lastBuildDate><atom:link href="https://qisiii.github.io/tags/idea/index.xml" rel="self" type="application/rss+xml"/><item><title>IDEA进程远程Debug</title><link>https://qisiii.github.io/post/tech/tool/remote_debug/</link><pubDate>Mon, 10 Jul 2023 00:00:00 +0000</pubDate><guid>https://qisiii.github.io/post/tech/tool/remote_debug/</guid><description>&lt;h2 id="普通的应用启动">普通的应用启动
+&lt;/h2>&lt;p>新建一个Remote_JVM_Debug配置&lt;/p>
+&lt;p>&lt;img src="http://picgo.qisiii.asia/post/1723664070953.jpg"
+loading="lazy"
+>&lt;/p>
+&lt;p>填入自己的服务器的ip和任意一个没有被占用的端口号（非当前应用启动用的端口号），然后重点是下面这段代码&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-java" data-lang="java">&lt;span class="line">&lt;span class="cl">&lt;span class="o">-&lt;/span>&lt;span class="n">agentlib&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="n">jdwp&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="n">transport&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="n">dt_socket&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">server&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="n">y&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">suspend&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="n">n&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">address&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="n">8100&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>&lt;img src="http://picgo.qisiii.asia/post/1723664128443.jpg"
+loading="lazy"
+>&lt;/p>
+&lt;p>在服务器启动对应应用，上面提到的代码必须在 java -jar xxx.jar 的-jar前面，而我的启动命令是下面这样，绿色为新插入的&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-C" data-lang="C">&lt;span class="line">&lt;span class="cl">&lt;span class="n">nohup&lt;/span> &lt;span class="n">java&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="n">Xms128m&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="n">Xmx128m&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="n">Xmn40m&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nl">XX&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="n">HeapDumpOnOutOfMemoryError&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nl">XX&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="n">HeapDumpPath&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="n">logs&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="n">jvm&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nl">Xloggc&lt;/span>&lt;span class="p">:.&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="n">logs&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="n">jvm&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="n">gc&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">log&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nl">XX&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="n">PrintGCDetails&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nl">XX&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="n">PrintGCDateStamps&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nl">agentlib&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="n">jdwp&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="n">transport&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="n">dt_socket&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">server&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="n">y&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">suspend&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="n">n&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">address&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="mi">8100&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="n">jar&lt;/span> &lt;span class="n">callback&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mf">1.0&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="n">SNAPSHOT&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">jar&lt;/span> &lt;span class="o">--&lt;/span>&lt;span class="n">spring&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">profiles&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">active&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="n">prod&lt;/span> &lt;span class="o">&amp;amp;&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>在确认服务器启动之后，在本地点debug启动按钮，如果打印了下面这个语句，就证明连接成功&lt;/p>
+&lt;p>&lt;img src="http://picgo.qisiii.asia/post/1723664107079.jpg"
+loading="lazy"
+>&lt;/p>
+&lt;p>之后在你需要排查的地方打上断点，然后触发接口就可以了，就会发现就进入了熟悉的debug的模式里&lt;/p>
+&lt;p>&lt;img src="http://picgo.qisiii.asia/post/1723664149754.jpg"
+loading="lazy"
+>&lt;/p>
+&lt;h2 id="docker启动">docker启动
+&lt;/h2>&lt;p>IDEA的配置不变，整体的区别就是docker在打包时要暴露出来调试的接口，启动命令-p 映射端口也要有两个&lt;/p>
+&lt;p>dockerfile如下&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-Dockerfile" data-lang="Dockerfile">&lt;span class="line">&lt;span class="cl">&lt;span class="k">FROM&lt;/span>&lt;span class="s"> openjdk:8&lt;/span>&lt;span class="err">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">&lt;/span>&lt;span class="k">LABEL&lt;/span> &lt;span class="nv">maintainer&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s2">&amp;#34;qisiii@example.com&amp;#34;&lt;/span>&lt;span class="err">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">&lt;/span>&lt;span class="k">WORKDIR&lt;/span>&lt;span class="s"> /app&lt;/span>&lt;span class="err">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">&lt;/span>&lt;span class="c">#这里的路径不能使用父级的,即../&lt;/span>&lt;span class="err">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">&lt;/span>&lt;span class="k">COPY&lt;/span> callback-1.0-SNAPSHOT.jar /app/app.jar&lt;span class="err">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">&lt;/span>&lt;span class="c">#这里是服务应用的端口&lt;/span>&lt;span class="err">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">&lt;/span>&lt;span class="k">EXPOSE&lt;/span>&lt;span class="s"> 8101&lt;/span>&lt;span class="err">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">&lt;/span>&lt;span class="c">#这里是debug端口&lt;/span>&lt;span class="err">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">&lt;/span>&lt;span class="k">EXPOSE&lt;/span>&lt;span class="s"> 8100&lt;/span>&lt;span class="err">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">&lt;/span>&lt;span class="k">ENV&lt;/span> &lt;span class="nv">JAVA_OPTS&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s1">&amp;#39;&amp;#39;&lt;/span>&lt;span class="err">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">&lt;/span>&lt;span class="k">ENV&lt;/span> &lt;span class="nv">JAVA_OPTS2&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s1">&amp;#39;--spring.profiles.active=prod&amp;#39;&lt;/span>&lt;span class="err">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">&lt;/span>&lt;span class="k">ENTRYPOINT&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="s2">&amp;#34;sh&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="s2">&amp;#34;-c&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="s2">&amp;#34;java ${JAVA_OPTS} -jar app.jar ${JAVA_OPTS2}&amp;#34;&lt;/span>&lt;span class="p">]&lt;/span>&lt;span class="err">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-Dockerfile" data-lang="Dockerfile">&lt;span class="line">&lt;span class="cl">docker run -e &lt;span class="s2">&amp;#34;JAVA_OPTS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=8100&amp;#34;&lt;/span> -d -p 8101:8101 -p 8100:8100 --name open-platform open-platform:1.0.0&lt;span class="err">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;h2 id="k8s启动">k8s启动
+&lt;/h2>&lt;p>idea本身的配置和通过docker启动一样，只需要修改k8s里相关的配置就可以了&lt;/p>
+&lt;p>镜像依然使用docker那个镜像，我是在deployment对应的yml文件中添加的里面的环境变量&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-Dockerfile" data-lang="Dockerfile">&lt;span class="line">&lt;span class="cl">apiVersion: apps/v1 &lt;span class="c1">#kubectl api-versions 可以通过这条指令去看版本信息kind: Deployment # 指定资源类别metadata: #资源的一些元数据 name: open-platform #deloyment的名称 labels: app: open-platform #标签spec: replicas: 1 #创建pod的个数 selector: matchLabels: app: open-platform #满足标签为这个的时候相关的pod才能被调度到 template: metadata: labels: app: open-platform spec: imagePullSecrets: - name: aliyun containers: - name: open-platform image: registry.cn-hangzhou.aliyuncs.com/qisiii/open-platform:1.0.1 imagePullPolicy: IfNotPresent ports: - containerPort: 8101 env: - name: JAVA_OPTS value: &amp;#34;-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=8100&amp;#34;&lt;/span>&lt;span class="err">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>然后我在service里面暴露了端口号&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;span class="lnt">19
+&lt;/span>&lt;span class="lnt">20
+&lt;/span>&lt;span class="lnt">21
+&lt;/span>&lt;span class="lnt">22
+&lt;/span>&lt;span class="lnt">23
+&lt;/span>&lt;span class="lnt">24
+&lt;/span>&lt;span class="lnt">25
+&lt;/span>&lt;span class="lnt">26
+&lt;/span>&lt;span class="lnt">27
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-Dockerfile" data-lang="Dockerfile">&lt;span class="line">&lt;span class="cl">&lt;span class="o">{&lt;/span> &lt;span class="err">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">&lt;/span>&lt;span class="s2">&amp;#34;kind&amp;#34;&lt;/span>: &lt;span class="s2">&amp;#34;Service&amp;#34;&lt;/span>, &lt;span class="err">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">&lt;/span> &lt;span class="s2">&amp;#34;apiVersion&amp;#34;&lt;/span>: &lt;span class="s2">&amp;#34;v1&amp;#34;&lt;/span>, &lt;span class="err">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">&lt;/span> &lt;span class="s2">&amp;#34;metadata&amp;#34;&lt;/span>: &lt;span class="o">{&lt;/span> &lt;span class="err">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">&lt;/span> &lt;span class="s2">&amp;#34;name&amp;#34;&lt;/span>: &lt;span class="s2">&amp;#34;open-platform-service&amp;#34;&lt;/span> &lt;span class="err">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">&lt;/span> &lt;span class="o">}&lt;/span>, &lt;span class="err">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">&lt;/span> &lt;span class="s2">&amp;#34;spec&amp;#34;&lt;/span>: &lt;span class="o">{&lt;/span> &lt;span class="err">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">&lt;/span> &lt;span class="s2">&amp;#34;type&amp;#34;&lt;/span>:&lt;span class="s2">&amp;#34;NodePort&amp;#34;&lt;/span>, &lt;span class="err">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">&lt;/span> &lt;span class="s2">&amp;#34;selector&amp;#34;&lt;/span>: &lt;span class="o">{&lt;/span> &lt;span class="err">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">&lt;/span> &lt;span class="s2">&amp;#34;app&amp;#34;&lt;/span>: &lt;span class="s2">&amp;#34;open-platform&amp;#34;&lt;/span> &lt;span class="err">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">&lt;/span> &lt;span class="o">}&lt;/span>, &lt;span class="err">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">&lt;/span> &lt;span class="s2">&amp;#34;ports&amp;#34;&lt;/span>: &lt;span class="o">[&lt;/span> &lt;span class="err">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">&lt;/span> &lt;span class="o">{&lt;/span> &lt;span class="err">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">&lt;/span> &lt;span class="s2">&amp;#34;protocol&amp;#34;&lt;/span>: &lt;span class="s2">&amp;#34;TCP&amp;#34;&lt;/span>, &lt;span class="err">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">&lt;/span> &lt;span class="s2">&amp;#34;port&amp;#34;&lt;/span>: 80, &lt;span class="err">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">&lt;/span> &lt;span class="s2">&amp;#34;targetPort&amp;#34;&lt;/span>: 8101, &lt;span class="err">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">&lt;/span> &lt;span class="s2">&amp;#34;name&amp;#34;&lt;/span>: &lt;span class="s2">&amp;#34;open-platform&amp;#34;&lt;/span> &lt;span class="err">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">&lt;/span> &lt;span class="o">}&lt;/span>, &lt;span class="err">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">&lt;/span> &lt;span class="o">{&lt;/span> &lt;span class="err">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">&lt;/span> &lt;span class="s2">&amp;#34;protocol&amp;#34;&lt;/span>: &lt;span class="s2">&amp;#34;TCP&amp;#34;&lt;/span>, &lt;span class="err">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">&lt;/span> &lt;span class="s2">&amp;#34;port&amp;#34;&lt;/span>: 8100, &lt;span class="err">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">&lt;/span> &lt;span class="s2">&amp;#34;targetPort&amp;#34;&lt;/span>: 8100, &lt;span class="err">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">&lt;/span> &lt;span class="s2">&amp;#34;name&amp;#34;&lt;/span>: &lt;span class="s2">&amp;#34;debug&amp;#34;&lt;/span> &lt;span class="err">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">&lt;/span> &lt;span class="o">}&lt;/span> &lt;span class="err">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">&lt;/span> &lt;span class="o">]&lt;/span> &lt;span class="err">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">&lt;/span> &lt;span class="o">}&lt;/span> &lt;span class="err">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">&lt;/span>&lt;span class="o">}&lt;/span> &lt;span class="err">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>并且在最后通过post-forward转发时同时转发了两个端口号&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-Dockerfile" data-lang="Dockerfile">&lt;span class="line">&lt;span class="cl">kubectl port-forward --address 0.0.0.0 service/open-platform-service 8101:80 8100:8100&lt;span class="err">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>这个时候本地idea启动debug，打上断点，远程触发访问&lt;/p>
+&lt;p>&lt;img src="http://picgo.qisiii.asia/post/1723664166715.jpg"
+loading="lazy"
+>&lt;/p>
+&lt;h1 id="参考文档">参考文档：
+&lt;/h1>&lt;p>&lt;a class="link" href="https://zhuanlan.zhihu.com/p/128033093" target="_blank" rel="noopener"
+>https://zhuanlan.zhihu.com/p/128033093&lt;/a>&lt;/p>
+&lt;p>&lt;a class="link" href="https://www.cnblogs.com/gaoyuechen/p/11811180.html" target="_blank" rel="noopener"
+>https://www.cnblogs.com/gaoyuechen/p/11811180.html&lt;/a>&lt;/p></description></item></channel></rss>
