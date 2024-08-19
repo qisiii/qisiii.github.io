@@ -1,0 +1,1063 @@
+<!doctype html><html lang=zh-cn dir=ltr><head><meta charset=utf-8><meta name=viewport content='width=device-width,initial-scale=1'><meta name=description content="基本概念 建议读一下20 共识算法：一次性说清楚 Paxos、Raft 等算法的区别，里面讲的还算易懂。 ZAB是zookeeper专门为了保持分布式"><title>Zookeeper源码分析-Zab协议</title>
+<link rel=canonical href=https://qisiii.github.io/post/tech/distributed/zookeeper/zab/><link rel=stylesheet href=/scss/style.min.7657e19dfcc00117e827b40bd92bcea286037ffa4a33e95fc533eaea79d078f9.css><meta property='og:title' content="Zookeeper源码分析-Zab协议"><meta property='og:description' content="基本概念 建议读一下20 共识算法：一次性说清楚 Paxos、Raft 等算法的区别，里面讲的还算易懂。 ZAB是zookeeper专门为了保持分布式"><meta property='og:url' content='https://qisiii.github.io/post/tech/distributed/zookeeper/zab/'><meta property='og:site_name' content='起司的博客'><meta property='og:type' content='article'><meta property='article:section' content='Post'><meta property='article:tag' content='中间件'><meta property='article:tag' content='注册中心'><meta property='article:tag' content='zookeeper'><meta property='article:published_time' content='2024-08-14T15:08:39+08:00'><meta property='article:modified_time' content='2024-08-19T09:07:51+00:00'><meta name=twitter:title content="Zookeeper源码分析-Zab协议"><meta name=twitter:description content="基本概念 建议读一下20 共识算法：一次性说清楚 Paxos、Raft 等算法的区别，里面讲的还算易懂。 ZAB是zookeeper专门为了保持分布式"><link rel=alternate type=application/json href=https://qisiii.github.io/post/tech/distributed/zookeeper/zab/index.json><link rel=alternate type=application/rss+xml href=https://qisiii.github.io/post/tech/distributed/zookeeper/zab/index.xml><script async src="https://www.googletagmanager.com/gtag/js?id=G-8NDCRP4S7S"></script><script>var dnt,doNotTrack=!1;if(!1&&(dnt=navigator.doNotTrack||window.doNotTrack||navigator.msDoNotTrack,doNotTrack=dnt=="1"||dnt=="yes"),!doNotTrack){window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","G-8NDCRP4S7S")}</script><span id=top></span></head><body class=article-page><script>(function(){const e="StackColorScheme";localStorage.getItem(e)||localStorage.setItem(e,"auto")})()</script><script>(function(){const t="StackColorScheme",e=localStorage.getItem(t),n=window.matchMedia("(prefers-color-scheme: dark)").matches===!0;e=="dark"||e==="auto"&&n?document.documentElement.dataset.scheme="dark":document.documentElement.dataset.scheme="light"})()</script><div class="container main-container flex on-phone--column extended"><aside class="sidebar left-sidebar sticky"><button class="hamburger hamburger--spin" type=button id=toggle-menu aria-label=切换菜单>
+<span class=hamburger-box><span class=hamburger-inner></span></span></button><header><figure class=site-avatar><a href=/><img src=/img/avatar_huf89847f5290877d03a6309f0caaa56f1_43584_300x0_resize_box_3.png width=300 height=300 class=site-logo loading=lazy alt=Avatar></a></figure><div class=site-meta><h1 class=site-name><a href=/>起司的博客</a></h1><h2 class=site-description></h2></div></header><ol class=menu-social><li><a href=https://github.com/qisiii target=_blank title=GitHub rel=me><svg class="icon icon-tabler icon-tabler-brand-github" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 19c-4.3 1.4-4.3-2.5-6-3m12 5v-3.5c0-1 .1-1.4-.5-2 2.8-.3 5.5-1.4 5.5-6a4.6 4.6.0 00-1.3-3.2 4.2 4.2.0 00-.1-3.2s-1.1-.3-3.5 1.3a12.3 12.3.0 00-6.2.0C6.5 2.8 5.4 3.1 5.4 3.1a4.2 4.2.0 00-.1 3.2A4.6 4.6.0 004 9.5c0 4.6 2.7 5.7 5.5 6-.6.6-.6 1.2-.5 2V21"/></svg></a></li><li><a href=/index.xml target=_blank title=rss rel=me><svg class="icon icon-tabler icon-tabler-rss" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="5" cy="19" r="1"/><path d="M4 4a16 16 0 0116 16"/><path d="M4 11a9 9 0 019 9"/></svg></a></li></ol><ol class=menu id=main-menu><li><a href=/><svg class="icon icon-tabler icon-tabler-home" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><polyline points="5 12 3 12 12 3 21 12 19 12"/><path d="M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/><path d="M9 21v-6a2 2 0 012-2h2a2 2 0 012 2v6"/></svg>
+<span>首页|Home</span></a></li><li><a href=/post/friends target=_blank><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-heart-handshake"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M19.5 12.572 12 20l-7.5-7.428A5 5 0 1112 6.006a5 5 0 117.5 6.572"/><path d="M12 6 8.707 9.293a1 1 0 000 1.414l.543.543c.69.69 1.81.69 2.5.0l1-1a3.182 3.182.0 014.5.0l2.25 2.25"/><path d="M12.5 15.5l2 2"/><path d="M15 13l2 2"/></svg>
+<span>友链|Friends</span></a></li><li><a href=/post/search target=_blank><svg class="icon icon-tabler icon-tabler-search" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="10" cy="10" r="7"/><line x1="21" y1="21" x2="15" y2="15"/></svg>
+<span>搜索|Search</span></a></li><li class=menu-bottom-section><ol class=menu><li id=dark-mode-toggle><svg class="icon icon-tabler icon-tabler-toggle-left" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="8" cy="12" r="2"/><rect x="2" y="6" width="20" height="12" rx="6"/></svg>
+<svg class="icon icon-tabler icon-tabler-toggle-right" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="16" cy="12" r="2"/><rect x="2" y="6" width="20" height="12" rx="6"/></svg>
+<span>暗色模式</span></li></ol></li></ol></aside><aside class="sidebar right-sidebar sticky"><section class="widget archives"><div class=widget-icon><svg class="icon icon-tabler icon-tabler-hash" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><line x1="5" y1="9" x2="19" y2="9"/><line x1="5" y1="15" x2="19" y2="15"/><line x1="11" y1="4" x2="7" y2="20"/><line x1="17" y1="4" x2="13" y2="20"/></svg></div><h2 class="widget-title section-title">目录</h2><div class=widget--toc><nav id=TableOfContents><ol><li><a href=#基本概念>基本概念</a></li><li><a href=#整体设计>整体设计</a><ol><li><a href=#崩溃恢复>崩溃恢复</a><ol><li><a href=#election>ELECTION</a></li><li><a href=#discovery>DISCOVERY</a></li><li><a href=#synchronization>SYNCHRONIZATION</a></li><li><a href=#broadcast>BROADCAST</a></li></ol></li><li><a href=#几个阻塞态>几个阻塞态</a></li></ol></li><li><a href=#启动流程>启动流程</a><ol><li><a href=#leaderlead>Leader.lead()</a></li><li><a href=#learnhandlerrun>LearnHandler.run()</a></li><li><a href=#followerfollowleader>Follower.followLeader()</a></li></ol></li><li><a href=#消息处理流程>消息处理流程</a><ol><li><a href=#requestprocessor>RequestProcessor</a></li><li><a href=#流程图>流程图</a></li><li><a href=#commitprocessor>CommitProcessor</a></li></ol></li><li><a href=#参考文档>参考文档:</a></li></ol></nav></div></section></aside><main class="main full-width"><article class=main-article><header class=article-header><div class=article-details><header class=article-category><a href=/categories/tech/>技术人生</a></header><div class=article-title-wrapper><h2 class=article-title><a href=/post/tech/distributed/zookeeper/zab/>Zookeeper源码分析-Zab协议</a></h2></div><footer class=article-time><div><svg class="icon icon-tabler icon-tabler-calendar-time" width="56" height="56" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><path d="M11.795 21H5a2 2 0 01-2-2V7a2 2 0 012-2h12a2 2 0 012 2v4"/><circle cx="18" cy="18" r="4"/><path d="M15 3v4"/><path d="M7 3v4"/><path d="M3 11h16"/><path d="M18 16.496V18l1 1"/></svg>
+<time class=article-time--published>2024-08-14</time></div><div><!doctype html><svg t="1723825097817" class="icon" viewBox="0 0 1024 1024" p-id="15702" width="200" height="200" xmlns:xlink="http://www.w3.org/1999/xlink"><path d="M81.23 959.96c-4.51.0-8.91-1.78-12.18-5.05a17.2 17.2.0 01-4.44-16.7c7.78-28.66 77.36-281.32 123.73-327.69l508.14-508.14c51.15-51.12 134.31-51.09 185.4.0l39.73 39.71c24.75 24.76 38.4 57.68 38.4 92.7s-13.65 67.93-38.4 92.67l-508.2 508.21c-46.35 46.34-299 115.91-327.66 123.69-1.5.4-3.01.6-4.52.6zM789.19 98.48c-24.75.0-49.5 9.41-68.35 28.26L212.7 634.88c-27.65 27.66-76.01 174.78-106.71 283.09 108.31-30.7 255.41-79.04 283.05-106.66L897.23 303.1c18.24-18.24 28.3-42.5 28.3-68.31s-10.06-50.08-28.3-68.33l-39.73-39.71c-18.82-18.84-43.56-28.27-68.31-28.27zm-387.97 725h.17-.17z" fill="#515151" p-id="15703"/><path d="M856.04 385.83c-4.41.0-8.82-1.68-12.18-5.05L643.13 180.03c-6.73-6.73-6.73-17.64.0-24.37s17.63-6.73 24.37.0l200.73 200.76c6.73 6.73 6.73 17.64.0 24.37a17.211 17.211.0 01-12.19 5.04zM405.9 836.02c-4.41.0-8.82-1.68-12.18-5.05L192.96 630.23c-6.73-6.73-6.73-17.63.0-24.37s17.63-6.73 24.37.0L418.09 806.6c6.73 6.73 6.73 17.63.0 24.37a17.18 17.18.0 01-12.19 5.05z" fill="#515151" p-id="15704"/></svg>
+<time class=article-time--published>最后更新:2024-08-19</time></div><div><svg class="icon icon-tabler icon-tabler-clock" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>
+<time class=article-time--reading>阅读时长: 16 分钟</time></div><span id=busuanzi_container_value_page_pv><i class="far fa-eye fa-fw"></i>
+<span id=busuanzi_value_page_pv></span>&nbsp;次阅读
+</span><a href=https://qisiii.github.io/tags/%E4%B8%AD%E9%97%B4%E4%BB%B6>#中间件</a>
+<a href=https://qisiii.github.io/tags/%E6%B3%A8%E5%86%8C%E4%B8%AD%E5%BF%83>#注册中心</a>
+<a href=https://qisiii.github.io/tags/zookeeper>#zookeeper</a></footer></div></header><section class=article-content><h2 id=基本概念>基本概念</h2><p>建议读一下<a class=link href=https://learn.lianglianglee.com/%e4%b8%93%e6%a0%8f/24%e8%ae%b2%e5%90%83%e9%80%8f%e5%88%86%e5%b8%83%e5%bc%8f%e6%95%b0%e6%8d%ae%e5%ba%93-%e5%ae%8c/20%20%20%e5%85%b1%e8%af%86%e7%ae%97%e6%b3%95%ef%bc%9a%e4%b8%80%e6%ac%a1%e6%80%a7%e8%af%b4%e6%b8%85%e6%a5%9a%20Paxos%e3%80%81Raft%20%e7%ad%89%e7%ae%97%e6%b3%95%e7%9a%84%e5%8c%ba%e5%88%ab.md target=_blank rel=noopener>20 共识算法：一次性说清楚 Paxos、Raft 等算法的区别</a>，里面讲的还算易懂。</p><p>ZAB是zookeeper专门为了保持分布式共识而实现的算法，算法的基石还是Paxos的原理，或者说Mluti Paxos的原理。和Raft算法很像，都具有leader的概念，消息都是通过leader去统一管理，其他节点只需要从leader同步消息即可，并且都是超过半数提交事务就认为成功了。</p><p>如果对分布式算法完全陌生，建议了解一下Paxos，MlutiPaxos，Raft的基本概念。</p><p>在ZAB协议中，其设计主要包括两部分：原子广播和崩溃恢复。</p><p>广播的意思是指当节点收到消息后，要将消息广播给其他的节点。那什么叫做原子呢？原子的意思是在这次广播中，要么所有的节点都收到消息并进行广播；要么所有的节点都放弃该条消息不做广播。</p><p>但仅是广播并不能保证所有节点的数据完全一致，还需要保证消息必须有序的处理，每个节点必须处理完上一个消息，才能处理下一条消息。</p><p>这是原子广播的两个基本要求：原子和有序。</p><p>当leader挂掉的时候，新的leader必须尽快了解并统一整个集群当前的进度。因此，在<a class=link href=https://qisiii.github.io/post/tech/distributed/zookeeper/election/#选举逻辑>zk选举流程</a> 中，可以理解为什么必须选择最大事务ID作为leader，因为只有这样，才能在当前节点拥有最全的事务日志。当拥有了最全的事务后，从节点去进行同步到最新的进度。假如原来的leader又恢复了，那么就需要原来的leader丢弃超出现有leader的事务。这就是ZAB的另一部分&ndash;崩溃恢复。</p><h2 id=整体设计>整体设计</h2><p>所有的节点分为了Leader、Follower、Observer三种，其中Leader和Follower是有投票权的。Observer是一个只处理只读请求的节点，属于作为提交吞吐量的横向扩展机制。</p><p>之前的<a class=link href=https://qisiii.github.io/post/tech/distributed/zookeeper/election/>选举机制</a>中也提到过，当选举结束之后，每个节点会更新自己的状态，当进入下一次循环的时候，会走到各自的case下执行各自的逻辑。</p><p>虽然每个节点只有两行方法，但背后的逻辑还是蛮复杂的，make***方法是构建Zookeeper，可以理解为原子广播部分的逻辑。</p><p>而lead、followLeader和observeLeader则是启动部分，主要是崩溃恢复的逻辑。下面我们以leader和follower串一下这个流程。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=k>switch</span><span class=w> </span><span class=p>(</span><span class=n>state</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>case</span><span class=w> </span><span class=n>OBSERVING</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>LOG</span><span class=p>.</span><span class=na>info</span><span class=p>(</span><span class=s>&#34;OBSERVING&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>setObserver</span><span class=p>(</span><span class=n>makeObserver</span><span class=p>(</span><span class=n>logFactory</span><span class=p>));</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>observer</span><span class=p>.</span><span class=na>observeLeader</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=k>break</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>case</span><span class=w> </span><span class=n>FOLLOWING</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>LOG</span><span class=p>.</span><span class=na>info</span><span class=p>(</span><span class=s>&#34;FOLLOWING&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>setFollower</span><span class=p>(</span><span class=n>makeFollower</span><span class=p>(</span><span class=n>logFactory</span><span class=p>));</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>follower</span><span class=p>.</span><span class=na>followLeader</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=k>break</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>case</span><span class=w> </span><span class=n>LEADING</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>LOG</span><span class=p>.</span><span class=na>info</span><span class=p>(</span><span class=s>&#34;LEADING&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>setLeader</span><span class=p>(</span><span class=n>makeLeader</span><span class=p>(</span><span class=n>logFactory</span><span class=p>));</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>leader</span><span class=p>.</span><span class=na>lead</span><span class=p>();</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><h3 id=崩溃恢复>崩溃恢复</h3><p>执行到<code>leader.lead()</code>时，leader首先要保证集群尽快统一集群的进度。为了更好的理解这部分，需要了解ZabState类。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=w>    </span><span class=kd>public</span><span class=w> </span><span class=kd>enum</span><span class=w> </span><span class=n>ZabState</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>ELECTION</span><span class=p>,</span><span class=c1>//选举状态，处于选举时的状态，到调用leader.lead为止</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>DISCOVERY</span><span class=p>,</span><span class=c1>//发现状态，本质上是leader和其他节点建立连接，统一当前的周期epoch和事务ID，并得到大多数节点的认可</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>SYNCHRONIZATION</span><span class=p>,</span><span class=c1>//同步状态，follow节点根据leader确定的事务ID，多退少补</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>BROADCAST</span><span class=c1>//大多数节点的事务已经统一，可以接受来自客户端或者从节点的消息并广播了</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p><img src=http://picgo.qisiii.asia/post/w39dhfwj7v37x15wz_psyqmc0000gn/T/b197a61a9731dc04514369d0323425ba.jpg loading=lazy></p><h4 id=election>ELECTION</h4><p>整个选举过程都是属于ELECTION状态，具体分析可以看<a class=link href=https://qisiii.github.io/post/tech/distributed/zookeeper/election/>选举机制</a></p><h4 id=discovery>DISCOVERY</h4><ol><li><p>在这个过程中，leader和其他的节点需要建立通信；注意，这个和之前选举时建立的连接不同，选举时所建立的连接仅是为了选举工作。而这个连接，才是负责真正的通信。</p></li><li><p>建立连接之后，每个节点（不论是leader还是follower）要根据自己的事务id计算新的周期，zxid本身是64位的数值，低32位用来自增，高32位用来表示周期，因此需要将自己的高32+1来作为新的周期。</p></li><li><p>当leader获取到最新的周期后，要通知所有节点，当大多数节点都成功应答之后，当前集群的周期就算定下来了。</p></li></ol><p>PS：有点像是皇帝的年号，在当上皇帝后，要告知天下当前是洪武、嘉靖还是崇祯之类的。</p><p>建立连接是由LearnerCnxAcceptor类为每个地址都创建了一个LearnerCnxAcceptorHandler来接受连接，并用LearnerHandler来处理socket请求</p><p>LearnerHandler是非常重要的一个类，其维护者leader和普通节点的通信和数据同步，几个步骤的流转也都是Learner回应了ACK，LearnerHandler收到之后才能往下推进的。</p><h4 id=synchronization>SYNCHRONIZATION</h4><p>当所有节点就epoch和zxId协商一致之后，Learner节点就可以开始根据Leader的事务情况进行同步了。</p><p>关于数据的同步分为三种类型：</p><p>DIFF:差距很小，在这种情况下，leader以request的形式发给Learner就可以了
+SNAP:差距过大，需要将日志文件直接发给learner<br>TRUNC: Learner的事务id比leader的还要大，因此Learner要截断事务</p><p>当超过半数节点表示数据已经跟上最新进度之后，leader就会启动服务器，并表示ack的这些节点可以接受客户端工作了，自此进入BROADCAST状态。</p><h4 id=broadcast>BROADCAST</h4><p>在这个状态下，更核心的其实应该是那些不同类型节点的zkServer处理逻辑，或者说那些RequestProcessor的处理逻辑。而处于Leader、LearnerHandler、Follower者三个类中的逻辑，就只有维护好通信，做好心跳之类的框架工作。</p><h3 id=几个阻塞态>几个阻塞态</h3><p>在Leader.lead和LearnerHandler中，在zabState流转过程中会调用几个阻塞的方法来等待大部分节点的ACK</p><p><strong>getEpochToPropose</strong> 获取不同节点的周期提案</p><p><strong>waitForEpochAck</strong> Leader计算完最大的周期，通知其他节点，等待节点对于周期提案的答复</p><p><strong>waitForNewLeaderAck</strong> 在已经确定周期的情况下，等待其他节点同步完数据之后，给Leader答复</p><p>这三个方法的逻辑是大似相同的，都是由Leader或者LearnerHandler来进行调用，下面以getEpochToPropose为例讲一下逻辑</p><p>当Leader调用时，传进来的lastAcceptedEpoch是Leader记录的最后的周期或者半数Learner已经商量好的周期。</p><p>当LearnerHandler调用时，是在Leader收到FollowInfo之后，这个时候已经获取到各个Follower的周期信息，因此每个LearnerHandler负责将自己Follower的周期传进来，以计算最大的周期，每个节点投票后，通过connectingFollowers.wait进行阻塞</p><p>当半数之上的节点参与投票之后，就定下来当前周期，唤醒所有wait的线程，并将waitingForNewEpoch设置为false，那些还没参与投票的就不用投票了</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span><span class=lnt>38
+</span><span class=lnt>39
+</span><span class=lnt>40
+</span><span class=lnt>41
+</span><span class=lnt>42
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=kd>public</span><span class=w> </span><span class=kt>long</span><span class=w> </span><span class=nf>getEpochToPropose</span><span class=p>(</span><span class=kt>long</span><span class=w> </span><span class=n>sid</span><span class=p>,</span><span class=w> </span><span class=kt>long</span><span class=w> </span><span class=n>lastAcceptedEpoch</span><span class=p>)</span><span class=w> </span><span class=kd>throws</span><span class=w> </span><span class=n>InterruptedException</span><span class=p>,</span><span class=w> </span><span class=n>IOException</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=kd>synchronized</span><span class=w> </span><span class=p>(</span><span class=n>connectingFollowers</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=k>if</span><span class=w> </span><span class=p>(</span><span class=o>!</span><span class=n>waitingForNewEpoch</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=k>return</span><span class=w> </span><span class=n>epoch</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=c1>//每个节点都会调用getEpochToPropose反法，leader是直接调用，其他节点是在learnerHandler中调用</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=c1>//因此，假如从节点的周期大于主节点，主节点也要以大的为主</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=k>if</span><span class=w> </span><span class=p>(</span><span class=n>lastAcceptedEpoch</span><span class=w> </span><span class=o>&gt;=</span><span class=w> </span><span class=n>epoch</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=n>epoch</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>lastAcceptedEpoch</span><span class=w> </span><span class=o>+</span><span class=w> </span><span class=n>1</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=c1>//判断是否有投票权</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=k>if</span><span class=w> </span><span class=p>(</span><span class=n>isParticipant</span><span class=p>(</span><span class=n>sid</span><span class=p>))</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=n>connectingFollowers</span><span class=p>.</span><span class=na>add</span><span class=p>(</span><span class=n>sid</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=n>QuorumVerifier</span><span class=w> </span><span class=n>verifier</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>self</span><span class=p>.</span><span class=na>getQuorumVerifier</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=c1>//超过半数就通知所有线程继续执行，否则阻塞在这里</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=c1>//这里需要注意一下，仅是校验是否有半数参与投票了，而不是校验投票的最大周期超过半数</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=c1>//比如存在7票，顺序分别为3,3,3,4,3,3,5，那么当投票到第二个4的时候，就会确定下来当前周期为4，那些大于4的节点在收到epoch判断自己的周期比提案的周期大之后会断开连接</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=c1>//当然了，实际情况不会这么极端，毕竟Leader本身就是最大事务Id才能当选，所以大批量的Follower大于Leader是不可能的，只有老领导才会有可能大于新领导</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=k>if</span><span class=w> </span><span class=p>(</span><span class=n>connectingFollowers</span><span class=p>.</span><span class=na>contains</span><span class=p>(</span><span class=n>self</span><span class=p>.</span><span class=na>getMyId</span><span class=p>())</span><span class=w> </span><span class=o>&amp;&amp;</span><span class=w> </span><span class=n>verifier</span><span class=p>.</span><span class=na>containsQuorum</span><span class=p>(</span><span class=n>connectingFollowers</span><span class=p>))</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=n>waitingForNewEpoch</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=kc>false</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=n>self</span><span class=p>.</span><span class=na>setAcceptedEpoch</span><span class=p>(</span><span class=n>epoch</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=n>connectingFollowers</span><span class=p>.</span><span class=na>notifyAll</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=p>}</span><span class=w> </span><span class=k>else</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=kt>long</span><span class=w> </span><span class=n>start</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>Time</span><span class=p>.</span><span class=na>currentElapsedTime</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=k>if</span><span class=w> </span><span class=p>(</span><span class=n>sid</span><span class=w> </span><span class=o>==</span><span class=w> </span><span class=n>self</span><span class=p>.</span><span class=na>getMyId</span><span class=p>())</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                    </span><span class=n>timeStartWaitForEpoch</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>start</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=kt>long</span><span class=w> </span><span class=n>cur</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>start</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=kt>long</span><span class=w> </span><span class=n>end</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>start</span><span class=w> </span><span class=o>+</span><span class=w> </span><span class=n>self</span><span class=p>.</span><span class=na>getInitLimit</span><span class=p>()</span><span class=w> </span><span class=o>*</span><span class=w> </span><span class=n>self</span><span class=p>.</span><span class=na>getTickTime</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=c1>//在等待时间内一直阻塞</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=k>while</span><span class=w> </span><span class=p>(</span><span class=n>waitingForNewEpoch</span><span class=w> </span><span class=o>&amp;&amp;</span><span class=w> </span><span class=n>cur</span><span class=w> </span><span class=o>&lt;</span><span class=w> </span><span class=n>end</span><span class=w> </span><span class=o>&amp;&amp;</span><span class=w> </span><span class=o>!</span><span class=n>quitWaitForEpoch</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                    </span><span class=n>connectingFollowers</span><span class=p>.</span><span class=na>wait</span><span class=p>(</span><span class=n>end</span><span class=w> </span><span class=o>-</span><span class=w> </span><span class=n>cur</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                    </span><span class=n>cur</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>Time</span><span class=p>.</span><span class=na>currentElapsedTime</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=k>if</span><span class=w> </span><span class=p>(</span><span class=n>waitingForNewEpoch</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                    </span><span class=k>throw</span><span class=w> </span><span class=k>new</span><span class=w> </span><span class=n>InterruptedException</span><span class=p>(</span><span class=s>&#34;Timeout while waiting for epoch from quorum&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=k>return</span><span class=w> </span><span class=n>epoch</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><h2 id=启动流程>启动流程</h2><p><img src=http://picgo.qisiii.asia/post/w39dhfwj7v37x15wz_psyqmc0000gn/T/b197a61a9731dc04514369d0323425ba.jpg loading=lazy></p><p>参考上图走一下代码</p><h3 id=leaderlead>Leader.lead()</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>  1
+</span><span class=lnt>  2
+</span><span class=lnt>  3
+</span><span class=lnt>  4
+</span><span class=lnt>  5
+</span><span class=lnt>  6
+</span><span class=lnt>  7
+</span><span class=lnt>  8
+</span><span class=lnt>  9
+</span><span class=lnt> 10
+</span><span class=lnt> 11
+</span><span class=lnt> 12
+</span><span class=lnt> 13
+</span><span class=lnt> 14
+</span><span class=lnt> 15
+</span><span class=lnt> 16
+</span><span class=lnt> 17
+</span><span class=lnt> 18
+</span><span class=lnt> 19
+</span><span class=lnt> 20
+</span><span class=lnt> 21
+</span><span class=lnt> 22
+</span><span class=lnt> 23
+</span><span class=lnt> 24
+</span><span class=lnt> 25
+</span><span class=lnt> 26
+</span><span class=lnt> 27
+</span><span class=lnt> 28
+</span><span class=lnt> 29
+</span><span class=lnt> 30
+</span><span class=lnt> 31
+</span><span class=lnt> 32
+</span><span class=lnt> 33
+</span><span class=lnt> 34
+</span><span class=lnt> 35
+</span><span class=lnt> 36
+</span><span class=lnt> 37
+</span><span class=lnt> 38
+</span><span class=lnt> 39
+</span><span class=lnt> 40
+</span><span class=lnt> 41
+</span><span class=lnt> 42
+</span><span class=lnt> 43
+</span><span class=lnt> 44
+</span><span class=lnt> 45
+</span><span class=lnt> 46
+</span><span class=lnt> 47
+</span><span class=lnt> 48
+</span><span class=lnt> 49
+</span><span class=lnt> 50
+</span><span class=lnt> 51
+</span><span class=lnt> 52
+</span><span class=lnt> 53
+</span><span class=lnt> 54
+</span><span class=lnt> 55
+</span><span class=lnt> 56
+</span><span class=lnt> 57
+</span><span class=lnt> 58
+</span><span class=lnt> 59
+</span><span class=lnt> 60
+</span><span class=lnt> 61
+</span><span class=lnt> 62
+</span><span class=lnt> 63
+</span><span class=lnt> 64
+</span><span class=lnt> 65
+</span><span class=lnt> 66
+</span><span class=lnt> 67
+</span><span class=lnt> 68
+</span><span class=lnt> 69
+</span><span class=lnt> 70
+</span><span class=lnt> 71
+</span><span class=lnt> 72
+</span><span class=lnt> 73
+</span><span class=lnt> 74
+</span><span class=lnt> 75
+</span><span class=lnt> 76
+</span><span class=lnt> 77
+</span><span class=lnt> 78
+</span><span class=lnt> 79
+</span><span class=lnt> 80
+</span><span class=lnt> 81
+</span><span class=lnt> 82
+</span><span class=lnt> 83
+</span><span class=lnt> 84
+</span><span class=lnt> 85
+</span><span class=lnt> 86
+</span><span class=lnt> 87
+</span><span class=lnt> 88
+</span><span class=lnt> 89
+</span><span class=lnt> 90
+</span><span class=lnt> 91
+</span><span class=lnt> 92
+</span><span class=lnt> 93
+</span><span class=lnt> 94
+</span><span class=lnt> 95
+</span><span class=lnt> 96
+</span><span class=lnt> 97
+</span><span class=lnt> 98
+</span><span class=lnt> 99
+</span><span class=lnt>100
+</span><span class=lnt>101
+</span><span class=lnt>102
+</span><span class=lnt>103
+</span><span class=lnt>104
+</span><span class=lnt>105
+</span><span class=lnt>106
+</span><span class=lnt>107
+</span><span class=lnt>108
+</span><span class=lnt>109
+</span><span class=lnt>110
+</span><span class=lnt>111
+</span><span class=lnt>112
+</span><span class=lnt>113
+</span><span class=lnt>114
+</span><span class=lnt>115
+</span><span class=lnt>116
+</span><span class=lnt>117
+</span><span class=lnt>118
+</span><span class=lnt>119
+</span><span class=lnt>120
+</span><span class=lnt>121
+</span><span class=lnt>122
+</span><span class=lnt>123
+</span><span class=lnt>124
+</span><span class=lnt>125
+</span><span class=lnt>126
+</span><span class=lnt>127
+</span><span class=lnt>128
+</span><span class=lnt>129
+</span><span class=lnt>130
+</span><span class=lnt>131
+</span><span class=lnt>132
+</span><span class=lnt>133
+</span><span class=lnt>134
+</span><span class=lnt>135
+</span><span class=lnt>136
+</span><span class=lnt>137
+</span><span class=lnt>138
+</span><span class=lnt>139
+</span><span class=lnt>140
+</span><span class=lnt>141
+</span><span class=lnt>142
+</span><span class=lnt>143
+</span><span class=lnt>144
+</span><span class=lnt>145
+</span><span class=lnt>146
+</span><span class=lnt>147
+</span><span class=lnt>148
+</span><span class=lnt>149
+</span><span class=lnt>150
+</span><span class=lnt>151
+</span><span class=lnt>152
+</span><span class=lnt>153
+</span><span class=lnt>154
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=kt>void</span><span class=w> </span><span class=nf>lead</span><span class=p>()</span><span class=w> </span><span class=kd>throws</span><span class=w> </span><span class=n>IOException</span><span class=p>,</span><span class=w> </span><span class=n>InterruptedException</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>//zab状态是服务发现</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>self</span><span class=p>.</span><span class=na>setZabState</span><span class=p>(</span><span class=n>QuorumPeer</span><span class=p>.</span><span class=na>ZabState</span><span class=p>.</span><span class=na>DISCOVERY</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>self</span><span class=p>.</span><span class=na>tick</span><span class=p>.</span><span class=na>set</span><span class=p>(</span><span class=n>0</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>zk</span><span class=p>.</span><span class=na>loadData</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>leaderStateSummary</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=k>new</span><span class=w> </span><span class=n>StateSummary</span><span class=p>(</span><span class=n>self</span><span class=p>.</span><span class=na>getCurrentEpoch</span><span class=p>(),</span><span class=w> </span><span class=n>zk</span><span class=p>.</span><span class=na>getLastProcessedZxid</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>//用来和从节点同步数据的连接</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>cnxAcceptor</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=k>new</span><span class=w> </span><span class=n>LearnerCnxAcceptor</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>cnxAcceptor</span><span class=p>.</span><span class=na>start</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>//等待所有节点计算出来最大的周期</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kt>long</span><span class=w> </span><span class=n>epoch</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>getEpochToPropose</span><span class=p>(</span><span class=n>self</span><span class=p>.</span><span class=na>getMyId</span><span class=p>(),</span><span class=w> </span><span class=n>self</span><span class=p>.</span><span class=na>getAcceptedEpoch</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>//该周期的事务id从0开始计算</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>zk</span><span class=p>.</span><span class=na>setZxid</span><span class=p>(</span><span class=n>ZxidUtils</span><span class=p>.</span><span class=na>makeZxid</span><span class=p>(</span><span class=n>epoch</span><span class=p>,</span><span class=w> </span><span class=n>0</span><span class=p>));</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>synchronized</span><span class=p>(</span><span class=k>this</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>lastProposed</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>zk</span><span class=p>.</span><span class=na>getZxid</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>//newLeaderProposal会在waitForEpochAck用到</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>newLeaderProposal</span><span class=p>.</span><span class=na>packet</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=k>new</span><span class=w> </span><span class=n>QuorumPacket</span><span class=p>(</span><span class=n>NEWLEADER</span><span class=p>,</span><span class=w> </span><span class=n>zk</span><span class=p>.</span><span class=na>getZxid</span><span class=p>(),</span><span class=w> </span><span class=kc>null</span><span class=p>,</span><span class=w> </span><span class=kc>null</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>if</span><span class=w> </span><span class=p>((</span><span class=n>newLeaderProposal</span><span class=p>.</span><span class=na>packet</span><span class=p>.</span><span class=na>getZxid</span><span class=p>()</span><span class=w> </span><span class=o>&amp;</span><span class=w> </span><span class=n>0xffffffff</span><span class=w> </span><span class=n>L</span><span class=p>)</span><span class=w> </span><span class=o>!=</span><span class=w> </span><span class=n>0</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>LOG</span><span class=p>.</span><span class=na>info</span><span class=p>(</span><span class=s>&#34;NEWLEADER proposal has Zxid of {}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>Long</span><span class=p>.</span><span class=na>toHexString</span><span class=p>(</span><span class=n>newLeaderProposal</span><span class=p>.</span><span class=na>packet</span><span class=p>.</span><span class=na>getZxid</span><span class=p>()));</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>//Q&amp;A 2024/8/18</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>// Q: 由于一直没有理解getLastSeenQuorumVerifier是什么场景下的，所以这里也不是很理解</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>// A:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>QuorumVerifier</span><span class=w> </span><span class=n>lastSeenQV</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>self</span><span class=p>.</span><span class=na>getLastSeenQuorumVerifier</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>QuorumVerifier</span><span class=w> </span><span class=n>curQV</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>self</span><span class=p>.</span><span class=na>getQuorumVerifier</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>//区分第一次和其他情况，第一次的时候只有curQV，其他情况可能会有lastSeenQV</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>if</span><span class=w> </span><span class=p>(</span><span class=n>curQV</span><span class=p>.</span><span class=na>getVersion</span><span class=p>()</span><span class=w> </span><span class=o>==</span><span class=w> </span><span class=n>0</span><span class=w> </span><span class=o>&amp;&amp;</span><span class=w> </span><span class=n>curQV</span><span class=p>.</span><span class=na>getVersion</span><span class=p>()</span><span class=w> </span><span class=o>==</span><span class=w> </span><span class=n>lastSeenQV</span><span class=p>.</span><span class=na>getVersion</span><span class=p>())</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=k>try</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=n>LOG</span><span class=p>.</span><span class=na>debug</span><span class=p>(</span><span class=n>String</span><span class=p>.</span><span class=na>format</span><span class=p>(</span><span class=s>&#34;set lastSeenQuorumVerifier to currentQuorumVerifier (%s)&#34;</span><span class=p>,</span><span class=w> </span><span class=n>curQV</span><span class=p>.</span><span class=na>toString</span><span class=p>()));</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=n>QuorumVerifier</span><span class=w> </span><span class=n>newQV</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>self</span><span class=p>.</span><span class=na>configFromString</span><span class=p>(</span><span class=n>curQV</span><span class=p>.</span><span class=na>toString</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=n>newQV</span><span class=p>.</span><span class=na>setVersion</span><span class=p>(</span><span class=n>zk</span><span class=p>.</span><span class=na>getZxid</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=n>self</span><span class=p>.</span><span class=na>setLastSeenQuorumVerifier</span><span class=p>(</span><span class=n>newQV</span><span class=p>,</span><span class=w> </span><span class=kc>true</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=p>}</span><span class=w> </span><span class=k>catch</span><span class=w> </span><span class=p>(</span><span class=n>Exception</span><span class=w> </span><span class=n>e</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=k>throw</span><span class=w> </span><span class=k>new</span><span class=w> </span><span class=n>IOException</span><span class=p>(</span><span class=n>e</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>newLeaderProposal</span><span class=p>.</span><span class=na>addQuorumVerifier</span><span class=p>(</span><span class=n>self</span><span class=p>.</span><span class=na>getQuorumVerifier</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>//上一个配置的版本大于当前的版本，就也要添加进去</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>if</span><span class=w> </span><span class=p>(</span><span class=n>self</span><span class=p>.</span><span class=na>getLastSeenQuorumVerifier</span><span class=p>().</span><span class=na>getVersion</span><span class=p>()</span><span class=w> </span><span class=o>&gt;</span><span class=w> </span><span class=n>self</span><span class=p>.</span><span class=na>getQuorumVerifier</span><span class=p>().</span><span class=na>getVersion</span><span class=p>())</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>newLeaderProposal</span><span class=p>.</span><span class=na>addQuorumVerifier</span><span class=p>(</span><span class=n>self</span><span class=p>.</span><span class=na>getLastSeenQuorumVerifier</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>// 大部分节点就周期和zxid协商一致</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>waitForEpochAck</span><span class=p>(</span><span class=n>self</span><span class=p>.</span><span class=na>getMyId</span><span class=p>(),</span><span class=w> </span><span class=n>leaderStateSummary</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>self</span><span class=p>.</span><span class=na>setCurrentEpoch</span><span class=p>(</span><span class=n>epoch</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>self</span><span class=p>.</span><span class=na>setLeaderAddressAndId</span><span class=p>(</span><span class=n>self</span><span class=p>.</span><span class=na>getQuorumAddress</span><span class=p>(),</span><span class=w> </span><span class=n>self</span><span class=p>.</span><span class=na>getMyId</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>//zab状态到达同步状态</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>self</span><span class=p>.</span><span class=na>setZabState</span><span class=p>(</span><span class=n>QuorumPeer</span><span class=p>.</span><span class=na>ZabState</span><span class=p>.</span><span class=na>SYNCHRONIZATION</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>try</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=c1>//数据已经同步完成</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>waitForNewLeaderAck</span><span class=p>(</span><span class=n>self</span><span class=p>.</span><span class=na>getMyId</span><span class=p>(),</span><span class=w> </span><span class=n>zk</span><span class=p>.</span><span class=na>getZxid</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w> </span><span class=k>catch</span><span class=w> </span><span class=p>(</span><span class=n>InterruptedException</span><span class=w> </span><span class=n>e</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>shutdown</span><span class=p>(</span><span class=s>&#34;Waiting for a quorum of followers, only synced with sids: [ &#34;</span><span class=w> </span><span class=o>+</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=n>newLeaderProposal</span><span class=p>.</span><span class=na>ackSetsToString</span><span class=p>()</span><span class=w> </span><span class=o>+</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=s>&#34; ]&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>HashSet</span><span class=w> </span><span class=o>&lt;</span><span class=w> </span><span class=n>Long</span><span class=w> </span><span class=o>&gt;</span><span class=w> </span><span class=n>followerSet</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=k>new</span><span class=w> </span><span class=n>HashSet</span><span class=w> </span><span class=o>&lt;</span><span class=w> </span><span class=o>&gt;</span><span class=w> </span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=k>for</span><span class=w> </span><span class=p>(</span><span class=n>LearnerHandler</span><span class=w> </span><span class=n>f</span><span class=p>:</span><span class=w> </span><span class=n>getLearners</span><span class=p>())</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=k>if</span><span class=w> </span><span class=p>(</span><span class=n>self</span><span class=p>.</span><span class=na>getQuorumVerifier</span><span class=p>().</span><span class=na>getVotingMembers</span><span class=p>().</span><span class=na>containsKey</span><span class=p>(</span><span class=n>f</span><span class=p>.</span><span class=na>getSid</span><span class=p>()))</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=n>followerSet</span><span class=p>.</span><span class=na>add</span><span class=p>(</span><span class=n>f</span><span class=p>.</span><span class=na>getSid</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=kt>boolean</span><span class=w> </span><span class=n>initTicksShouldBeIncreased</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=kc>true</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=k>for</span><span class=w> </span><span class=p>(</span><span class=n>Proposal</span><span class=p>.</span><span class=na>QuorumVerifierAcksetPair</span><span class=w> </span><span class=n>qvAckset</span><span class=p>:</span><span class=w> </span><span class=n>newLeaderProposal</span><span class=p>.</span><span class=na>qvAcksetPairs</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=k>if</span><span class=w> </span><span class=p>(</span><span class=o>!</span><span class=n>qvAckset</span><span class=p>.</span><span class=na>getQuorumVerifier</span><span class=p>().</span><span class=na>containsQuorum</span><span class=p>(</span><span class=n>followerSet</span><span class=p>))</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=n>initTicksShouldBeIncreased</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=kc>false</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=k>break</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=k>if</span><span class=w> </span><span class=p>(</span><span class=n>initTicksShouldBeIncreased</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=n>LOG</span><span class=p>.</span><span class=na>warn</span><span class=p>(</span><span class=s>&#34;Enough followers present. Perhaps the initTicks need to be increased.&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=k>return</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>//启动Leader端的Server，启动流程和单机版类似，只是会设置周期和最新事务ID</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>startZkServer</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>String</span><span class=w> </span><span class=n>initialZxid</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>System</span><span class=p>.</span><span class=na>getProperty</span><span class=p>(</span><span class=s>&#34;zookeeper.testingonly.initialZxid&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>if</span><span class=w> </span><span class=p>(</span><span class=n>initialZxid</span><span class=w> </span><span class=o>!=</span><span class=w> </span><span class=kc>null</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=kt>long</span><span class=w> </span><span class=n>zxid</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>Long</span><span class=p>.</span><span class=na>parseLong</span><span class=p>(</span><span class=n>initialZxid</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>zk</span><span class=p>.</span><span class=na>setZxid</span><span class=p>((</span><span class=n>zk</span><span class=p>.</span><span class=na>getZxid</span><span class=p>()</span><span class=w> </span><span class=o>&amp;</span><span class=w> </span><span class=n>0xffffffff00000000</span><span class=w> </span><span class=n>L</span><span class=p>)</span><span class=w> </span><span class=o>|</span><span class=w> </span><span class=n>zxid</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>if</span><span class=w> </span><span class=p>(</span><span class=o>!</span><span class=n>System</span><span class=p>.</span><span class=na>getProperty</span><span class=p>(</span><span class=s>&#34;zookeeper.leaderServes&#34;</span><span class=p>,</span><span class=w> </span><span class=s>&#34;yes&#34;</span><span class=p>).</span><span class=na>equals</span><span class=p>(</span><span class=s>&#34;no&#34;</span><span class=p>))</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>self</span><span class=p>.</span><span class=na>setZooKeeperServer</span><span class=p>(</span><span class=n>zk</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>//到达广播状态</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>self</span><span class=p>.</span><span class=na>setZabState</span><span class=p>(</span><span class=n>QuorumPeer</span><span class=p>.</span><span class=na>ZabState</span><span class=p>.</span><span class=na>BROADCAST</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>self</span><span class=p>.</span><span class=na>adminServer</span><span class=p>.</span><span class=na>setZooKeeperServer</span><span class=p>(</span><span class=n>zk</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kt>boolean</span><span class=w> </span><span class=n>tickSkip</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=kc>true</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>// If not null then shutdown this leader</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>String</span><span class=w> </span><span class=n>shutdownMessage</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=kc>null</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>//保持法定人数的统计和ping</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>while</span><span class=w> </span><span class=p>(</span><span class=kc>true</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=kd>synchronized</span><span class=p>(</span><span class=k>this</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=kt>long</span><span class=w> </span><span class=n>start</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>Time</span><span class=p>.</span><span class=na>currentElapsedTime</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=kt>long</span><span class=w> </span><span class=n>cur</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>start</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=kt>long</span><span class=w> </span><span class=n>end</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>start</span><span class=w> </span><span class=o>+</span><span class=w> </span><span class=n>self</span><span class=p>.</span><span class=na>tickTime</span><span class=w> </span><span class=o>/</span><span class=w> </span><span class=n>2</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=k>while</span><span class=w> </span><span class=p>(</span><span class=n>cur</span><span class=w> </span><span class=o>&lt;</span><span class=w> </span><span class=n>end</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=n>wait</span><span class=p>(</span><span class=n>end</span><span class=w> </span><span class=o>-</span><span class=w> </span><span class=n>cur</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=n>cur</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>Time</span><span class=p>.</span><span class=na>currentElapsedTime</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=k>if</span><span class=w> </span><span class=p>(</span><span class=o>!</span><span class=n>tickSkip</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=n>self</span><span class=p>.</span><span class=na>tick</span><span class=p>.</span><span class=na>incrementAndGet</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=n>SyncedLearnerTracker</span><span class=w> </span><span class=n>syncedAckSet</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=k>new</span><span class=w> </span><span class=n>SyncedLearnerTracker</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=n>syncedAckSet</span><span class=p>.</span><span class=na>addQuorumVerifier</span><span class=p>(</span><span class=n>self</span><span class=p>.</span><span class=na>getQuorumVerifier</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=k>if</span><span class=w> </span><span class=p>(</span><span class=n>self</span><span class=p>.</span><span class=na>getLastSeenQuorumVerifier</span><span class=p>()</span><span class=w> </span><span class=o>!=</span><span class=w> </span><span class=kc>null</span><span class=w> </span><span class=o>&amp;&amp;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=n>self</span><span class=p>.</span><span class=na>getLastSeenQuorumVerifier</span><span class=p>().</span><span class=na>getVersion</span><span class=p>()</span><span class=w> </span><span class=o>&gt;</span><span class=w> </span><span class=n>self</span><span class=p>.</span><span class=na>getQuorumVerifier</span><span class=p>().</span><span class=na>getVersion</span><span class=p>())</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=n>syncedAckSet</span><span class=p>.</span><span class=na>addQuorumVerifier</span><span class=p>(</span><span class=n>self</span><span class=p>.</span><span class=na>getLastSeenQuorumVerifier</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=n>syncedAckSet</span><span class=p>.</span><span class=na>addAck</span><span class=p>(</span><span class=n>self</span><span class=p>.</span><span class=na>getMyId</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=k>for</span><span class=w> </span><span class=p>(</span><span class=n>LearnerHandler</span><span class=w> </span><span class=n>f</span><span class=p>:</span><span class=w> </span><span class=n>getLearners</span><span class=p>())</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=k>if</span><span class=w> </span><span class=p>(</span><span class=n>f</span><span class=p>.</span><span class=na>synced</span><span class=p>())</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                    </span><span class=n>syncedAckSet</span><span class=p>.</span><span class=na>addAck</span><span class=p>(</span><span class=n>f</span><span class=p>.</span><span class=na>getSid</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=c1>// check leader running status</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=k>if</span><span class=w> </span><span class=p>(</span><span class=o>!</span><span class=k>this</span><span class=p>.</span><span class=na>isRunning</span><span class=p>())</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=c1>// set shutdown flag</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=n>shutdownMessage</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s>&#34;Unexpected internal error&#34;</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=k>break</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=c1>//状态不健康时</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=k>if</span><span class=w> </span><span class=p>(</span><span class=o>!</span><span class=n>tickSkip</span><span class=w> </span><span class=o>&amp;&amp;</span><span class=w> </span><span class=o>!</span><span class=n>syncedAckSet</span><span class=p>.</span><span class=na>hasAllQuorums</span><span class=p>()</span><span class=w> </span><span class=o>&amp;&amp;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=o>!</span><span class=p>(</span><span class=n>self</span><span class=p>.</span><span class=na>getQuorumVerifier</span><span class=p>().</span><span class=na>overrideQuorumDecision</span><span class=p>(</span><span class=n>getForwardingFollowers</span><span class=p>())</span><span class=w> </span><span class=o>&amp;&amp;</span><span class=w> </span><span class=n>self</span><span class=p>.</span><span class=na>getQuorumVerifier</span><span class=p>().</span><span class=na>revalidateOutstandingProp</span><span class=p>(</span><span class=k>this</span><span class=p>,</span><span class=w> </span><span class=k>new</span><span class=w> </span><span class=n>ArrayList</span><span class=w> </span><span class=o>&lt;</span><span class=w> </span><span class=o>&gt;</span><span class=w> </span><span class=p>(</span><span class=n>outstandingProposals</span><span class=p>.</span><span class=na>values</span><span class=p>()),</span><span class=w> </span><span class=n>lastCommitted</span><span class=p>)))</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=c1>// Lost quorum of last committed and/or last proposed</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=c1>// config, set shutdown flag</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=n>shutdownMessage</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s>&#34;Not sufficient followers synced, only synced with sids: [ &#34;</span><span class=w> </span><span class=o>+</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                    </span><span class=n>syncedAckSet</span><span class=p>.</span><span class=na>ackSetsToString</span><span class=p>()</span><span class=w> </span><span class=o>+</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                    </span><span class=s>&#34; ]&#34;</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=k>break</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=n>tickSkip</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=o>!</span><span class=n>tickSkip</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=k>for</span><span class=w> </span><span class=p>(</span><span class=n>LearnerHandler</span><span class=w> </span><span class=n>f</span><span class=p>:</span><span class=w> </span><span class=n>getLearners</span><span class=p>())</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=n>f</span><span class=p>.</span><span class=na>ping</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>if</span><span class=w> </span><span class=p>(</span><span class=n>shutdownMessage</span><span class=w> </span><span class=o>!=</span><span class=w> </span><span class=kc>null</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>shutdown</span><span class=p>(</span><span class=n>shutdownMessage</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=c1>// leader goes in looking state</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><h3 id=learnhandlerrun>LearnHandler.run()</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>  1
+</span><span class=lnt>  2
+</span><span class=lnt>  3
+</span><span class=lnt>  4
+</span><span class=lnt>  5
+</span><span class=lnt>  6
+</span><span class=lnt>  7
+</span><span class=lnt>  8
+</span><span class=lnt>  9
+</span><span class=lnt> 10
+</span><span class=lnt> 11
+</span><span class=lnt> 12
+</span><span class=lnt> 13
+</span><span class=lnt> 14
+</span><span class=lnt> 15
+</span><span class=lnt> 16
+</span><span class=lnt> 17
+</span><span class=lnt> 18
+</span><span class=lnt> 19
+</span><span class=lnt> 20
+</span><span class=lnt> 21
+</span><span class=lnt> 22
+</span><span class=lnt> 23
+</span><span class=lnt> 24
+</span><span class=lnt> 25
+</span><span class=lnt> 26
+</span><span class=lnt> 27
+</span><span class=lnt> 28
+</span><span class=lnt> 29
+</span><span class=lnt> 30
+</span><span class=lnt> 31
+</span><span class=lnt> 32
+</span><span class=lnt> 33
+</span><span class=lnt> 34
+</span><span class=lnt> 35
+</span><span class=lnt> 36
+</span><span class=lnt> 37
+</span><span class=lnt> 38
+</span><span class=lnt> 39
+</span><span class=lnt> 40
+</span><span class=lnt> 41
+</span><span class=lnt> 42
+</span><span class=lnt> 43
+</span><span class=lnt> 44
+</span><span class=lnt> 45
+</span><span class=lnt> 46
+</span><span class=lnt> 47
+</span><span class=lnt> 48
+</span><span class=lnt> 49
+</span><span class=lnt> 50
+</span><span class=lnt> 51
+</span><span class=lnt> 52
+</span><span class=lnt> 53
+</span><span class=lnt> 54
+</span><span class=lnt> 55
+</span><span class=lnt> 56
+</span><span class=lnt> 57
+</span><span class=lnt> 58
+</span><span class=lnt> 59
+</span><span class=lnt> 60
+</span><span class=lnt> 61
+</span><span class=lnt> 62
+</span><span class=lnt> 63
+</span><span class=lnt> 64
+</span><span class=lnt> 65
+</span><span class=lnt> 66
+</span><span class=lnt> 67
+</span><span class=lnt> 68
+</span><span class=lnt> 69
+</span><span class=lnt> 70
+</span><span class=lnt> 71
+</span><span class=lnt> 72
+</span><span class=lnt> 73
+</span><span class=lnt> 74
+</span><span class=lnt> 75
+</span><span class=lnt> 76
+</span><span class=lnt> 77
+</span><span class=lnt> 78
+</span><span class=lnt> 79
+</span><span class=lnt> 80
+</span><span class=lnt> 81
+</span><span class=lnt> 82
+</span><span class=lnt> 83
+</span><span class=lnt> 84
+</span><span class=lnt> 85
+</span><span class=lnt> 86
+</span><span class=lnt> 87
+</span><span class=lnt> 88
+</span><span class=lnt> 89
+</span><span class=lnt> 90
+</span><span class=lnt> 91
+</span><span class=lnt> 92
+</span><span class=lnt> 93
+</span><span class=lnt> 94
+</span><span class=lnt> 95
+</span><span class=lnt> 96
+</span><span class=lnt> 97
+</span><span class=lnt> 98
+</span><span class=lnt> 99
+</span><span class=lnt>100
+</span><span class=lnt>101
+</span><span class=lnt>102
+</span><span class=lnt>103
+</span><span class=lnt>104
+</span><span class=lnt>105
+</span><span class=lnt>106
+</span><span class=lnt>107
+</span><span class=lnt>108
+</span><span class=lnt>109
+</span><span class=lnt>110
+</span><span class=lnt>111
+</span><span class=lnt>112
+</span><span class=lnt>113
+</span><span class=lnt>114
+</span><span class=lnt>115
+</span><span class=lnt>116
+</span><span class=lnt>117
+</span><span class=lnt>118
+</span><span class=lnt>119
+</span><span class=lnt>120
+</span><span class=lnt>121
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=k>try</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>//ia是socket的输入，oa是socket的输出</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>ia</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>BinaryInputArchive</span><span class=p>.</span><span class=na>getArchive</span><span class=p>(</span><span class=n>bufferedInput</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>bufferedOutput</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=k>new</span><span class=w> </span><span class=n>BufferedOutputStream</span><span class=p>(</span><span class=n>sock</span><span class=p>.</span><span class=na>getOutputStream</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>oa</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>BinaryOutputArchive</span><span class=p>.</span><span class=na>getArchive</span><span class=p>(</span><span class=n>bufferedOutput</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>//等于是从输入流中读取QuorumPacket序列化对象，这个对应的是follower的registerWithLeader方法</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>QuorumPacket</span><span class=w> </span><span class=n>qp</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=k>new</span><span class=w> </span><span class=n>QuorumPacket</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>ia</span><span class=p>.</span><span class=na>readRecord</span><span class=p>(</span><span class=n>qp</span><span class=p>,</span><span class=w> </span><span class=s>&#34;packet&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>//判断消息类型是不是FOLLOWERINFO和OBSERVERINFO，即上报节点信息</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>messageTracker</span><span class=p>.</span><span class=na>trackReceived</span><span class=p>(</span><span class=n>qp</span><span class=p>.</span><span class=na>getType</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>if</span><span class=w> </span><span class=p>(</span><span class=n>qp</span><span class=p>.</span><span class=na>getType</span><span class=p>()</span><span class=w> </span><span class=o>!=</span><span class=w> </span><span class=n>Leader</span><span class=p>.</span><span class=na>FOLLOWERINFO</span><span class=w> </span><span class=o>&amp;&amp;</span><span class=w> </span><span class=n>qp</span><span class=p>.</span><span class=na>getType</span><span class=p>()</span><span class=w> </span><span class=o>!=</span><span class=w> </span><span class=n>Leader</span><span class=p>.</span><span class=na>OBSERVERINFO</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>LOG</span><span class=p>.</span><span class=na>error</span><span class=p>(</span><span class=s>&#34;First packet {} is not FOLLOWERINFO or OBSERVERINFO!&#34;</span><span class=p>,</span><span class=w> </span><span class=n>qp</span><span class=p>.</span><span class=na>toString</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=k>return</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>...</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>//获取从节点的周期（高32位）</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kt>long</span><span class=w> </span><span class=n>lastAcceptedEpoch</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>ZxidUtils</span><span class=p>.</span><span class=na>getEpochFromZxid</span><span class=p>(</span><span class=n>qp</span><span class=p>.</span><span class=na>getZxid</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kt>long</span><span class=w> </span><span class=n>peerLastZxid</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>StateSummary</span><span class=w> </span><span class=n>ss</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=kc>null</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kt>long</span><span class=w> </span><span class=n>zxid</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>qp</span><span class=p>.</span><span class=na>getZxid</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kt>long</span><span class=w> </span><span class=n>newEpoch</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>learnerMaster</span><span class=p>.</span><span class=na>getEpochToPropose</span><span class=p>(</span><span class=k>this</span><span class=p>.</span><span class=na>getSid</span><span class=p>(),</span><span class=w> </span><span class=n>lastAcceptedEpoch</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kt>long</span><span class=w> </span><span class=n>newLeaderZxid</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>ZxidUtils</span><span class=p>.</span><span class=na>makeZxid</span><span class=p>(</span><span class=n>newEpoch</span><span class=p>,</span><span class=w> </span><span class=n>0</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>//Q&amp;A 2024/8/18</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>// Q: 小于一万的意义？</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>// A:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>if</span><span class=w> </span><span class=p>(</span><span class=k>this</span><span class=p>.</span><span class=na>getVersion</span><span class=p>()</span><span class=w> </span><span class=o>&lt;</span><span class=w> </span><span class=n>0x10000</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=c1>// we are going to have to extrapolate the epoch information</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=kt>long</span><span class=w> </span><span class=n>epoch</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>ZxidUtils</span><span class=p>.</span><span class=na>getEpochFromZxid</span><span class=p>(</span><span class=n>zxid</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>ss</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=k>new</span><span class=w> </span><span class=n>StateSummary</span><span class=p>(</span><span class=n>epoch</span><span class=p>,</span><span class=w> </span><span class=n>zxid</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=c1>// fake the message</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>learnerMaster</span><span class=p>.</span><span class=na>waitForEpochAck</span><span class=p>(</span><span class=k>this</span><span class=p>.</span><span class=na>getSid</span><span class=p>(),</span><span class=w> </span><span class=n>ss</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w> </span><span class=k>else</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=kt>byte</span><span class=o>[]</span><span class=w> </span><span class=n>ver</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=k>new</span><span class=w> </span><span class=kt>byte</span><span class=o>[</span><span class=n>4</span><span class=o>]</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>ByteBuffer</span><span class=p>.</span><span class=na>wrap</span><span class=p>(</span><span class=n>ver</span><span class=p>).</span><span class=na>putInt</span><span class=p>(</span><span class=n>0x10000</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>QuorumPacket</span><span class=w> </span><span class=n>newEpochPacket</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=k>new</span><span class=w> </span><span class=n>QuorumPacket</span><span class=p>(</span><span class=n>Leader</span><span class=p>.</span><span class=na>LEADERINFO</span><span class=p>,</span><span class=w> </span><span class=n>newLeaderZxid</span><span class=p>,</span><span class=w> </span><span class=n>ver</span><span class=p>,</span><span class=w> </span><span class=kc>null</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>oa</span><span class=p>.</span><span class=na>writeRecord</span><span class=p>(</span><span class=n>newEpochPacket</span><span class=p>,</span><span class=w> </span><span class=s>&#34;packet&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=c1>//将商议出来的周期和zxid发给客户端</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>messageTracker</span><span class=p>.</span><span class=na>trackSent</span><span class=p>(</span><span class=n>Leader</span><span class=p>.</span><span class=na>LEADERINFO</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>bufferedOutput</span><span class=p>.</span><span class=na>flush</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>QuorumPacket</span><span class=w> </span><span class=n>ackEpochPacket</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=k>new</span><span class=w> </span><span class=n>QuorumPacket</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>ia</span><span class=p>.</span><span class=na>readRecord</span><span class=p>(</span><span class=n>ackEpochPacket</span><span class=p>,</span><span class=w> </span><span class=s>&#34;packet&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=c1>//客户端响应成功</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>messageTracker</span><span class=p>.</span><span class=na>trackReceived</span><span class=p>(</span><span class=n>ackEpochPacket</span><span class=p>.</span><span class=na>getType</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=k>if</span><span class=w> </span><span class=p>(</span><span class=n>ackEpochPacket</span><span class=p>.</span><span class=na>getType</span><span class=p>()</span><span class=w> </span><span class=o>!=</span><span class=w> </span><span class=n>Leader</span><span class=p>.</span><span class=na>ACKEPOCH</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=n>LOG</span><span class=p>.</span><span class=na>error</span><span class=p>(</span><span class=s>&#34;{} is not ACKEPOCH&#34;</span><span class=p>,</span><span class=w> </span><span class=n>ackEpochPacket</span><span class=p>.</span><span class=na>toString</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=k>return</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>ByteBuffer</span><span class=w> </span><span class=n>bbepoch</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>ByteBuffer</span><span class=p>.</span><span class=na>wrap</span><span class=p>(</span><span class=n>ackEpochPacket</span><span class=p>.</span><span class=na>getData</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>ss</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=k>new</span><span class=w> </span><span class=n>StateSummary</span><span class=p>(</span><span class=n>bbepoch</span><span class=p>.</span><span class=na>getInt</span><span class=p>(),</span><span class=w> </span><span class=n>ackEpochPacket</span><span class=p>.</span><span class=na>getZxid</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>learnerMaster</span><span class=p>.</span><span class=na>waitForEpochAck</span><span class=p>(</span><span class=k>this</span><span class=p>.</span><span class=na>getSid</span><span class=p>(),</span><span class=w> </span><span class=n>ss</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>peerLastZxid</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>ss</span><span class=p>.</span><span class=na>getLastZxid</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>//计算节点和leader相差是否很多</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>//三种类型：</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>//DIFF:差距很小</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>//SNAP:差距过大，需要将日志文件直接发给learner</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>//TRUNC: Learner的事务id比leader的还要大，因此Learner要截断事务</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kt>boolean</span><span class=w> </span><span class=n>needSnap</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>syncFollower</span><span class=p>(</span><span class=n>peerLastZxid</span><span class=p>,</span><span class=w> </span><span class=n>learnerMaster</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kt>boolean</span><span class=w> </span><span class=n>exemptFromThrottle</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>getLearnerType</span><span class=p>()</span><span class=w> </span><span class=o>!=</span><span class=w> </span><span class=n>LearnerType</span><span class=p>.</span><span class=na>OBSERVER</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=cm>/* if we are not truncating or sending a diff just send a snapshot */</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>if</span><span class=w> </span><span class=p>(</span><span class=n>needSnap</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>syncThrottler</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>learnerMaster</span><span class=p>.</span><span class=na>getLearnerSnapSyncThrottler</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>syncThrottler</span><span class=p>.</span><span class=na>beginSync</span><span class=p>(</span><span class=n>exemptFromThrottle</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>ServerMetrics</span><span class=p>.</span><span class=na>getMetrics</span><span class=p>().</span><span class=na>INFLIGHT_SNAP_COUNT</span><span class=p>.</span><span class=na>add</span><span class=p>(</span><span class=n>syncThrottler</span><span class=p>.</span><span class=na>getSyncInProgress</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=k>try</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=c1>//对于需要同步日志文件的，先发一个通知</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=kt>long</span><span class=w> </span><span class=n>zxidToSend</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>learnerMaster</span><span class=p>.</span><span class=na>getZKDatabase</span><span class=p>().</span><span class=na>getDataTreeLastProcessedZxid</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=n>oa</span><span class=p>.</span><span class=na>writeRecord</span><span class=p>(</span><span class=k>new</span><span class=w> </span><span class=n>QuorumPacket</span><span class=p>(</span><span class=n>Leader</span><span class=p>.</span><span class=na>SNAP</span><span class=p>,</span><span class=w> </span><span class=n>zxidToSend</span><span class=p>,</span><span class=w> </span><span class=kc>null</span><span class=p>,</span><span class=w> </span><span class=kc>null</span><span class=p>),</span><span class=w> </span><span class=s>&#34;packet&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=n>messageTracker</span><span class=p>.</span><span class=na>trackSent</span><span class=p>(</span><span class=n>Leader</span><span class=p>.</span><span class=na>SNAP</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=n>bufferedOutput</span><span class=p>.</span><span class=na>flush</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=c1>// Dump data to peer</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=c1>//直接将日志dump发给follow</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=n>learnerMaster</span><span class=p>.</span><span class=na>getZKDatabase</span><span class=p>().</span><span class=na>serializeSnapshot</span><span class=p>(</span><span class=n>oa</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=n>oa</span><span class=p>.</span><span class=na>writeString</span><span class=p>(</span><span class=s>&#34;BenWasHere&#34;</span><span class=p>,</span><span class=w> </span><span class=s>&#34;signature&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=n>bufferedOutput</span><span class=p>.</span><span class=na>flush</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=p>}</span><span class=w> </span><span class=k>finally</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=n>ServerMetrics</span><span class=p>.</span><span class=na>getMetrics</span><span class=p>().</span><span class=na>SNAP_COUNT</span><span class=p>.</span><span class=na>add</span><span class=p>(</span><span class=n>1</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w> </span><span class=k>else</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>syncThrottler</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>learnerMaster</span><span class=p>.</span><span class=na>getLearnerDiffSyncThrottler</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>syncThrottler</span><span class=p>.</span><span class=na>beginSync</span><span class=p>(</span><span class=n>exemptFromThrottle</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>ServerMetrics</span><span class=p>.</span><span class=na>getMetrics</span><span class=p>().</span><span class=na>INFLIGHT_DIFF_COUNT</span><span class=p>.</span><span class=na>add</span><span class=p>(</span><span class=n>syncThrottler</span><span class=p>.</span><span class=na>getSyncInProgress</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>ServerMetrics</span><span class=p>.</span><span class=na>getMetrics</span><span class=p>().</span><span class=na>DIFF_COUNT</span><span class=p>.</span><span class=na>add</span><span class=p>(</span><span class=n>1</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>...</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>// Start thread that blast packets in the queue to learner</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>//单独一个线程专门同步</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>startSendingPackets</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>qp</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=k>new</span><span class=w> </span><span class=n>QuorumPacket</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>ia</span><span class=p>.</span><span class=na>readRecord</span><span class=p>(</span><span class=n>qp</span><span class=p>,</span><span class=w> </span><span class=s>&#34;packet&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>//收到Learner的ACK</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>messageTracker</span><span class=p>.</span><span class=na>trackReceived</span><span class=p>(</span><span class=n>qp</span><span class=p>.</span><span class=na>getType</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>if</span><span class=w> </span><span class=p>(</span><span class=n>qp</span><span class=p>.</span><span class=na>getType</span><span class=p>()</span><span class=w> </span><span class=o>!=</span><span class=w> </span><span class=n>Leader</span><span class=p>.</span><span class=na>ACK</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>LOG</span><span class=p>.</span><span class=na>error</span><span class=p>(</span><span class=s>&#34;Next packet was supposed to be an ACK, but received packet: {}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>packetToString</span><span class=p>(</span><span class=n>qp</span><span class=p>));</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=k>return</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>LOG</span><span class=p>.</span><span class=na>debug</span><span class=p>(</span><span class=s>&#34;Received NEWLEADER-ACK message from {}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>sid</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>//同步完了</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>learnerMaster</span><span class=p>.</span><span class=na>waitForNewLeaderAck</span><span class=p>(</span><span class=n>getSid</span><span class=p>(),</span><span class=w> </span><span class=n>qp</span><span class=p>.</span><span class=na>getZxid</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>...</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=cm>/*
+</span></span></span><span class=line><span class=cl><span class=cm>     * Wait until learnerMaster starts up
+</span></span></span><span class=line><span class=cl><span class=cm>     */</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>learnerMaster</span><span class=p>.</span><span class=na>waitForStartup</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>//leader向follower发送UPTODATE，表明follower可以开始响应客户端了</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>queuedPackets</span><span class=p>.</span><span class=na>add</span><span class=p>(</span><span class=k>new</span><span class=w> </span><span class=n>QuorumPacket</span><span class=p>(</span><span class=n>Leader</span><span class=p>.</span><span class=na>UPTODATE</span><span class=p>,</span><span class=w> </span><span class=o>-</span><span class=n>1</span><span class=p>,</span><span class=w> </span><span class=kc>null</span><span class=p>,</span><span class=w> </span><span class=kc>null</span><span class=p>));</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>//接受follower消息，主要是两类吧，一类是request，一类是ack</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>while</span><span class=w> </span><span class=p>(</span><span class=kc>true</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>自己看吧</span><span class=err>，</span><span class=w> </span><span class=n>没啥特殊的</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><h3 id=followerfollowleader>Follower.followLeader()</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span><span class=lnt>38
+</span><span class=lnt>39
+</span><span class=lnt>40
+</span><span class=lnt>41
+</span><span class=lnt>42
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=n>self</span><span class=p>.</span><span class=na>setZabState</span><span class=p>(</span><span class=n>QuorumPeer</span><span class=p>.</span><span class=na>ZabState</span><span class=p>.</span><span class=na>DISCOVERY</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=n>QuorumServer</span><span class=w> </span><span class=n>leaderServer</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>findLeader</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>try</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>//建立连接</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>connectToLeader</span><span class=p>(</span><span class=n>leaderServer</span><span class=p>.</span><span class=na>addr</span><span class=p>,</span><span class=w> </span><span class=n>leaderServer</span><span class=p>.</span><span class=na>hostname</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>connectionTime</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>System</span><span class=p>.</span><span class=na>currentTimeMillis</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>//告诉leader自己的信息,并等待协商好的最新事务Id返回</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kt>long</span><span class=w> </span><span class=n>newEpochZxid</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>registerWithLeader</span><span class=p>(</span><span class=n>Leader</span><span class=p>.</span><span class=na>FOLLOWERINFO</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>if</span><span class=w> </span><span class=p>(</span><span class=n>self</span><span class=p>.</span><span class=na>isReconfigStateChange</span><span class=p>())</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=k>throw</span><span class=w> </span><span class=k>new</span><span class=w> </span><span class=n>Exception</span><span class=p>(</span><span class=s>&#34;learned about role change&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kt>long</span><span class=w> </span><span class=n>newEpoch</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>ZxidUtils</span><span class=p>.</span><span class=na>getEpochFromZxid</span><span class=p>(</span><span class=n>newEpochZxid</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>if</span><span class=w> </span><span class=p>(</span><span class=n>newEpoch</span><span class=w> </span><span class=o>&lt;</span><span class=w> </span><span class=n>self</span><span class=p>.</span><span class=na>getAcceptedEpoch</span><span class=p>())</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>LOG</span><span class=p>.</span><span class=na>error</span><span class=p>(</span><span class=s>&#34;Proposed leader epoch &#34;</span><span class=w> </span><span class=o>+</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=n>ZxidUtils</span><span class=p>.</span><span class=na>zxidToString</span><span class=p>(</span><span class=n>newEpochZxid</span><span class=p>)</span><span class=w> </span><span class=o>+</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=s>&#34; is less than our accepted epoch &#34;</span><span class=w> </span><span class=o>+</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=n>ZxidUtils</span><span class=p>.</span><span class=na>zxidToString</span><span class=p>(</span><span class=n>self</span><span class=p>.</span><span class=na>getAcceptedEpoch</span><span class=p>()));</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=k>throw</span><span class=w> </span><span class=k>new</span><span class=w> </span><span class=n>IOException</span><span class=p>(</span><span class=s>&#34;Error: Epoch of leader is lower&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kt>long</span><span class=w> </span><span class=n>startTime</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>Time</span><span class=p>.</span><span class=na>currentElapsedTime</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>self</span><span class=p>.</span><span class=na>setLeaderAddressAndId</span><span class=p>(</span><span class=n>leaderServer</span><span class=p>.</span><span class=na>addr</span><span class=p>,</span><span class=w> </span><span class=n>leaderServer</span><span class=p>.</span><span class=na>getId</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>self</span><span class=p>.</span><span class=na>setZabState</span><span class=p>(</span><span class=n>QuorumPeer</span><span class=p>.</span><span class=na>ZabState</span><span class=p>.</span><span class=na>SYNCHRONIZATION</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>//同步数据</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>syncWithLeader</span><span class=p>(</span><span class=n>newEpochZxid</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>self</span><span class=p>.</span><span class=na>setZabState</span><span class=p>(</span><span class=n>QuorumPeer</span><span class=p>.</span><span class=na>ZabState</span><span class=p>.</span><span class=na>BROADCAST</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>completedSync</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=kc>true</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kt>long</span><span class=w> </span><span class=n>syncTime</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>Time</span><span class=p>.</span><span class=na>currentElapsedTime</span><span class=p>()</span><span class=w> </span><span class=o>-</span><span class=w> </span><span class=n>startTime</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>ServerMetrics</span><span class=p>.</span><span class=na>getMetrics</span><span class=p>().</span><span class=na>FOLLOWER_SYNC_TIME</span><span class=p>.</span><span class=na>add</span><span class=p>(</span><span class=n>syncTime</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>if</span><span class=w> </span><span class=p>(</span><span class=n>self</span><span class=p>.</span><span class=na>getObserverMasterPort</span><span class=p>()</span><span class=w> </span><span class=o>&gt;</span><span class=w> </span><span class=n>0</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>LOG</span><span class=p>.</span><span class=na>info</span><span class=p>(</span><span class=s>&#34;Starting ObserverMaster&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>om</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=k>new</span><span class=w> </span><span class=n>ObserverMaster</span><span class=p>(</span><span class=n>self</span><span class=p>,</span><span class=w> </span><span class=n>fzk</span><span class=p>,</span><span class=w> </span><span class=n>self</span><span class=p>.</span><span class=na>getObserverMasterPort</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>om</span><span class=p>.</span><span class=na>start</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w> </span><span class=k>else</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>om</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=kc>null</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>// create a reusable packet to reduce gc impact</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>QuorumPacket</span><span class=w> </span><span class=n>qp</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=k>new</span><span class=w> </span><span class=n>QuorumPacket</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>while</span><span class=w> </span><span class=p>(</span><span class=k>this</span><span class=p>.</span><span class=na>isRunning</span><span class=p>())</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>readPacket</span><span class=p>(</span><span class=n>qp</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>processPacket</span><span class=p>(</span><span class=n>qp</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><h2 id=消息处理流程>消息处理流程</h2><h3 id=requestprocessor>RequestProcessor</h3><p><img src=http://picgo.qisiii.asia/post/w39dhfwj7v37x15wz_psyqmc0000gn/T/3774ce7d18ce5323c3569e357f595f5e.jpg loading=lazy></p><p>相比于单机版来说，集群的Processor显得有些多，但是像是PrepRequestProcessor、SyncRequestProcessor和FinnalProcessor都是复用，逻辑和<a class=link href=https://qisiii.github.io/post/tech/distributed/zookeeper/zookeeperservermain/#requestprocessor>zookeeper源码-单机版</a>一样，这里就不赘述了。</p><p>LeaderRequestProcessor只是做了一个checkUpgradeSession，处理本地会话创建临时节点的情况。</p><p>PropsoalRequestProcessor 的工作就是将请求以提案的方法发给各个节点，并且本地落库</p><p>CommitProcessor 用于处理本地事务和总事务的匹配处理，这个类的代码是我觉得最难理解的</p><p>ToBeAppliedRequestProcessor 好像只是一个队列排序，没感知到实际作用</p><p>AckRequestProcessor 用于判断提案是否通过，通过的话给其他节点发送commit消息，并修改leader的LastZxid</p><p>FollowerRequestProcessor 的作用是 判断是否需要是只读请求，只读的话自己交给下一个Processor处理，如果是写事务的话则需要像Leader发request</p><p>SendAckRequestProcessor 是在收到leader的提案执行了SyncRequestProcessor（本地落库）之后调用的，用于回复Leader提案ACK</p><h3 id=流程图>流程图</h3><p><img src=http://picgo.qisiii.asia/post/w39dhfwj7v37x15wz_psyqmc0000gn/T/b7b2d782e6fa9516db5cee91e018310b.jpg loading=lazy></p><h3 id=commitprocessor>CommitProcessor</h3><p>通信流程中其他部分的代码都比较好理解，只有CommitProcessor的run方法，我个人看了好几遍才懂，所以这里贴一下代码分析。</p><p>CommitProcessor持有四个队列：</p><p><strong>queuedRequests 存储所有请求，无论读写，这个队列的作用主要是规定了顺序。</strong></p><p><strong>pendingRequests 表示正在等待处理的请求，是queuedRequests以sessionId分组后的结果，实际存储的请求可能比queuedRequests少，因为queuedRequests中有部分读请求是可以立即处理的。</strong></p><p><strong>queuedWriteRequests 只存储事务请求</strong></p><p><strong>committedRequests 表示已经提交的事务请求，在调用Commit之后才会添加进来。</strong></p><p>这个类的执行逻辑是：</p><ol><li><p>在processRequest中将所有请求添加到queuedRequests，事务请求添加到queuedRequests中</p></li><li><p>当queuedRequests或者committedRequests任意不为空的时候，执行run里的循环逻辑</p></li><li><p>如果是queuedRequests不为空，顺序出队；</p><p>如果出队的是事务请求，添加到pendingRequests中</p><p>如果出队的是只读请求，且正在处理的请求中不包含这个只读请求的SessionId，立即交由下一个Processor处理</p><p>如果出队的是只读请求，但是这个session之前有写请求，那么这个只读请求也得添加到pendingRequests中，强制串行化</p></li><li><p>等待commitIsWaiting为真，即存在已经提交的事务请求不为空</p><p>这里要理解一下，目前还为返回结果的请求只有两种，一种是未提交的事务请求，一种是阻塞在事务请求后的同session只读请求，因此想要处理这两种中的任意一个，都需要等待队首的事务提交</p></li><li><p>当commitIsWaiting为真之后，下面其实有两段逻辑：while循环是处理事务请求的，for循环是处理阻塞的只读请求的</p></li><li><p>从committedRequests取出已提交的请求，并从queuedWriteRequests中匹配，组装完整的request交给下一个Processor处理；并将当前请求的SessionId添加到queuesToDrain，表示里面阻塞的只读请求可以开始处理了</p></li><li><p>遍历可以处理的session，从pendingRequests中取出只读请求并进行处理，当遇到事务请求时停止</p></li></ol><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>  1
+</span><span class=lnt>  2
+</span><span class=lnt>  3
+</span><span class=lnt>  4
+</span><span class=lnt>  5
+</span><span class=lnt>  6
+</span><span class=lnt>  7
+</span><span class=lnt>  8
+</span><span class=lnt>  9
+</span><span class=lnt> 10
+</span><span class=lnt> 11
+</span><span class=lnt> 12
+</span><span class=lnt> 13
+</span><span class=lnt> 14
+</span><span class=lnt> 15
+</span><span class=lnt> 16
+</span><span class=lnt> 17
+</span><span class=lnt> 18
+</span><span class=lnt> 19
+</span><span class=lnt> 20
+</span><span class=lnt> 21
+</span><span class=lnt> 22
+</span><span class=lnt> 23
+</span><span class=lnt> 24
+</span><span class=lnt> 25
+</span><span class=lnt> 26
+</span><span class=lnt> 27
+</span><span class=lnt> 28
+</span><span class=lnt> 29
+</span><span class=lnt> 30
+</span><span class=lnt> 31
+</span><span class=lnt> 32
+</span><span class=lnt> 33
+</span><span class=lnt> 34
+</span><span class=lnt> 35
+</span><span class=lnt> 36
+</span><span class=lnt> 37
+</span><span class=lnt> 38
+</span><span class=lnt> 39
+</span><span class=lnt> 40
+</span><span class=lnt> 41
+</span><span class=lnt> 42
+</span><span class=lnt> 43
+</span><span class=lnt> 44
+</span><span class=lnt> 45
+</span><span class=lnt> 46
+</span><span class=lnt> 47
+</span><span class=lnt> 48
+</span><span class=lnt> 49
+</span><span class=lnt> 50
+</span><span class=lnt> 51
+</span><span class=lnt> 52
+</span><span class=lnt> 53
+</span><span class=lnt> 54
+</span><span class=lnt> 55
+</span><span class=lnt> 56
+</span><span class=lnt> 57
+</span><span class=lnt> 58
+</span><span class=lnt> 59
+</span><span class=lnt> 60
+</span><span class=lnt> 61
+</span><span class=lnt> 62
+</span><span class=lnt> 63
+</span><span class=lnt> 64
+</span><span class=lnt> 65
+</span><span class=lnt> 66
+</span><span class=lnt> 67
+</span><span class=lnt> 68
+</span><span class=lnt> 69
+</span><span class=lnt> 70
+</span><span class=lnt> 71
+</span><span class=lnt> 72
+</span><span class=lnt> 73
+</span><span class=lnt> 74
+</span><span class=lnt> 75
+</span><span class=lnt> 76
+</span><span class=lnt> 77
+</span><span class=lnt> 78
+</span><span class=lnt> 79
+</span><span class=lnt> 80
+</span><span class=lnt> 81
+</span><span class=lnt> 82
+</span><span class=lnt> 83
+</span><span class=lnt> 84
+</span><span class=lnt> 85
+</span><span class=lnt> 86
+</span><span class=lnt> 87
+</span><span class=lnt> 88
+</span><span class=lnt> 89
+</span><span class=lnt> 90
+</span><span class=lnt> 91
+</span><span class=lnt> 92
+</span><span class=lnt> 93
+</span><span class=lnt> 94
+</span><span class=lnt> 95
+</span><span class=lnt> 96
+</span><span class=lnt> 97
+</span><span class=lnt> 98
+</span><span class=lnt> 99
+</span><span class=lnt>100
+</span><span class=lnt>101
+</span><span class=lnt>102
+</span><span class=lnt>103
+</span><span class=lnt>104
+</span><span class=lnt>105
+</span><span class=lnt>106
+</span><span class=lnt>107
+</span><span class=lnt>108
+</span><span class=lnt>109
+</span><span class=lnt>110
+</span><span class=lnt>111
+</span><span class=lnt>112
+</span><span class=lnt>113
+</span><span class=lnt>114
+</span><span class=lnt>115
+</span><span class=lnt>116
+</span><span class=lnt>117
+</span><span class=lnt>118
+</span><span class=lnt>119
+</span><span class=lnt>120
+</span><span class=lnt>121
+</span><span class=lnt>122
+</span><span class=lnt>123
+</span><span class=lnt>124
+</span><span class=lnt>125
+</span><span class=lnt>126
+</span><span class=lnt>127
+</span><span class=lnt>128
+</span><span class=lnt>129
+</span><span class=lnt>130
+</span><span class=lnt>131
+</span><span class=lnt>132
+</span><span class=lnt>133
+</span><span class=lnt>134
+</span><span class=lnt>135
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=kd>public</span><span class=w> </span><span class=kt>void</span><span class=w> </span><span class=nf>run</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kt>int</span><span class=w> </span><span class=n>requestsToProcess</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>0</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kt>boolean</span><span class=w> </span><span class=n>commitIsWaiting</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=kc>false</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>do</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=c1>//queuedRequests表示还没有commit的事务，主要用于排队</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=c1>//committedRequests表示已经commit的事务</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=kd>synchronized</span><span class=p>(</span><span class=k>this</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=n>commitIsWaiting</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=o>!</span><span class=n>committedRequests</span><span class=p>.</span><span class=na>isEmpty</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=n>requestsToProcess</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>queuedRequests</span><span class=p>.</span><span class=na>size</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=c1>//两个队列都没有表示现在没有请求需要处理</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=k>if</span><span class=w> </span><span class=p>(</span><span class=n>requestsToProcess</span><span class=w> </span><span class=o>==</span><span class=w> </span><span class=n>0</span><span class=w> </span><span class=o>&amp;&amp;</span><span class=w> </span><span class=o>!</span><span class=n>commitIsWaiting</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=c1>// Waiting for requests to process</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=k>while</span><span class=w> </span><span class=p>(</span><span class=o>!</span><span class=n>stopped</span><span class=w> </span><span class=o>&amp;&amp;</span><span class=w> </span><span class=n>requestsToProcess</span><span class=w> </span><span class=o>==</span><span class=w> </span><span class=n>0</span><span class=w> </span><span class=o>&amp;&amp;</span><span class=w> </span><span class=o>!</span><span class=n>commitIsWaiting</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                    </span><span class=n>wait</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                    </span><span class=n>commitIsWaiting</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=o>!</span><span class=n>committedRequests</span><span class=p>.</span><span class=na>isEmpty</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                    </span><span class=n>requestsToProcess</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>queuedRequests</span><span class=p>.</span><span class=na>size</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>Request</span><span class=w> </span><span class=n>request</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=kt>int</span><span class=w> </span><span class=n>readsProcessed</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>0</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=k>while</span><span class=w> </span><span class=p>(</span><span class=o>!</span><span class=n>stopped</span><span class=w> </span><span class=o>&amp;&amp;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=n>requestsToProcess</span><span class=w> </span><span class=o>&gt;</span><span class=w> </span><span class=n>0</span><span class=w> </span><span class=o>&amp;&amp;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=p>(</span><span class=n>maxReadBatchSize</span><span class=w> </span><span class=o>&lt;</span><span class=w> </span><span class=n>0</span><span class=w> </span><span class=o>||</span><span class=w> </span><span class=n>readsProcessed</span><span class=w> </span><span class=o>&lt;=</span><span class=w> </span><span class=n>maxReadBatchSize</span><span class=p>)</span><span class=w> </span><span class=o>&amp;&amp;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=p>(</span><span class=n>request</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>queuedRequests</span><span class=p>.</span><span class=na>poll</span><span class=p>())</span><span class=w> </span><span class=o>!=</span><span class=w> </span><span class=kc>null</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=n>requestsToProcess</span><span class=o>--</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=c1>//如果是写事务，或者虽然是读事务，但是该sessionId存在正在处理的请求都要放到队列里</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=k>if</span><span class=w> </span><span class=p>(</span><span class=n>needCommit</span><span class=p>(</span><span class=n>request</span><span class=p>)</span><span class=w> </span><span class=o>||</span><span class=w> </span><span class=n>pendingRequests</span><span class=p>.</span><span class=na>containsKey</span><span class=p>(</span><span class=n>request</span><span class=p>.</span><span class=na>sessionId</span><span class=p>))</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=c1>// Add request to pending</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=n>Deque</span><span class=w> </span><span class=o>&lt;</span><span class=w> </span><span class=n>Request</span><span class=w> </span><span class=o>&gt;</span><span class=w> </span><span class=n>requests</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>pendingRequests</span><span class=p>.</span><span class=na>computeIfAbsent</span><span class=p>(</span><span class=n>request</span><span class=p>.</span><span class=na>sessionId</span><span class=p>,</span><span class=w> </span><span class=n>sid</span><span class=w> </span><span class=o>-&gt;</span><span class=w> </span><span class=k>new</span><span class=w> </span><span class=n>ArrayDeque</span><span class=w> </span><span class=o>&lt;</span><span class=w> </span><span class=o>&gt;</span><span class=w> </span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=n>requests</span><span class=p>.</span><span class=na>addLast</span><span class=p>(</span><span class=n>request</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=n>ServerMetrics</span><span class=p>.</span><span class=na>getMetrics</span><span class=p>().</span><span class=na>REQUESTS_IN_SESSION_QUEUE</span><span class=p>.</span><span class=na>add</span><span class=p>(</span><span class=n>requests</span><span class=p>.</span><span class=na>size</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=p>}</span><span class=w> </span><span class=k>else</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=n>readsProcessed</span><span class=o>++</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=n>numReadQueuedRequests</span><span class=p>.</span><span class=na>decrementAndGet</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=c1>//是读事务，直接交给Final处理</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=n>sendToNextProcessor</span><span class=p>(</span><span class=n>request</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=k>if</span><span class=w> </span><span class=p>(</span><span class=o>!</span><span class=n>commitIsWaiting</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=n>commitIsWaiting</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=o>!</span><span class=n>committedRequests</span><span class=p>.</span><span class=na>isEmpty</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=cm>/*
+</span></span></span><span class=line><span class=cl><span class=cm>             * 
+</span></span></span><span class=line><span class=cl><span class=cm>             * 存在已提交的事务：意味着在pendingRequests和committedRequests都有request
+</span></span></span><span class=line><span class=cl><span class=cm>             */</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=k>if</span><span class=w> </span><span class=p>(</span><span class=n>commitIsWaiting</span><span class=w> </span><span class=o>&amp;&amp;</span><span class=w> </span><span class=o>!</span><span class=n>stopped</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=cm>/*
+</span></span></span><span class=line><span class=cl><span class=cm>                 * Drain outstanding reads
+</span></span></span><span class=line><span class=cl><span class=cm>                 */</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=c1>//Q&amp;A 2024/8/19</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=c1>// Q: 这里不理解，必须得是空了才能处理吗？</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=c1>// A:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=n>waitForEmptyPool</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=k>if</span><span class=w> </span><span class=p>(</span><span class=n>stopped</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                    </span><span class=k>return</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=kt>int</span><span class=w> </span><span class=n>commitsToProcess</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>maxCommitBatchSize</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=n>Set</span><span class=w> </span><span class=o>&lt;</span><span class=w> </span><span class=n>Long</span><span class=w> </span><span class=o>&gt;</span><span class=w> </span><span class=n>queuesToDrain</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=k>new</span><span class=w> </span><span class=n>HashSet</span><span class=w> </span><span class=o>&lt;</span><span class=w> </span><span class=o>&gt;</span><span class=w> </span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=kt>long</span><span class=w> </span><span class=n>startWriteTime</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>Time</span><span class=p>.</span><span class=na>currentElapsedTime</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=kt>int</span><span class=w> </span><span class=n>commitsProcessed</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>0</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=c1>//处理事务请求</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=k>while</span><span class=w> </span><span class=p>(</span><span class=n>commitIsWaiting</span><span class=w> </span><span class=o>&amp;&amp;</span><span class=w> </span><span class=o>!</span><span class=n>stopped</span><span class=w> </span><span class=o>&amp;&amp;</span><span class=w> </span><span class=n>commitsToProcess</span><span class=w> </span><span class=o>&gt;</span><span class=w> </span><span class=n>0</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                    </span><span class=c1>// Process committed head</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                    </span><span class=n>request</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>committedRequests</span><span class=p>.</span><span class=na>peek</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                    </span><span class=k>if</span><span class=w> </span><span class=p>(</span><span class=o>!</span><span class=n>queuedWriteRequests</span><span class=p>.</span><span class=na>isEmpty</span><span class=p>()</span><span class=w> </span><span class=o>&amp;&amp;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                        </span><span class=n>queuedWriteRequests</span><span class=p>.</span><span class=na>peek</span><span class=p>().</span><span class=na>sessionId</span><span class=w> </span><span class=o>==</span><span class=w> </span><span class=n>request</span><span class=p>.</span><span class=na>sessionId</span><span class=w> </span><span class=o>&amp;&amp;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                        </span><span class=n>queuedWriteRequests</span><span class=p>.</span><span class=na>peek</span><span class=p>().</span><span class=na>cxid</span><span class=w> </span><span class=o>==</span><span class=w> </span><span class=n>request</span><span class=p>.</span><span class=na>cxid</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                        </span><span class=n>Deque</span><span class=w> </span><span class=o>&lt;</span><span class=w> </span><span class=n>Request</span><span class=w> </span><span class=o>&gt;</span><span class=w> </span><span class=n>sessionQueue</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>pendingRequests</span><span class=p>.</span><span class=na>get</span><span class=p>(</span><span class=n>request</span><span class=p>.</span><span class=na>sessionId</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                        </span><span class=n>ServerMetrics</span><span class=p>.</span><span class=na>getMetrics</span><span class=p>().</span><span class=na>PENDING_SESSION_QUEUE_SIZE</span><span class=p>.</span><span class=na>add</span><span class=p>(</span><span class=n>pendingRequests</span><span class=p>.</span><span class=na>size</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                        </span><span class=c1>//想象不出来什么时候会是这种情况</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                        </span><span class=k>if</span><span class=w> </span><span class=p>(</span><span class=n>sessionQueue</span><span class=w> </span><span class=o>==</span><span class=w> </span><span class=kc>null</span><span class=w> </span><span class=o>||</span><span class=w> </span><span class=n>sessionQueue</span><span class=p>.</span><span class=na>isEmpty</span><span class=p>()</span><span class=w> </span><span class=o>||</span><span class=w> </span><span class=o>!</span><span class=n>needCommit</span><span class=p>(</span><span class=n>sessionQueue</span><span class=p>.</span><span class=na>peek</span><span class=p>()))</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                            </span><span class=k>break</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                        </span><span class=p>}</span><span class=w> </span><span class=k>else</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                            </span><span class=n>ServerMetrics</span><span class=p>.</span><span class=na>getMetrics</span><span class=p>().</span><span class=na>REQUESTS_IN_SESSION_QUEUE</span><span class=p>.</span><span class=na>add</span><span class=p>(</span><span class=n>sessionQueue</span><span class=p>.</span><span class=na>size</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                            </span><span class=c1>// If session queue != null, then it is also not empty.</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                            </span><span class=n>Request</span><span class=w> </span><span class=n>topPending</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>sessionQueue</span><span class=p>.</span><span class=na>poll</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                            </span><span class=n>topPending</span><span class=p>.</span><span class=na>setHdr</span><span class=p>(</span><span class=n>request</span><span class=p>.</span><span class=na>getHdr</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                            </span><span class=n>topPending</span><span class=p>.</span><span class=na>setTxn</span><span class=p>(</span><span class=n>request</span><span class=p>.</span><span class=na>getTxn</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                            </span><span class=n>topPending</span><span class=p>.</span><span class=na>setTxnDigest</span><span class=p>(</span><span class=n>request</span><span class=p>.</span><span class=na>getTxnDigest</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                            </span><span class=n>topPending</span><span class=p>.</span><span class=na>zxid</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>request</span><span class=p>.</span><span class=na>zxid</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                            </span><span class=n>topPending</span><span class=p>.</span><span class=na>commitRecvTime</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>request</span><span class=p>.</span><span class=na>commitRecvTime</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                            </span><span class=n>request</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>topPending</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                            </span><span class=k>if</span><span class=w> </span><span class=p>(</span><span class=n>request</span><span class=p>.</span><span class=na>isThrottled</span><span class=p>())</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                                </span><span class=n>LOG</span><span class=p>.</span><span class=na>error</span><span class=p>(</span><span class=s>&#34;Throttled request in committed &amp; pending pool: {}. Exiting.&#34;</span><span class=p>,</span><span class=w> </span><span class=n>request</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                                </span><span class=n>ServiceUtils</span><span class=p>.</span><span class=na>requestSystemExit</span><span class=p>(</span><span class=n>ExitCode</span><span class=p>.</span><span class=na>UNEXPECTED_ERROR</span><span class=p>.</span><span class=na>getValue</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                            </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                            </span><span class=n>numWriteQueuedRequests</span><span class=p>.</span><span class=na>decrementAndGet</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                            </span><span class=c1>//queuedWriteRequests出队</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                            </span><span class=n>queuedWriteRequests</span><span class=p>.</span><span class=na>poll</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                            </span><span class=c1>//由于处理了该session的写事务，因此可以处理该session的只读请求了</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                            </span><span class=n>queuesToDrain</span><span class=p>.</span><span class=na>add</span><span class=p>(</span><span class=n>request</span><span class=p>.</span><span class=na>sessionId</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                        </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                    </span><span class=c1>//出队</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                    </span><span class=n>committedRequests</span><span class=p>.</span><span class=na>remove</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                    </span><span class=n>commitsToProcess</span><span class=o>--</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                    </span><span class=n>commitsProcessed</span><span class=o>++</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                    </span><span class=c1>// Process the write inline.</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                    </span><span class=c1>//交由下一个Processor处理</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                    </span><span class=n>processWrite</span><span class=p>(</span><span class=n>request</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                    </span><span class=n>commitIsWaiting</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=o>!</span><span class=n>committedRequests</span><span class=p>.</span><span class=na>isEmpty</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=n>readsProcessed</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>0</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=k>for</span><span class=w> </span><span class=p>(</span><span class=n>Long</span><span class=w> </span><span class=n>sessionId</span><span class=p>:</span><span class=w> </span><span class=n>queuesToDrain</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                    </span><span class=n>Deque</span><span class=w> </span><span class=o>&lt;</span><span class=w> </span><span class=n>Request</span><span class=w> </span><span class=o>&gt;</span><span class=w> </span><span class=n>sessionQueue</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>pendingRequests</span><span class=p>.</span><span class=na>get</span><span class=p>(</span><span class=n>sessionId</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                    </span><span class=kt>int</span><span class=w> </span><span class=n>readsAfterWrite</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>0</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                    </span><span class=c1>//取出对应session的待处理请求，只处理只读请求，当遇到事务请求就停止（得等待该事务被提交后处理）</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                    </span><span class=k>while</span><span class=w> </span><span class=p>(</span><span class=o>!</span><span class=n>stopped</span><span class=w> </span><span class=o>&amp;&amp;</span><span class=w> </span><span class=o>!</span><span class=n>sessionQueue</span><span class=p>.</span><span class=na>isEmpty</span><span class=p>()</span><span class=w> </span><span class=o>&amp;&amp;</span><span class=w> </span><span class=o>!</span><span class=n>needCommit</span><span class=p>(</span><span class=n>sessionQueue</span><span class=p>.</span><span class=na>peek</span><span class=p>()))</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                        </span><span class=n>numReadQueuedRequests</span><span class=p>.</span><span class=na>decrementAndGet</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                        </span><span class=n>sendToNextProcessor</span><span class=p>(</span><span class=n>sessionQueue</span><span class=p>.</span><span class=na>poll</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                        </span><span class=n>readsAfterWrite</span><span class=o>++</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                    </span><span class=n>readsProcessed</span><span class=w> </span><span class=o>+=</span><span class=w> </span><span class=n>readsAfterWrite</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                    </span><span class=c1>// Remove empty queues</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                    </span><span class=k>if</span><span class=w> </span><span class=p>(</span><span class=n>sessionQueue</span><span class=p>.</span><span class=na>isEmpty</span><span class=p>())</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                        </span><span class=n>pendingRequests</span><span class=p>.</span><span class=na>remove</span><span class=p>(</span><span class=n>sessionId</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=k>while</span><span class=w> </span><span class=p>(</span><span class=o>!</span><span class=n>stoppedMainLoop</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><h2 id=参考文档>参考文档:</h2><p><a class=link href=https://www.cnblogs.com/crazymakercircle/p/14339702.html#autoid-h2-5-5-4 target=_blank rel=noopener>Zab协议 (史上最全) - 疯狂创客圈 - 博客园</a></p><p><a class=link href=https://juejin.cn/post/7112681401601769486#heading-23 target=_blank rel=noopener>【图解源码】Zookeeper3.7源码剖析，Session的管理机制，Leader选举投票规则，集群数据同步流程 - 掘金</a></p><p><a class=link href=https://blog.csdn.net/Lanna_w/article/details/132414570 target=_blank rel=noopener>《Zookeeper》源码分析（十九）之 LearnerHandler-CSDN博客</a></p><p><a class=link href=https://learn.lianglianglee.com/%e4%b8%93%e6%a0%8f/24%e8%ae%b2%e5%90%83%e9%80%8f%e5%88%86%e5%b8%83%e5%bc%8f%e6%95%b0%e6%8d%ae%e5%ba%93-%e5%ae%8c/20%20%20%e5%85%b1%e8%af%86%e7%ae%97%e6%b3%95%ef%bc%9a%e4%b8%80%e6%ac%a1%e6%80%a7%e8%af%b4%e6%b8%85%e6%a5%9a%20Paxos%e3%80%81Raft%20%e7%ad%89%e7%ae%97%e6%b3%95%e7%9a%84%e5%8c%ba%e5%88%ab.md target=_blank rel=noopener>20 共识算法：一次性说清楚 Paxos、Raft 等算法的区别</a></p></section><footer class=article-footer><section class=article-tags><a href=/tags/%E4%B8%AD%E9%97%B4%E4%BB%B6/>中间件</a>
+<a href=/tags/%E6%B3%A8%E5%86%8C%E4%B8%AD%E5%BF%83/>注册中心</a>
+<a href=/tags/zookeeper/>Zookeeper</a></section><section class=article-copyright><svg class="icon icon-tabler icon-tabler-copyright" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="12" cy="12" r="9"/><path d="M14.5 9a3.5 4 0 100 6"/></svg>
+<span>Licensed under CC BY-NC-SA 4.0</span></section><section class=article-lastmod><svg class="icon icon-tabler icon-tabler-clock" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>
+<span>最后更新于 2024-08-19 09:07:51</span></section></footer></article><aside class=related-content--wrapper><h2 class=section-title>相关文章</h2><div class=related-content><div class="flex article-list--tile"><article><a href=/post/tech/distributed/zookeeper/election/><div class=article-details><h2 class=article-title>Zookeeper源码分析-选举机制</h2></div></a></article><article><a href=/post/tech/distributed/zookeeper/watch/><div class=article-details><h2 class=article-title>Zookeeper源码分析-watch机制</h2></div></a></article><article><a href=/post/tech/distributed/zookeeper/zookeeperservermain/><div class=article-details><h2 class=article-title>Zookeeper源码学习-单机部分通信组件</h2></div></a></article><article><a href=/post/tech/distributed/redis_cluster_deploy/><div class=article-details><h2 class=article-title>单服务器Redis集群部署记录</h2></div></a></article><article><a href=/post/tech/distributed/dubbo/dubbo_spi/><div class=article-details><h2 class=article-title>Dubbo的SPI增强</h2></div></a></article></div></div></aside><script src=//cdn.jsdelivr.net/npm/twikoo@1.6.21/dist/twikoo.all.min.js></script><div id=tcomment></div><style>.twikoo{background-color:var(--card-background);border-radius:var(--card-border-radius);box-shadow:var(--shadow-l1);padding:var(--card-padding)}:root[data-scheme=dark]{--twikoo-body-text-color-main:rgba(255, 255, 255, 0.9);--twikoo-body-text-color:rgba(255, 255, 255, 0.7)}.twikoo .el-input-group__prepend,.twikoo .tk-action-icon,.twikoo .tk-submit-action-icon,.twikoo .tk-time,.twikoo .tk-comments-no,.twikoo .tk-comments-count{color:var(--twikoo-body-text-color)}.twikoo .el-input__inner,.twikoo .el-textarea__inner,.twikoo .tk-preview-container,.twikoo .tk-content,.twikoo .tk-nick,.twikoo .tk-send{color:var(--twikoo-body-text-color-main)}.twikoo .el-button{color:var(--twikoo-body-text-color)!important}.twikoo .el-input__count{color:var(--twikoo-body-text-color)!important}.OwO .OwO-body{background-color:var(--body-background)!important;color:var(--body-text-color)!important}</style><script>twikoo.init({envId:"https://qisiii-twikoo.hf.space",el:"#tcomment"})</script><a href=#top aria-label="go to top" class=top-link id=top-link style=display:none><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-chevron-up"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M6 15l6-6 6 6"/></svg>
+</a><script src=https://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js></script><script type=text/javascript>$(window).scroll(function(){$(this).scrollTop()>300?$("#top-link").show():$("#top-link").hide()})</script><footer class=site-footer><section class=copyright>&copy;
+2022 -
+2024 起司</section><section class=powerby>使用 <a href=https://gohugo.io/ target=_blank rel=noopener>Hugo</a> 构建<br>主题 <b><a href=https://github.com/CaiJimmy/hugo-theme-stack target=_blank rel=noopener data-version=3.26.0>Stack</a></b> 由 <a href=https://jimmycai.com target=_blank rel=noopener>Jimmy</a> 设计
+<script async src=//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js></script><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css><section><span id=busuanzi_container_value_site_pv><i class="far fa-eye fa-fw"></i>
+<span id=busuanzi_value_site_pv></span>次
+</span>&nbsp;|&nbsp;
+<span id=busuanzi_container_value_site_uv><i class="fa fa-user" aria-hidden=true></i>
+<span id=busuanzi_value_site_uv></span>人次</span></section></section></footer><div class=pswp tabindex=-1 role=dialog aria-hidden=true><div class=pswp__bg></div><div class=pswp__scroll-wrap><div class=pswp__container><div class=pswp__item></div><div class=pswp__item></div><div class=pswp__item></div></div><div class="pswp__ui pswp__ui--hidden"><div class=pswp__top-bar><div class=pswp__counter></div><button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+<button class="pswp__button pswp__button--share" title=Share></button>
+<button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+<button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button><div class=pswp__preloader><div class=pswp__preloader__icn><div class=pswp__preloader__cut><div class=pswp__preloader__donut></div></div></div></div></div><div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap"><div class=pswp__share-tooltip></div></div><button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+</button>
+<button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)"></button><div class=pswp__caption><div class=pswp__caption__center></div></div></div></div></div><script src=https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js integrity="sha256-ePwmChbbvXbsO02lbM3HoHbSHTHFAeChekF1xKJdleo=" crossorigin=anonymous defer></script><script src=https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js integrity="sha256-UKkzOn/w1mBxRmLLGrSeyB4e1xbrp4xylgAWb3M42pU=" crossorigin=anonymous defer></script><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css crossorigin=anonymous><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css crossorigin=anonymous></main></div><script src=https://cdn.jsdelivr.net/npm/node-vibrant@3.1.6/dist/vibrant.min.js integrity="sha256-awcR2jno4kI5X0zL8ex0vi2z+KMkF24hUW8WePSA9HM=" crossorigin=anonymous></script><script type=text/javascript src=/ts/main.js defer></script><script>(function(){const e=document.createElement("link");e.href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap",e.type="text/css",e.rel="stylesheet",document.head.appendChild(e)})()</script></body></html>

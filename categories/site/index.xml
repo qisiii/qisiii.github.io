@@ -1,226 +1,7 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>个人网站 on 起司的博客</title><link>https://qisiii.github.io/categories/site/</link><description>Recent content in 个人网站 on 起司的博客</description><generator>Hugo -- gohugo.io</generator><language>zh-cn</language><copyright>起司</copyright><atom:link href="https://qisiii.github.io/categories/site/index.xml" rel="self" type="application/rss+xml"/><item><title>Hugo&amp;Stack主题的使用记录</title><link>https://qisiii.github.io/post/site/hugo_stack_record/</link><pubDate>Sat, 10 Aug 2024 16:32:55 +0800</pubDate><guid>https://qisiii.github.io/post/site/hugo_stack_record/</guid><description>&lt;p>&lt;a class="link" href="https://gohugo.io/about/" target="_blank" rel="noopener"
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>个人网站 on 起司的博客</title><link>https://qisiii.github.io/categories/site/</link><description>Recent content in 个人网站 on 起司的博客</description><generator>Hugo -- gohugo.io</generator><language>zh-cn</language><copyright>起司</copyright><atom:link href="https://qisiii.github.io/categories/site/index.xml" rel="self" type="application/rss+xml"/><item><title>Hugo&amp;Stack主题的使用和装修记录</title><link>https://qisiii.github.io/post/site/hugo_stack_record/</link><pubDate>Sat, 10 Aug 2024 16:32:55 +0800</pubDate><guid>https://qisiii.github.io/post/site/hugo_stack_record/</guid><description>&lt;p>&lt;a class="link" href="https://gohugo.io/about/" target="_blank" rel="noopener"
 >hugo官网&lt;/a>|&lt;a class="link" href="https://stack.jimmycai.com/config/" target="_blank" rel="noopener"
 >Stack官网&lt;/a>&lt;/p>
-&lt;h2 id="通过github-action进行部署">通过Github Action进行部署
-&lt;/h2>&lt;p>我这里是将hugo目录作为一个私有项目，而public下文件的作为github.io的pages项目，因此等于是要将hugo的public文件部署到github.io的配置下；并且我还指定了自定义域名，所以要额外添加CNAME配置，不然每次执行action，都不会生成CNAME文件&lt;/p>
-&lt;div class="highlight">&lt;div class="chroma">
-&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
-&lt;/span>&lt;span class="lnt"> 2
-&lt;/span>&lt;span class="lnt"> 3
-&lt;/span>&lt;span class="lnt"> 4
-&lt;/span>&lt;span class="lnt"> 5
-&lt;/span>&lt;span class="lnt"> 6
-&lt;/span>&lt;span class="lnt"> 7
-&lt;/span>&lt;span class="lnt"> 8
-&lt;/span>&lt;span class="lnt"> 9
-&lt;/span>&lt;span class="lnt">10
-&lt;/span>&lt;span class="lnt">11
-&lt;/span>&lt;span class="lnt">12
-&lt;/span>&lt;span class="lnt">13
-&lt;/span>&lt;span class="lnt">14
-&lt;/span>&lt;span class="lnt">15
-&lt;/span>&lt;span class="lnt">16
-&lt;/span>&lt;span class="lnt">17
-&lt;/span>&lt;span class="lnt">18
-&lt;/span>&lt;span class="lnt">19
-&lt;/span>&lt;span class="lnt">20
-&lt;/span>&lt;span class="lnt">21
-&lt;/span>&lt;span class="lnt">22
-&lt;/span>&lt;span class="lnt">23
-&lt;/span>&lt;span class="lnt">24
-&lt;/span>&lt;span class="lnt">25
-&lt;/span>&lt;span class="lnt">26
-&lt;/span>&lt;span class="lnt">27
-&lt;/span>&lt;span class="lnt">28
-&lt;/span>&lt;span class="lnt">29
-&lt;/span>&lt;span class="lnt">30
-&lt;/span>&lt;span class="lnt">31
-&lt;/span>&lt;span class="lnt">32
-&lt;/span>&lt;span class="lnt">33
-&lt;/span>&lt;span class="lnt">34
-&lt;/span>&lt;span class="lnt">35
-&lt;/span>&lt;span class="lnt">36
-&lt;/span>&lt;span class="lnt">37
-&lt;/span>&lt;span class="lnt">38
-&lt;/span>&lt;span class="lnt">39
-&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
-&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code class="language-yaml" data-lang="yaml">&lt;span class="line">&lt;span class="cl">&lt;span class="nt">name&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">GitHub Pages&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="nt">on&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">push&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">branches&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>- &lt;span class="l">master &lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="c"># Set a branch to deploy&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">pull_request&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="nt">jobs&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">deploy&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">runs-on&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">ubuntu-20.04&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">concurrency&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">group&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">${{ github.workflow }}-${{ github.ref }}&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">steps&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>- &lt;span class="nt">uses&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">actions/checkout@v3&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">with&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">submodules&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="kc">true&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="c"># Fetch Hugo themes (true OR recursive)&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">fetch-depth&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="m">0&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="c"># Fetch all history for .GitInfo and .Lastmod&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>- &lt;span class="nt">name&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">Setup Hugo&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">uses&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">peaceiris/actions-hugo@v2&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">with&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">hugo-version&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;0.129.0&amp;#39;&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="c"># 是否启用 hugo extend&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">extended&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="kc">true&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>- &lt;span class="nt">name&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">Build&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">run&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">hugo --minify&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>- &lt;span class="nt">name&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">Deploy&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">uses&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">peaceiris/actions-gh-pages@v3&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">if&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">${{ github.ref == &amp;#39;refs/heads/master&amp;#39; }}&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">with&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">PERSONAL_TOKEN&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">${{ secrets.ACTION_TOKEN }}&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">EXTERNAL_REPOSITORY&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">qisiii/qisiii.github.io &lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="c"># 你的GitHub Pages仓库&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">PUBLISH_BRANCH&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">master &lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="c"># 或者是你的GitHub Pages分支&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">PUBLISH_DIR&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">./public&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">commit_message&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">${{ github.event.head_commit.message }}&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">cname&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">custom.domain&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="c">#这里填你配置页的自定义域名&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
-&lt;/div>
-&lt;/div>&lt;p>&lt;a class="link" href="https://www.lixueduan.com/posts/blog/01-github-action-deploy-hugo/" target="_blank" rel="noopener"
->基于 Github Action 自动构建 Hugo 博客 -&lt;/a>&lt;/p>
-&lt;p>&lt;a class="link" href="https://eddyblog.cn/posts/tech/github-action-hugo/" target="_blank" rel="noopener"
->【Hugo网站搭建】GitHub Action自动化部署Hugo博客 | Eddy's blog&lt;/a>&lt;/p>
-&lt;p>&lt;a class="link" href="https://zenlian.github.io/github-actions-hugo/" target="_blank" rel="noopener"
->https://zenlian.github.io/github-actions-hugo/&lt;/a>&lt;/p>
-&lt;h2 id="标签云增加数量统计归档页增加标签云">标签云增加数量统计&amp;amp;归档页增加标签云:
-&lt;/h2>&lt;p>&lt;a class="link" href="https://thirdshire.com/hugo-stack-renovation/#%E5%9C%A8%E5%BD%92%E6%A1%A3%E9%A1%B5%E5%A2%9E%E5%8A%A0%E6%A0%87%E7%AD%BE%E4%BA%91tags" target="_blank" rel="noopener"
->Hugo Stack主题装修笔记&lt;/a>&lt;/p>
-&lt;h2 id="增加返回顶部按钮">增加返回顶部按钮：
-&lt;/h2>&lt;p>&lt;a class="link" href="https://chowray.netlify.app/posts/it%E5%B0%8F%E8%AE%B0/2021-01-06-%E4%B8%80%E9%94%AE%E8%BF%94%E5%9B%9E%E9%A1%B6%E9%83%A8/" target="_blank" rel="noopener"
->添加一键返回顶部功能 | Dlog&lt;/a>&lt;/p>
-&lt;h2 id="增加友链">增加友链:
-&lt;/h2>&lt;p>参考&lt;a class="link" href="https://thirdshire.com/hugo-stack-renovation-part-two/#%E5%8F%8C%E6%A0%8F%E5%8F%8B%E6%83%85%E9%93%BE%E6%8E%A5%E5%B9%B6%E5%A2%9E%E5%8A%A0%E5%8D%9A%E4%B8%BB%E5%A4%87%E6%B3%A8" target="_blank" rel="noopener"
->Hugo Stack主题装修笔记Part 2&lt;/a>，结合自己的版本和主题略有修改&lt;/p>
-&lt;ol>
-&lt;li>
-&lt;p>我的links.html是放在 layouts/_default下才有效，在layouts/page下面没起效&lt;/p>
-&lt;/li>
-&lt;li>
-&lt;p>data/json中指定的图片路径按博客所说需要放置在assets下再挂载到static中，我直接放在了static/link-img下&lt;/p>
-&lt;/li>
-&lt;li>
-&lt;p>菜单-友链需要格外的配置，这里的路径是你对应的文件，我这里不是新建了一个friend文件夹，然后在下面再创建index.md,而是在post下直接创建了个friend.md&lt;/p>
-&lt;div class="highlight">&lt;div class="chroma">
-&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
-&lt;/span>&lt;span class="lnt">2
-&lt;/span>&lt;span class="lnt">3
-&lt;/span>&lt;span class="lnt">4
-&lt;/span>&lt;span class="lnt">5
-&lt;/span>&lt;span class="lnt">6
-&lt;/span>&lt;span class="lnt">7
-&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
-&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code class="language-yaml" data-lang="yaml">&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>- &lt;span class="nt">identifier&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">friends&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">name&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">友链|Friends&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">url&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">/post/friends&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">weight&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="m">2&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">params&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">icon&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">friends&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">newTab&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="kc">true&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
-&lt;/div>
-&lt;/div>&lt;p>&lt;img src="http://picgo.qisiii.asia/post/1723690756125.jpg"
-loading="lazy"
->&lt;/p>
-&lt;/li>
-&lt;/ol>
-&lt;h2 id="url">URL：
-&lt;/h2>&lt;h3 id="slug">slug:
-&lt;/h3>&lt;p>一个正常的网址格式是下面这样的，其中路径的最后一段就是slug。&lt;/p>
-&lt;div class="highlight">&lt;div class="chroma">
-&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
-&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
-&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl"> &amp;lt;协议&amp;gt;://&amp;lt;主机名&amp;gt;/&amp;lt;路径&amp;gt;/&amp;lt;文件slug&amp;gt;?&amp;lt;查询字符串&amp;gt;#&amp;lt;片段&amp;gt;`
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
-&lt;/div>
-&lt;/div>&lt;p>据说简短清晰的slug有助于SEO，但哪怕没有这个功能，我们的文件名很多时候也是中文的，经过编码后可读性太差。因此，设置一个简短的slug是很有必要的。&lt;/p>
-&lt;p>建议在模板文件archetypes/default.md直接新增slug字段，这样就不用每个文件手动添加了&lt;/p>
-&lt;div class="highlight">&lt;div class="chroma">
-&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
-&lt;/span>&lt;span class="lnt">2
-&lt;/span>&lt;span class="lnt">3
-&lt;/span>&lt;span class="lnt">4
-&lt;/span>&lt;span class="lnt">5
-&lt;/span>&lt;span class="lnt">6
-&lt;/span>&lt;span class="lnt">7
-&lt;/span>&lt;span class="lnt">8
-&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
-&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code class="language-toml" data-lang="toml">&lt;span class="line">&lt;span class="cl">&lt;span class="err">+++&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">title&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="s2">&amp;#34;{{ replace .Name &amp;#34;&lt;/span>&lt;span class="nx">-&lt;/span>&lt;span class="s2">&amp;#34; &amp;#34;&lt;/span> &lt;span class="s2">&amp;#34; | title }}&amp;#34;&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">description&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="s2">&amp;#34;&amp;#34;&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">date&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="p">{{&lt;/span> &lt;span class="p">.&lt;/span>&lt;span class="nx">Date&lt;/span> &lt;span class="p">}}&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">image&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="s2">&amp;#34;&amp;#34;&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">draft&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="kc">true&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">slug&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="s2">&amp;#34;{{ replace .Name &amp;#34;&lt;/span>&lt;span class="nx">-&lt;/span>&lt;span class="s2">&amp;#34; &amp;#34;&lt;/span> &lt;span class="s2">&amp;#34; | title }}&amp;#34;&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">+++&lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
-&lt;/div>
-&lt;/div>&lt;h3 id="permalinks">permalinks:
-&lt;/h3>&lt;p>如果只设置slug，stack主题配置默认路径是 域名/p/slug这样子，其实对于文件的组织管理和展示路径依然不是很明朗，因此，我这里是以文件夹层级的方式生成路径。&lt;/p>
-&lt;p>在总配置中，修改或者新增&lt;/p>
-&lt;div class="highlight">&lt;div class="chroma">
-&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
-&lt;/span>&lt;span class="lnt">2
-&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
-&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">permalinks:
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> post: /:sections/:slug
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
-&lt;/div>
-&lt;/div>&lt;p>这里的:sections是指多个路径，但是hugo默认处理顶级目录会自动识别为section外，其他目录需要手动添加_index.md文件才行。&lt;/p>
-&lt;h2 id="评论">评论：
-&lt;/h2>&lt;p>hugo支持许多评论框架，具体可以看&lt;a class="link" href="https://gohugo.io/content-management/comments/" target="_blank" rel="noopener"
->hugo-comments&lt;/a>|&lt;a class="link" href="https://stack.jimmycai.com/config/comments" target="_blank" rel="noopener"
->Comments | Stack&lt;/a>，我选择的是&lt;/p>
-&lt;ul>
-&lt;li>&lt;a class="link" href="https://twikoo.js.org/" target="_blank" rel="noopener"
->Twikoo&lt;/a>&lt;/li>
-&lt;/ul>
-&lt;p>建议跟着&lt;a class="link" href="https://twikoo.js.org/quick-start.html" target="_blank" rel="noopener"
->快速上手 | Twikoo 文档&lt;/a>去部署一遍，我这里选用的是&lt;a class="link" href="https://twikoo.js.org/backend.html#hugging-face-%E9%83%A8%E7%BD%B2" target="_blank" rel="noopener"
->Hugging Face&lt;/a>免费部署的方案。&lt;/p>
-&lt;p>部署主要有两部分：一部分是生成一个mogodb的密钥串，二部分则是在hugging face上新建空间和项目，最终获得envId&lt;/p>
-&lt;p>然后修改站点配置文件&lt;/p>
-&lt;div class="highlight">&lt;div class="chroma">
-&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
-&lt;/span>&lt;span class="lnt">2
-&lt;/span>&lt;span class="lnt">3
-&lt;/span>&lt;span class="lnt">4
-&lt;/span>&lt;span class="lnt">5
-&lt;/span>&lt;span class="lnt">6
-&lt;/span>&lt;span class="lnt">7
-&lt;/span>&lt;span class="lnt">8
-&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
-&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl"> comments:
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> enabled: true
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> provider: twikoo
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">     twikoo:
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> envId: https://你的项目空间.hf.space
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> region:
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> path:
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> lang:
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
-&lt;/div>
-&lt;/div>&lt;h2 id="小部件">小部件：
+&lt;h2 id="stack自带小部件">stack自带小部件：
 &lt;/h2>&lt;p>&lt;a class="link" href="https://stack.jimmycai.com/config/widgets" target="_blank" rel="noopener"
 >Widgets | Stack&lt;/a>&lt;/p>
 &lt;div class="highlight">&lt;div class="chroma">
@@ -361,19 +142,306 @@ loading="lazy"
 &lt;p>&lt;img src="http://picgo.qisiii.asia/post/1723663347953.jpg"
 loading="lazy"
 >&lt;/p>
-&lt;p>但是假如你像我一下修改了permalinks，比如我改成了&lt;code> post: /:sections/:slug&lt;/code>，这个是为了让我的博客地址以路径+文件名来显示，但是由于有了层级关系，里面的博客文章的kind就变成了page，因此在配置的时候，将home和page两个都指定是最好的&lt;/p>
+&lt;p>但是假如你像我一下修改了permalinks，比如我改成了 &lt;code>post: /:sections/:slug&lt;/code>，这个是为了让我的博客地址以路径+文件名来显示，但是由于有了层级关系，里面的博客文章的kind就变成了page，因此在配置的时候，将home和page两个都指定是最好的&lt;/p>
 &lt;p>&lt;img src="http://picgo.qisiii.asia/post/1723663319408.jpg"
 loading="lazy"
 >&lt;/p>
 &lt;p>说实话，我其实还是不能理解这个kind的设计~&lt;/p>
-&lt;h2 id="网站收录">网站收录：
+&lt;h2 id="增加评论功能">增加评论功能：
+&lt;/h2>&lt;p>hugo支持许多评论框架，具体可以看&lt;a class="link" href="https://gohugo.io/content-management/comments/" target="_blank" rel="noopener"
+>hugo-comments&lt;/a>|&lt;a class="link" href="https://stack.jimmycai.com/config/comments" target="_blank" rel="noopener"
+>Comments | Stack&lt;/a>，我选择的是&lt;/p>
+&lt;ul>
+&lt;li>&lt;a class="link" href="https://twikoo.js.org/" target="_blank" rel="noopener"
+>Twikoo&lt;/a>&lt;/li>
+&lt;/ul>
+&lt;p>建议跟着&lt;a class="link" href="https://twikoo.js.org/quick-start.html" target="_blank" rel="noopener"
+>快速上手 | Twikoo 文档&lt;/a>去部署一遍，我这里选用的是&lt;a class="link" href="https://twikoo.js.org/backend.html#hugging-face-%E9%83%A8%E7%BD%B2" target="_blank" rel="noopener"
+>Hugging Face&lt;/a>免费部署的方案。&lt;/p>
+&lt;p>部署主要有两部分：一部分是生成一个mogodb的密钥串，二部分则是在hugging face上新建空间和项目，最终获得envId&lt;/p>
+&lt;p>然后修改站点配置文件&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;span class="lnt">6
+&lt;/span>&lt;span class="lnt">7
+&lt;/span>&lt;span class="lnt">8
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl"> comments:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> enabled: true
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> provider: twikoo
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">     twikoo:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> envId: https://你的项目空间.hf.space
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> region:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> path:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> lang:
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;h2 id="自定义博客的路径名">自定义博客的路径名：
+&lt;/h2>&lt;h3 id="slug">slug:
+&lt;/h3>&lt;p>一个正常的网址格式是下面这样的，其中路径的最后一段就是slug。&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl"> &amp;lt;协议&amp;gt;://&amp;lt;主机名&amp;gt;/&amp;lt;路径&amp;gt;/&amp;lt;文件slug&amp;gt;?&amp;lt;查询字符串&amp;gt;#&amp;lt;片段&amp;gt;`
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>据说简短清晰的slug有助于SEO，但哪怕没有这个功能，我们的文件名很多时候也是中文的，经过编码后可读性太差。因此，设置一个简短的slug是很有必要的。&lt;/p>
+&lt;p>建议在模板文件archetypes/default.md直接新增slug字段，这样就不用每个文件手动添加了&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;span class="lnt">6
+&lt;/span>&lt;span class="lnt">7
+&lt;/span>&lt;span class="lnt">8
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-toml" data-lang="toml">&lt;span class="line">&lt;span class="cl">&lt;span class="err">+++&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">title&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="s2">&amp;#34;{{ replace .Name &amp;#34;&lt;/span>&lt;span class="nx">-&lt;/span>&lt;span class="s2">&amp;#34; &amp;#34;&lt;/span> &lt;span class="s2">&amp;#34; | title }}&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">description&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="s2">&amp;#34;&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">date&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="p">{{&lt;/span> &lt;span class="p">.&lt;/span>&lt;span class="nx">Date&lt;/span> &lt;span class="p">}}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">image&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="s2">&amp;#34;&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">draft&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="kc">true&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">slug&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="s2">&amp;#34;{{ replace .Name &amp;#34;&lt;/span>&lt;span class="nx">-&lt;/span>&lt;span class="s2">&amp;#34; &amp;#34;&lt;/span> &lt;span class="s2">&amp;#34; | title }}&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">+++&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;h3 id="permalinks">permalinks:
+&lt;/h3>&lt;p>如果只设置slug，stack主题配置默认路径是 域名/p/slug这样子，其实对于文件的组织管理和展示路径依然不是很明朗，因此，我这里是以文件夹层级的方式生成路径。&lt;/p>
+&lt;p>在总配置中，修改或者新增&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">permalinks:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> post: /:sections/:slug
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>这里的:sections是指多个路径，但是hugo默认处理顶级目录会自动识别为section外，其他目录需要手动添加_index.md文件才行。&lt;/p>
+&lt;h2 id="通过github-action进行部署">通过Github Action进行部署
+&lt;/h2>&lt;p>我这里是将hugo目录作为一个私有项目，而public下文件的作为github.io的pages项目，因此等于是要将hugo的public文件部署到github.io的配置下；并且我还指定了自定义域名，所以要额外添加CNAME配置，不然每次执行action，都不会生成CNAME文件&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;span class="lnt">19
+&lt;/span>&lt;span class="lnt">20
+&lt;/span>&lt;span class="lnt">21
+&lt;/span>&lt;span class="lnt">22
+&lt;/span>&lt;span class="lnt">23
+&lt;/span>&lt;span class="lnt">24
+&lt;/span>&lt;span class="lnt">25
+&lt;/span>&lt;span class="lnt">26
+&lt;/span>&lt;span class="lnt">27
+&lt;/span>&lt;span class="lnt">28
+&lt;/span>&lt;span class="lnt">29
+&lt;/span>&lt;span class="lnt">30
+&lt;/span>&lt;span class="lnt">31
+&lt;/span>&lt;span class="lnt">32
+&lt;/span>&lt;span class="lnt">33
+&lt;/span>&lt;span class="lnt">34
+&lt;/span>&lt;span class="lnt">35
+&lt;/span>&lt;span class="lnt">36
+&lt;/span>&lt;span class="lnt">37
+&lt;/span>&lt;span class="lnt">38
+&lt;/span>&lt;span class="lnt">39
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-yaml" data-lang="yaml">&lt;span class="line">&lt;span class="cl">&lt;span class="nt">name&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">GitHub Pages&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="nt">on&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">push&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">branches&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>- &lt;span class="l">master &lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="c"># Set a branch to deploy&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">pull_request&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="nt">jobs&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">deploy&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">runs-on&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">ubuntu-20.04&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">concurrency&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">group&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">${{ github.workflow }}-${{ github.ref }}&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">steps&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>- &lt;span class="nt">uses&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">actions/checkout@v3&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">with&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">submodules&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="kc">true&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="c"># Fetch Hugo themes (true OR recursive)&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">fetch-depth&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="m">0&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="c"># Fetch all history for .GitInfo and .Lastmod&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>- &lt;span class="nt">name&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">Setup Hugo&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">uses&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">peaceiris/actions-hugo@v2&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">with&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">hugo-version&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;0.129.0&amp;#39;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="c"># 是否启用 hugo extend&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">extended&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="kc">true&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>- &lt;span class="nt">name&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">Build&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">run&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">hugo --minify&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>- &lt;span class="nt">name&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">Deploy&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">uses&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">peaceiris/actions-gh-pages@v3&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">if&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">${{ github.ref == &amp;#39;refs/heads/master&amp;#39; }}&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">with&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">PERSONAL_TOKEN&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">${{ secrets.ACTION_TOKEN }}&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">EXTERNAL_REPOSITORY&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">qisiii/qisiii.github.io &lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="c"># 你的GitHub Pages仓库&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">PUBLISH_BRANCH&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">master &lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="c"># 或者是你的GitHub Pages分支&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">PUBLISH_DIR&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">./public&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">commit_message&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">${{ github.event.head_commit.message }}&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">cname&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">custom.domain&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="c">#这里填你配置页的自定义域名&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>&lt;a class="link" href="https://www.lixueduan.com/posts/blog/01-github-action-deploy-hugo/" target="_blank" rel="noopener"
+>基于 Github Action 自动构建 Hugo 博客 -&lt;/a>&lt;/p>
+&lt;p>&lt;a class="link" href="https://eddyblog.cn/posts/tech/github-action-hugo/" target="_blank" rel="noopener"
+>【Hugo网站搭建】GitHub Action自动化部署Hugo博客 | Eddy's blog&lt;/a>&lt;/p>
+&lt;p>&lt;a class="link" href="https://zenlian.github.io/github-actions-hugo/" target="_blank" rel="noopener"
+>https://zenlian.github.io/github-actions-hugo/&lt;/a>&lt;/p>
+&lt;h2 id="标签云增加数量统计归档页增加标签云">标签云增加数量统计&amp;amp;归档页增加标签云:
+&lt;/h2>&lt;p>&lt;a class="link" href="https://thirdshire.com/hugo-stack-renovation/#%E5%9C%A8%E5%BD%92%E6%A1%A3%E9%A1%B5%E5%A2%9E%E5%8A%A0%E6%A0%87%E7%AD%BE%E4%BA%91tags" target="_blank" rel="noopener"
+>Hugo Stack主题装修笔记&lt;/a>&lt;/p>
+&lt;h2 id="增加返回顶部按钮">增加返回顶部按钮：
+&lt;/h2>&lt;p>&lt;a class="link" href="https://chowray.netlify.app/posts/it%E5%B0%8F%E8%AE%B0/2021-01-06-%E4%B8%80%E9%94%AE%E8%BF%94%E5%9B%9E%E9%A1%B6%E9%83%A8/" target="_blank" rel="noopener"
+>添加一键返回顶部功能 | Dlog&lt;/a>&lt;/p>
+&lt;p>修改自己喜欢的指定按钮样式&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-css" data-lang="css">&lt;span class="line">&lt;span class="cl">&lt;span class="p">.&lt;/span>&lt;span class="nc">top-link&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">position&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="kc">fixed&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">bottom&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mi">30&lt;/span>&lt;span class="kt">px&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">right&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mi">30&lt;/span>&lt;span class="kt">px&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">z-index&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mi">99&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">background&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mh">#066fd1&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">width&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mi">35&lt;/span>&lt;span class="kt">px&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">height&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mi">35&lt;/span>&lt;span class="kt">px&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">align-items&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="kc">center&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">justify-content&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="kc">center&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">padding&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mi">7&lt;/span>&lt;span class="kt">px&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">border-radius&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mi">5&lt;/span>&lt;span class="kt">px&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">transition&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="k">visibility&lt;/span> &lt;span class="mf">.5&lt;/span>&lt;span class="kt">s&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="k">opacity&lt;/span> &lt;span class="mf">.8&lt;/span>&lt;span class="kt">s&lt;/span> &lt;span class="kc">linear&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>滚动到顶部时，需要隐藏置顶按钮，所以引用了jquery，处理逻辑&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-html" data-lang="html">&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">a&lt;/span> &lt;span class="na">href&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;#top&amp;#34;&lt;/span> &lt;span class="na">aria-label&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;go to top&amp;#34;&lt;/span> &lt;span class="na">class&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;top-link&amp;#34;&lt;/span> &lt;span class="na">id&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;top-link&amp;#34;&lt;/span> &lt;span class="na">accesskey&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;g&amp;#34;&lt;/span> &lt;span class="na">style&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;visibility: visible; opacity: 1;&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">svg&lt;/span> &lt;span class="na">xmlns&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;http://www.w3.org/2000/svg&amp;#34;&lt;/span> &lt;span class="na">width&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;24&amp;#34;&lt;/span> &lt;span class="na">height&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;24&amp;#34;&lt;/span> &lt;span class="na">viewBox&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;0 0 24 24&amp;#34;&lt;/span> &lt;span class="na">fill&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;none&amp;#34;&lt;/span> &lt;span class="na">stroke&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;currentColor&amp;#34;&lt;/span> &lt;span class="na">stroke-width&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;2&amp;#34;&lt;/span> &lt;span class="na">stroke-linecap&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;round&amp;#34;&lt;/span> &lt;span class="na">stroke-linejoin&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;round&amp;#34;&lt;/span> &lt;span class="na">class&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;icon icon-tabler icons-tabler-outline icon-tabler-chevron-up&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&amp;lt;&lt;/span>&lt;span class="nt">path&lt;/span> &lt;span class="na">stroke&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;none&amp;#34;&lt;/span> &lt;span class="na">d&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;M0 0h24v24H0z&amp;#34;&lt;/span> &lt;span class="na">fill&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;none&amp;#34;&lt;/span>&lt;span class="p">/&amp;gt;&amp;lt;&lt;/span>&lt;span class="nt">path&lt;/span> &lt;span class="na">d&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;M6 15l6 -6l6 6&amp;#34;&lt;/span> &lt;span class="p">/&amp;gt;&amp;lt;/&lt;/span>&lt;span class="nt">svg&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">a&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">script&lt;/span> &lt;span class="na">src&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;https://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&amp;lt;/&lt;/span>&lt;span class="nt">script&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">script&lt;/span> &lt;span class="na">type&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;text/javascript&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">$&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">window&lt;/span>&lt;span class="p">).&lt;/span>&lt;span class="nx">scroll&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="kd">function&lt;/span>&lt;span class="p">(){&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">if&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">$&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="k">this&lt;/span>&lt;span class="p">).&lt;/span>&lt;span class="nx">scrollTop&lt;/span>&lt;span class="p">()&lt;/span>&lt;span class="o">&amp;gt;&lt;/span>&lt;span class="mi">300&lt;/span>&lt;span class="p">){&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">$&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s2">&amp;#34;#top-link&amp;#34;&lt;/span>&lt;span class="p">).&lt;/span>&lt;span class="nx">show&lt;/span>&lt;span class="p">()&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>&lt;span class="k">else&lt;/span>&lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">$&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s2">&amp;#34;#top-link&amp;#34;&lt;/span>&lt;span class="p">).&lt;/span>&lt;span class="nx">hide&lt;/span>&lt;span class="p">()&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">})&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">script&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;h2 id="增加友链">增加友链:
+&lt;/h2>&lt;p>参考&lt;a class="link" href="https://thirdshire.com/hugo-stack-renovation-part-two/#%E5%8F%8C%E6%A0%8F%E5%8F%8B%E6%83%85%E9%93%BE%E6%8E%A5%E5%B9%B6%E5%A2%9E%E5%8A%A0%E5%8D%9A%E4%B8%BB%E5%A4%87%E6%B3%A8" target="_blank" rel="noopener"
+>Hugo Stack主题装修笔记Part 2&lt;/a>，结合自己的版本和主题略有修改&lt;/p>
+&lt;ol>
+&lt;li>
+&lt;p>我的links.html是放在 layouts/_default下才有效，在layouts/page下面没起效&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>data/json中指定的图片路径按博客所说需要放置在assets下再挂载到static中，我直接放在了static/link-img下&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>菜单-友链需要格外的配置，这里的路径是你对应的文件，我这里不是新建了一个friend文件夹，然后在下面再创建index.md,而是在post下直接创建了个friend.md&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;span class="lnt">6
+&lt;/span>&lt;span class="lnt">7
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-yaml" data-lang="yaml">&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>- &lt;span class="nt">identifier&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">friends&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">name&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">友链|Friends&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">url&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">/post/friends&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">weight&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="m">2&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">params&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">icon&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">friends&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">newTab&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="kc">true&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>&lt;img src="http://picgo.qisiii.asia/post/1723690756125.jpg"
+loading="lazy"
+>&lt;/p>
+&lt;/li>
+&lt;/ol>
+&lt;h2 id="bing和google的收录">bing和google的收录：
 &lt;/h2>&lt;p>bing &lt;a class="link" href="https://www.cnblogs.com/RainbowC0/p/18107581" target="_blank" rel="noopener"
 >将 Github Pages 个人博客录入搜索引擎（以 Bing 为例） - RainbowC0 - 博客园&lt;/a>&lt;/p>
 &lt;p>google &lt;a class="link" href="https://winxuan.github.io/posts/blog-google-search-include/" target="_blank" rel="noopener"
 >Google搜索收录Github Pages（Blog可以被Google搜索到） | Marvin&amp;rsquo;s blog&lt;/a>&lt;/p>
-&lt;h2 id="参考文档">参考文档:
-&lt;/h2>&lt;p>&lt;a class="link" href="https://huweim.github.io/post/blog_hugo_%E5%BD%92%E6%A1%A3%E9%A1%B5%E9%9D%A2%E5%88%B6%E4%BD%9C/" target="_blank" rel="noopener"
->Hugo 归档页面制作 - Cory&lt;/a>&lt;/p></description></item><item><title>搭建自己的博客</title><link>https://qisiii.github.io/post/site/personsite/</link><pubDate>Tue, 23 Jul 2024 00:00:00 +0000</pubDate><guid>https://qisiii.github.io/post/site/personsite/</guid><description>&lt;h2 id="建站方式">建站方式
+&lt;h2 id="图片支持放大查看">图片支持放大查看
+&lt;/h2>&lt;p>&lt;a class="link" href="https://tianma8023.github.io/post/hexo-material-intergrate-image-display-feature/" target="_blank" rel="noopener"
+>Hexo 折腾：利用 Fancybox 添加图片放大预览查看功能 | Tianma&lt;/a>&lt;/p></description></item><item><title>搭建自己的博客</title><link>https://qisiii.github.io/post/site/personsite/</link><pubDate>Tue, 23 Jul 2024 00:00:00 +0000</pubDate><guid>https://qisiii.github.io/post/site/personsite/</guid><description>&lt;h2 id="建站方式">建站方式
 &lt;/h2>&lt;p>选择建站方式，是使用动态建站（如WordPress、halo），还是使用静态建站（Jekyll、hexo、hugo）。&lt;/p>
 &lt;p>前者更偏向于传统的CMS管理系统，有后台管理页面，可以在管理页面发布，修改文章。除了需要服务器之外，需要同时了解前端、后端、数据库相关的知识，当然现有的项目完全可以简单配置后就可以开箱使用。&lt;/p>
 &lt;p>后者一般是使用各种开源项目，将文档转为静态资源（html），部署在服务器或者以GithubPages的方式供他人访问。而使用哪个开源项目进行建站，可以去&lt;a class="link" href="https://jamstack.org/generators/" target="_blank" rel="noopener"
