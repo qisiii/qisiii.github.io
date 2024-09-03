@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Spring on 起司的博客</title><link>https://blog.qisiii.asia/tags/spring/</link><description>Recent content in Spring on 起司的博客</description><generator>Hugo -- gohugo.io</generator><language>zh-cn</language><copyright>起司</copyright><lastBuildDate>Thu, 20 Jun 2024 00:00:00 +0000</lastBuildDate><atom:link href="https://blog.qisiii.asia/tags/spring/index.xml" rel="self" type="application/rss+xml"/><item><title>SpringBean循环依赖处理流程</title><link>https://blog.qisiii.asia/post/tech/spring/cycle_bean/</link><pubDate>Thu, 20 Jun 2024 00:00:00 +0000</pubDate><guid>https://blog.qisiii.asia/post/tech/spring/cycle_bean/</guid><description>&lt;div class="highlight">&lt;div class="chroma">
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Spring on 起司的博客</title><link>https://qisiii.github.io/tags/spring/</link><description>Recent content in Spring on 起司的博客</description><generator>Hugo -- gohugo.io</generator><language>zh-cn</language><copyright>起司</copyright><lastBuildDate>Thu, 20 Jun 2024 00:00:00 +0000</lastBuildDate><atom:link href="https://qisiii.github.io/tags/spring/index.xml" rel="self" type="application/rss+xml"/><item><title>SpringBean循环依赖处理流程</title><link>https://qisiii.github.io/post/tech/spring/cycle_bean/</link><pubDate>Thu, 20 Jun 2024 00:00:00 +0000</pubDate><guid>https://qisiii.github.io/post/tech/spring/cycle_bean/</guid><description>&lt;div class="highlight">&lt;div class="chroma">
 &lt;table class="lntable">&lt;tr>&lt;td class="lntd">
 &lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
 &lt;/span>&lt;span class="lnt"> 2
@@ -128,7 +128,7 @@ loading="lazy"
 &lt;p>第二点这是，aop代理正常情况下是在bean初始化之后才进行的aop代理，只是在循环依赖的时候提前进行了代理。当一个bean本身不知道是否存在循环依赖的时候，不应该提前就进行代理，所以这里不管怎样都要放入二级缓存中去。&lt;/p>
 &lt;p>有没有循环依赖没有解决的场景？&lt;/p>
 &lt;p>有，对于都是构造器注入的bean，由于spring处理的循环依赖是在实例化后进行暴露的bean，而在构造器阶段，双方都需要对方的实力作为参数，就会报循环依赖。&lt;/p>
-&lt;p>还有一种情况，则是在bean已经被循环依赖处理后，自己通过其他方式返回了一个不是原来bean的bean，比如@Async的代理对象，通过beanpostprocessor进行了增强，导致Bean2所持有的bean1不对了，这个时候也算错误。&lt;/p></description></item><item><title>RefershScope源码分析</title><link>https://blog.qisiii.asia/post/tech/spring/refershscope/</link><pubDate>Sun, 26 May 2024 00:00:00 +0000</pubDate><guid>https://blog.qisiii.asia/post/tech/spring/refershscope/</guid><description>&lt;p>Spring中是存在多个Scope的，比如大部分的bean都是单例(Singleton)，还有一些不常用的比如原型(Prototype)、request、session、thread、servlet以及refresh。除了单例之外，其他的都是表示在某一个限定的范围内，是相同的bean，比如原型表示每次都是全新的bean，request表示每一次request是全新的bean。&lt;/p>
+&lt;p>还有一种情况，则是在bean已经被循环依赖处理后，自己通过其他方式返回了一个不是原来bean的bean，比如@Async的代理对象，通过beanpostprocessor进行了增强，导致Bean2所持有的bean1不对了，这个时候也算错误。&lt;/p></description></item><item><title>RefershScope源码分析</title><link>https://qisiii.github.io/post/tech/spring/refershscope/</link><pubDate>Sun, 26 May 2024 00:00:00 +0000</pubDate><guid>https://qisiii.github.io/post/tech/spring/refershscope/</guid><description>&lt;p>Spring中是存在多个Scope的，比如大部分的bean都是单例(Singleton)，还有一些不常用的比如原型(Prototype)、request、session、thread、servlet以及refresh。除了单例之外，其他的都是表示在某一个限定的范围内，是相同的bean，比如原型表示每次都是全新的bean，request表示每一次request是全新的bean。&lt;/p>
 &lt;p>RefreshScope，则表示每次Refresh的时候，都会获取全新的bean。这个注解的核心在于Scope注解，且value是refresh。&lt;/p>
 &lt;div class="highlight">&lt;div class="chroma">
 &lt;table class="lntable">&lt;tr>&lt;td class="lntd">
@@ -767,7 +767,7 @@ loading="lazy"
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="p">}&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
 &lt;/div>
-&lt;/div></description></item><item><title>Aop执行逻辑</title><link>https://blog.qisiii.asia/post/tech/spring/aop/</link><pubDate>Sat, 27 Apr 2024 00:00:00 +0000</pubDate><guid>https://blog.qisiii.asia/post/tech/spring/aop/</guid><description>&lt;h2 id="aopautoconfiguration">AopAutoConfiguration
+&lt;/div></description></item><item><title>Aop执行逻辑</title><link>https://qisiii.github.io/post/tech/spring/aop/</link><pubDate>Sat, 27 Apr 2024 00:00:00 +0000</pubDate><guid>https://qisiii.github.io/post/tech/spring/aop/</guid><description>&lt;h2 id="aopautoconfiguration">AopAutoConfiguration
 &lt;/h2>&lt;p>在spring-boot-autoconfiguration的spring.factories中指定了org.springframework.boot.autoconfigure.aop.AopAutoConfiguration这个bean，因此会进行执行&lt;/p>
 &lt;div class="highlight">&lt;div class="chroma">
 &lt;table class="lntable">&lt;tr>&lt;td class="lntd">
@@ -1688,7 +1688,7 @@ loading="lazy"
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="err">}&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
 &lt;/div>
-&lt;/div>&lt;p>此外，这里使用的不是TimSort，而是PartialOrder(离散里的偏序）&lt;/p></description></item><item><title>@Async源码分析</title><link>https://blog.qisiii.asia/post/tech/spring/async/</link><pubDate>Tue, 26 Dec 2023 00:00:00 +0000</pubDate><guid>https://blog.qisiii.asia/post/tech/spring/async/</guid><description>&lt;h2 id="enableasync">@EnableAsync
+&lt;/div>&lt;p>此外，这里使用的不是TimSort，而是PartialOrder(离散里的偏序）&lt;/p></description></item><item><title>@Async源码分析</title><link>https://qisiii.github.io/post/tech/spring/async/</link><pubDate>Tue, 26 Dec 2023 00:00:00 +0000</pubDate><guid>https://qisiii.github.io/post/tech/spring/async/</guid><description>&lt;h2 id="enableasync">@EnableAsync
 &lt;/h2>&lt;div class="highlight">&lt;div class="chroma">
 &lt;table class="lntable">&lt;tr>&lt;td class="lntd">
 &lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
@@ -1721,7 +1721,7 @@ loading="lazy"
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="kt">int&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nf">order&lt;/span>&lt;span class="p">()&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">default&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">Ordered&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">LOWEST_PRECEDENCE&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
 &lt;/div>
-&lt;/div>&lt;p>由&lt;a class="link" href="https://blog.qisiii.asia/post/tech/spring/beandefinitionregistion/" >Spring注册BeanDefinition的方式&lt;/a> 可知，@Enable的@Import注解中的AsyncConfigurationSelector是为了注册指定的bean，加上default AdviceMode.&lt;em>PROXY，结合下面代码，注册的是ProxyAsyncConfiguration，而里面最重要的是定义了AsyncAnnotationBeanPostProcessor这个Bean&lt;/em>&lt;/p>
+&lt;/div>&lt;p>由&lt;a class="link" href="https://qisiii.github.io/post/tech/spring/beandefinitionregistion/" >Spring注册BeanDefinition的方式&lt;/a> 可知，@Enable的@Import注解中的AsyncConfigurationSelector是为了注册指定的bean，加上default AdviceMode.&lt;em>PROXY，结合下面代码，注册的是ProxyAsyncConfiguration，而里面最重要的是定义了AsyncAnnotationBeanPostProcessor这个Bean&lt;/em>&lt;/p>
 &lt;div class="highlight">&lt;div class="chroma">
 &lt;table class="lntable">&lt;tr>&lt;td class="lntd">
 &lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
@@ -2146,7 +2146,7 @@ loading="lazy"
 &lt;p>先加载的如果没有@Async，那么后加载的bean注入的本身就是原bean，所以后加载的没有问题，然后后加载的流程走完之后，由于其带有@async，所以是加强过的，而先加载的bean依赖的是加强过的bean，所以这个时候两个bean都正确&lt;/p>
 &lt;h2 id="参考文档">参考文档:
 &lt;/h2>&lt;p>&lt;a class="link" href="https://zhuanlan.zhihu.com/p/366440373" target="_blank" rel="noopener"
->Spring Boot 2.0.0 升级到2.4.1 循环依赖问题的解决&lt;/a>&lt;/p></description></item><item><title>Spring注册BeanDefinition的方式</title><link>https://blog.qisiii.asia/post/tech/spring/beandefinitionregistion/</link><pubDate>Mon, 25 Dec 2023 00:00:00 +0000</pubDate><guid>https://blog.qisiii.asia/post/tech/spring/beandefinitionregistion/</guid><description>&lt;p>通过在org.springframework.beans.factory.support.DefaultListableBeanFactory#registerBeanDefinition这个方法打断点可以知晓所有的注册途径&lt;/p>
+>Spring Boot 2.0.0 升级到2.4.1 循环依赖问题的解决&lt;/a>&lt;/p></description></item><item><title>Spring注册BeanDefinition的方式</title><link>https://qisiii.github.io/post/tech/spring/beandefinitionregistion/</link><pubDate>Mon, 25 Dec 2023 00:00:00 +0000</pubDate><guid>https://qisiii.github.io/post/tech/spring/beandefinitionregistion/</guid><description>&lt;p>通过在org.springframework.beans.factory.support.DefaultListableBeanFactory#registerBeanDefinition这个方法打断点可以知晓所有的注册途径&lt;/p>
 &lt;h2 id="xml注册bean">xml注册bean
 &lt;/h2>&lt;div class="highlight">&lt;div class="chroma">
 &lt;table class="lntable">&lt;tr>&lt;td class="lntd">

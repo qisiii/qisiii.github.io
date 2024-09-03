@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>中间件 on 起司的博客</title><link>https://blog.qisiii.asia/tags/%E4%B8%AD%E9%97%B4%E4%BB%B6/</link><description>Recent content in 中间件 on 起司的博客</description><generator>Hugo -- gohugo.io</generator><language>zh-cn</language><copyright>起司</copyright><lastBuildDate>Wed, 14 Aug 2024 15:08:39 +0800</lastBuildDate><atom:link href="https://blog.qisiii.asia/tags/%E4%B8%AD%E9%97%B4%E4%BB%B6/index.xml" rel="self" type="application/rss+xml"/><item><title>Zookeeper源码分析-Zab协议</title><link>https://blog.qisiii.asia/post/tech/distributed/zookeeper/zab/</link><pubDate>Wed, 14 Aug 2024 15:08:39 +0800</pubDate><guid>https://blog.qisiii.asia/post/tech/distributed/zookeeper/zab/</guid><description>&lt;h2 id="基本概念">基本概念
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>中间件 on 起司的博客</title><link>https://qisiii.github.io/tags/%E4%B8%AD%E9%97%B4%E4%BB%B6/</link><description>Recent content in 中间件 on 起司的博客</description><generator>Hugo -- gohugo.io</generator><language>zh-cn</language><copyright>起司</copyright><lastBuildDate>Wed, 14 Aug 2024 15:08:39 +0800</lastBuildDate><atom:link href="https://qisiii.github.io/tags/%E4%B8%AD%E9%97%B4%E4%BB%B6/index.xml" rel="self" type="application/rss+xml"/><item><title>Zookeeper源码分析-Zab协议</title><link>https://qisiii.github.io/post/tech/distributed/zookeeper/zab/</link><pubDate>Wed, 14 Aug 2024 15:08:39 +0800</pubDate><guid>https://qisiii.github.io/post/tech/distributed/zookeeper/zab/</guid><description>&lt;h2 id="基本概念">基本概念
 &lt;/h2>&lt;p>建议读一下&lt;a class="link" href="https://learn.lianglianglee.com/%e4%b8%93%e6%a0%8f/24%e8%ae%b2%e5%90%83%e9%80%8f%e5%88%86%e5%b8%83%e5%bc%8f%e6%95%b0%e6%8d%ae%e5%ba%93-%e5%ae%8c/20%20%20%e5%85%b1%e8%af%86%e7%ae%97%e6%b3%95%ef%bc%9a%e4%b8%80%e6%ac%a1%e6%80%a7%e8%af%b4%e6%b8%85%e6%a5%9a%20Paxos%e3%80%81Raft%20%e7%ad%89%e7%ae%97%e6%b3%95%e7%9a%84%e5%8c%ba%e5%88%ab.md" target="_blank" rel="noopener"
 >20 共识算法：一次性说清楚 Paxos、Raft 等算法的区别&lt;/a>，里面讲的还算易懂。&lt;/p>
 &lt;p>ZAB是zookeeper专门为了保持分布式共识而实现的算法，算法的基石还是Paxos的原理，或者说Mluti Paxos的原理。和Raft算法很像，都具有leader的概念，消息都是通过leader去统一管理，其他节点只需要从leader同步消息即可，并且都是超过半数提交事务就认为成功了。&lt;/p>
@@ -7,10 +7,10 @@
 &lt;p>广播的意思是指当节点收到消息后，要将消息广播给其他的节点。那什么叫做原子呢？原子的意思是在这次广播中，要么所有的节点都收到消息并进行广播；要么所有的节点都放弃该条消息不做广播。&lt;/p>
 &lt;p>但仅是广播并不能保证所有节点的数据完全一致，还需要保证消息必须有序的处理，每个节点必须处理完上一个消息，才能处理下一条消息。&lt;/p>
 &lt;p>这是原子广播的两个基本要求：原子和有序。&lt;/p>
-&lt;p>当leader挂掉的时候，新的leader必须尽快了解并统一整个集群当前的进度。因此，在&lt;a class="link" href="https://blog.qisiii.asia/post/tech/distributed/zookeeper/election/#选举逻辑" >zk选举流程&lt;/a> 中，可以理解为什么必须选择最大事务ID作为leader，因为只有这样，才能在当前节点拥有最全的事务日志。当拥有了最全的事务后，从节点去进行同步到最新的进度。假如原来的leader又恢复了，那么就需要原来的leader丢弃超出现有leader的事务。这就是ZAB的另一部分&amp;ndash;崩溃恢复。&lt;/p>
+&lt;p>当leader挂掉的时候，新的leader必须尽快了解并统一整个集群当前的进度。因此，在&lt;a class="link" href="https://qisiii.github.io/post/tech/distributed/zookeeper/election/#选举逻辑" >zk选举流程&lt;/a> 中，可以理解为什么必须选择最大事务ID作为leader，因为只有这样，才能在当前节点拥有最全的事务日志。当拥有了最全的事务后，从节点去进行同步到最新的进度。假如原来的leader又恢复了，那么就需要原来的leader丢弃超出现有leader的事务。这就是ZAB的另一部分&amp;ndash;崩溃恢复。&lt;/p>
 &lt;h2 id="整体设计">整体设计
 &lt;/h2>&lt;p>所有的节点分为了Leader、Follower、Observer三种，其中Leader和Follower是有投票权的。Observer是一个只处理只读请求的节点，属于作为提交吞吐量的横向扩展机制。&lt;/p>
-&lt;p>之前的&lt;a class="link" href="https://blog.qisiii.asia/post/tech/distributed/zookeeper/election/" >选举机制&lt;/a>中也提到过，当选举结束之后，每个节点会更新自己的状态，当进入下一次循环的时候，会走到各自的case下执行各自的逻辑。&lt;/p>
+&lt;p>之前的&lt;a class="link" href="https://qisiii.github.io/post/tech/distributed/zookeeper/election/" >选举机制&lt;/a>中也提到过，当选举结束之后，每个节点会更新自己的状态，当进入下一次循环的时候，会走到各自的case下执行各自的逻辑。&lt;/p>
 &lt;p>虽然每个节点只有两行方法，但背后的逻辑还是蛮复杂的，make***方法是构建Zookeeper，可以理解为原子广播部分的逻辑。&lt;/p>
 &lt;p>而lead、followLeader和observeLeader则是启动部分，主要是崩溃恢复的逻辑。下面我们以leader和follower串一下这个流程。&lt;/p>
 &lt;div class="highlight">&lt;div class="chroma">
@@ -73,7 +73,7 @@
 loading="lazy"
 >&lt;/p>
 &lt;h4 id="election">ELECTION
-&lt;/h4>&lt;p>整个选举过程都是属于ELECTION状态，具体分析可以看&lt;a class="link" href="https://blog.qisiii.asia/post/tech/distributed/zookeeper/election/" >选举机制&lt;/a>&lt;/p>
+&lt;/h4>&lt;p>整个选举过程都是属于ELECTION状态，具体分析可以看&lt;a class="link" href="https://qisiii.github.io/post/tech/distributed/zookeeper/election/" >选举机制&lt;/a>&lt;/p>
 &lt;h4 id="discovery">DISCOVERY
 &lt;/h4>&lt;ol>
 &lt;li>
@@ -862,7 +862,7 @@ loading="lazy"
 &lt;/h3>&lt;p>&lt;img src="http://picgo.qisiii.asia/post/w39dhfwj7v37x15wz_psyqmc0000gn/T/3774ce7d18ce5323c3569e357f595f5e.jpg"
 loading="lazy"
 >&lt;/p>
-&lt;p>相比于单机版来说，集群的Processor显得有些多，但是像是PrepRequestProcessor、SyncRequestProcessor和FinnalProcessor都是复用，逻辑和&lt;a class="link" href="https://blog.qisiii.asia/post/tech/distributed/zookeeper/zookeeperservermain/#requestprocessor" >zookeeper源码-单机版&lt;/a>一样，这里就不赘述了。&lt;/p>
+&lt;p>相比于单机版来说，集群的Processor显得有些多，但是像是PrepRequestProcessor、SyncRequestProcessor和FinnalProcessor都是复用，逻辑和&lt;a class="link" href="https://qisiii.github.io/post/tech/distributed/zookeeper/zookeeperservermain/#requestprocessor" >zookeeper源码-单机版&lt;/a>一样，这里就不赘述了。&lt;/p>
 &lt;p>LeaderRequestProcessor只是做了一个checkUpgradeSession，处理本地会话创建临时节点的情况。&lt;/p>
 &lt;p>PropsoalRequestProcessor 的工作就是将请求以提案的方法发给各个节点，并且本地落库&lt;/p>
 &lt;p>CommitProcessor 用于处理本地事务和总事务的匹配处理，这个类的代码是我觉得最难理解的&lt;/p>
@@ -1193,7 +1193,7 @@ loading="lazy"
 &lt;p>&lt;a class="link" href="https://blog.csdn.net/Lanna_w/article/details/132414570" target="_blank" rel="noopener"
 >《Zookeeper》源码分析（十九）之 LearnerHandler-CSDN博客&lt;/a>&lt;/p>
 &lt;p>&lt;a class="link" href="https://learn.lianglianglee.com/%e4%b8%93%e6%a0%8f/24%e8%ae%b2%e5%90%83%e9%80%8f%e5%88%86%e5%b8%83%e5%bc%8f%e6%95%b0%e6%8d%ae%e5%ba%93-%e5%ae%8c/20%20%20%e5%85%b1%e8%af%86%e7%ae%97%e6%b3%95%ef%bc%9a%e4%b8%80%e6%ac%a1%e6%80%a7%e8%af%b4%e6%b8%85%e6%a5%9a%20Paxos%e3%80%81Raft%20%e7%ad%89%e7%ae%97%e6%b3%95%e7%9a%84%e5%8c%ba%e5%88%ab.md" target="_blank" rel="noopener"
->20 共识算法：一次性说清楚 Paxos、Raft 等算法的区别&lt;/a>&lt;/p></description></item><item><title>Zookeeper源码分析-选举机制</title><link>https://blog.qisiii.asia/post/tech/distributed/zookeeper/election/</link><pubDate>Fri, 09 Aug 2024 18:01:30 +0800</pubDate><guid>https://blog.qisiii.asia/post/tech/distributed/zookeeper/election/</guid><description>&lt;h2 id="部署">部署
+>20 共识算法：一次性说清楚 Paxos、Raft 等算法的区别&lt;/a>&lt;/p></description></item><item><title>Zookeeper源码分析-选举机制</title><link>https://qisiii.github.io/post/tech/distributed/zookeeper/election/</link><pubDate>Fri, 09 Aug 2024 18:01:30 +0800</pubDate><guid>https://qisiii.github.io/post/tech/distributed/zookeeper/election/</guid><description>&lt;h2 id="部署">部署
 &lt;/h2>&lt;p>在单机上部署伪集群，需要根据不同的配置文件启动不同的进程。&lt;/p>
 &lt;div class="highlight">&lt;div class="chroma">
 &lt;table class="lntable">&lt;tr>&lt;td class="lntd">
@@ -1966,7 +1966,7 @@ loading="lazy"
 &lt;/div>
 &lt;/div>&lt;h3 id="readonlyzookeeperserver">ReadOnlyZookeeperServer
 &lt;/h3>&lt;p>当处于选举状态时，假如&lt;code>readonlymode.enabled&lt;/code>为true，那么就创建一个只读的服务器，该服务器只提供查询，不能写入。&lt;/p>
-&lt;p>在&lt;a class="link" href="https://blog.qisiii.asia/post/tech/distributed/zookeeper/zookeeperservermain/" >zookeeper学习-单机模式&lt;/a>中，我们知道zkserver是由三个processor处理的，其中SyncRequestProcessor是处理事务的，将事务写入日志里。而在只读模式下可以看到，不存在这个processor，所以只能查，不能写。&lt;/p>
+&lt;p>在&lt;a class="link" href="https://qisiii.github.io/post/tech/distributed/zookeeper/zookeeperservermain/" >zookeeper学习-单机模式&lt;/a>中，我们知道zkserver是由三个processor处理的，其中SyncRequestProcessor是处理事务的，将事务写入日志里。而在只读模式下可以看到，不存在这个processor，所以只能查，不能写。&lt;/p>
 &lt;div class="highlight">&lt;div class="chroma">
 &lt;table class="lntable">&lt;tr>&lt;td class="lntd">
 &lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
@@ -2007,7 +2007,7 @@ loading="lazy"
 &lt;p>&lt;a class="link" href="https://juejin.cn/post/6989543523213115406#heading-22" target="_blank" rel="noopener"
 >【Zookeeper源码阅读】leader选举源码分析 - 掘金&lt;/a>&lt;/p>
 &lt;p>&lt;a class="link" href="https://juejin.cn/post/7112681401601769486" target="_blank" rel="noopener"
->【图解源码】Zookeeper3.7源码剖析，Session的管理机制，Leader选举投票规则，集群数据同步流程 - 掘金&lt;/a>&lt;/p></description></item><item><title>Zookeeper源码分析-watch机制</title><link>https://blog.qisiii.asia/post/tech/distributed/zookeeper/watch/</link><pubDate>Thu, 08 Aug 2024 23:34:10 +0800</pubDate><guid>https://blog.qisiii.asia/post/tech/distributed/zookeeper/watch/</guid><description>&lt;p>Zookeeper框架设计了一种叫做watch的机制，客户端可以给某个节点添加watcher，当节点改变的时候，服务端会推送一个消息到客户端。&lt;/p>
+>【图解源码】Zookeeper3.7源码剖析，Session的管理机制，Leader选举投票规则，集群数据同步流程 - 掘金&lt;/a>&lt;/p></description></item><item><title>Zookeeper源码分析-watch机制</title><link>https://qisiii.github.io/post/tech/distributed/zookeeper/watch/</link><pubDate>Thu, 08 Aug 2024 23:34:10 +0800</pubDate><guid>https://qisiii.github.io/post/tech/distributed/zookeeper/watch/</guid><description>&lt;p>Zookeeper框架设计了一种叫做watch的机制，客户端可以给某个节点添加watcher，当节点改变的时候，服务端会推送一个消息到客户端。&lt;/p>
 &lt;p>在3.6.0之前的版本，node上的watcher都是一次性的，即当收到服务端的通知后，如果还想监听需要再次设置，在3.6.0之后，可以设置一个永久且递归的watcher。&lt;/p>
 &lt;p>这个技术是很有用的，比如在dubbo中，consumer端可以只关注自己感兴趣的provider，而不用关心全部的provider，本文就来梳理一下这个watch机制。&lt;/p>
 &lt;p>目前普通的方法，watch机制仅允许在getData、exist、getChildren这三个方法调用的时候进行添加。或者直接调用addWatch方法给指定节点添加watcher。&lt;/p>
@@ -2279,7 +2279,7 @@ loading="lazy"
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">}&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
 &lt;/div>
-&lt;/div>&lt;p>至此，和客户端完成闭环。&lt;/p></description></item><item><title>Zookeeper源码学习-单机部分通信组件</title><link>https://blog.qisiii.asia/post/tech/distributed/zookeeper/zookeeperservermain/</link><pubDate>Mon, 05 Aug 2024 12:59:08 +0800</pubDate><guid>https://blog.qisiii.asia/post/tech/distributed/zookeeper/zookeeperservermain/</guid><description>&lt;h2 id="调试前准备">调试前准备
+&lt;/div>&lt;p>至此，和客户端完成闭环。&lt;/p></description></item><item><title>Zookeeper源码学习-单机部分通信组件</title><link>https://qisiii.github.io/post/tech/distributed/zookeeper/zookeeperservermain/</link><pubDate>Mon, 05 Aug 2024 12:59:08 +0800</pubDate><guid>https://qisiii.github.io/post/tech/distributed/zookeeper/zookeeperservermain/</guid><description>&lt;h2 id="调试前准备">调试前准备
 &lt;/h2>&lt;p>对于大部分的开源项目，一般都可以从其启动shell脚本中分析出来java启动类。我这里clone源码后以tag 3.9.1为主创建了一个分支，方便注释，调试。&lt;/p>
 &lt;p>在bin/zkServer.sh脚本中，其启动逻辑如下，如果是执行的./zkServer.sh start的话，最终执行的命令大概是&lt;/p>
 &lt;p>&lt;code>nohup java [一堆参数] org.apache.zookeeper.server.quorum.QuorumPeerMain [输出日志]&lt;/code>,ZOOMAIN变量可以往上溯源，四个出现的地方最终都是QuorumPeerMain类。因此QuorumPeerMain类就是zookeeper的启动类。&lt;/p>
@@ -4039,7 +4039,7 @@ loading="lazy"
 &lt;p>&lt;a class="link" href="https://mouday.github.io/coding-tree/zookeeper/zookeeper-code.html#_2-1-%E8%BE%85%E5%8A%A9%E6%BA%90%E7%A0%81" target="_blank" rel="noopener"
 >Zookeeper源码分析 | Coding Tree&lt;/a>&lt;/p>
 &lt;p>&lt;a class="link" href="https://www.cnblogs.com/cc11001100/p/9971808.html" target="_blank" rel="noopener"
->Zookeeper笔记之quota - CC11001100 - 博客园&lt;/a>&lt;/p></description></item><item><title>单服务器Redis集群部署记录</title><link>https://blog.qisiii.asia/post/tech/distributed/redis_cluster_deploy/</link><pubDate>Tue, 30 Jul 2024 23:27:58 +0800</pubDate><guid>https://blog.qisiii.asia/post/tech/distributed/redis_cluster_deploy/</guid><description>&lt;h2 id="部署">部署
+>Zookeeper笔记之quota - CC11001100 - 博客园&lt;/a>&lt;/p></description></item><item><title>单服务器Redis集群部署记录</title><link>https://qisiii.github.io/post/tech/distributed/redis_cluster_deploy/</link><pubDate>Tue, 30 Jul 2024 23:27:58 +0800</pubDate><guid>https://qisiii.github.io/post/tech/distributed/redis_cluster_deploy/</guid><description>&lt;h2 id="部署">部署
 &lt;/h2>&lt;p>参考&lt;a class="link" href="https://redis.com.cn/topics/cluster-tutorial.html" target="_blank" rel="noopener"
 >Redis 集群教程&lt;/a>使用单云服务器启动多个节点来当做redis集群，这里使用7000-7005这6个节点，三主三从&lt;/p>
 &lt;div class="highlight">&lt;div class="chroma">
@@ -4308,7 +4308,7 @@ loading="lazy"
 &lt;/h1>&lt;p>&lt;a class="link" href="https://redis.com.cn/topics/cluster-tutorial.html" target="_blank" rel="noopener"
 >Redis 集群教程&lt;/a>&lt;/p>
 &lt;p>&lt;a class="link" href="https://blog.csdn.net/qq_23747281/article/details/111882086" target="_blank" rel="noopener"
->springboot lettcue连接redis cluster定时刷新拓扑和遇到的问题解决-CSDN博客&lt;/a>&lt;/p></description></item><item><title>Dubbo的SPI增强</title><link>https://blog.qisiii.asia/post/tech/distributed/dubbo/dubbo_spi/</link><pubDate>Sun, 17 Mar 2024 00:00:00 +0000</pubDate><guid>https://blog.qisiii.asia/post/tech/distributed/dubbo/dubbo_spi/</guid><description>&lt;p>&lt;a class="link" href="https://cn.dubbo.apache.org/zh-cn/overview/tasks/extensibility/" target="_blank" rel="noopener"
+>springboot lettcue连接redis cluster定时刷新拓扑和遇到的问题解决-CSDN博客&lt;/a>&lt;/p></description></item><item><title>Dubbo的SPI增强</title><link>https://qisiii.github.io/post/tech/distributed/dubbo/dubbo_spi/</link><pubDate>Sun, 17 Mar 2024 00:00:00 +0000</pubDate><guid>https://qisiii.github.io/post/tech/distributed/dubbo/dubbo_spi/</guid><description>&lt;p>&lt;a class="link" href="https://cn.dubbo.apache.org/zh-cn/overview/tasks/extensibility/" target="_blank" rel="noopener"
 >自定义扩展&lt;/a>&lt;/p>
 &lt;p>Jdk的SPI缺点在于需要遍历所有的扩展类并实例化，dubbo对此做了优化。&lt;/p>
 &lt;ol>
@@ -4846,7 +4846,7 @@ loading="lazy"
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="p">}&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
 &lt;/div>
-&lt;/div></description></item><item><title>分析Skywalking的controller加强原理</title><link>https://blog.qisiii.asia/post/tech/distributed/skywalking/skywalkingcontroller/</link><pubDate>Sat, 02 Sep 2023 00:00:00 +0000</pubDate><guid>https://blog.qisiii.asia/post/tech/distributed/skywalking/skywalkingcontroller/</guid><description>&lt;p>在阅读本篇文章之前，建议先了解agent的启动流程，这对分析controller加强原理有很大的帮助，&lt;a class="link" href="https://blog.qisiii.asia/post/tech/distributed/skywalking/skywalkingagent/" >Skywalking Agent启动流程源码分析&lt;/a>&lt;/p>
+&lt;/div></description></item><item><title>分析Skywalking的controller加强原理</title><link>https://qisiii.github.io/post/tech/distributed/skywalking/skywalkingcontroller/</link><pubDate>Sat, 02 Sep 2023 00:00:00 +0000</pubDate><guid>https://qisiii.github.io/post/tech/distributed/skywalking/skywalkingcontroller/</guid><description>&lt;p>在阅读本篇文章之前，建议先了解agent的启动流程，这对分析controller加强原理有很大的帮助，&lt;a class="link" href="https://qisiii.github.io/post/tech/distributed/skywalking/skywalkingagent/" >Skywalking Agent启动流程源码分析&lt;/a>&lt;/p>
 &lt;p>项目启动时我指定skywalking&lt;a class="link" href="https://www.apache.org/dyn/closer.cgi/skywalking/java-agent/8.16.0/apache-skywalking-java-agent-8.16.0.tgz" target="_blank" rel="noopener"
 >官方jar包&lt;/a>&lt;/p>
 &lt;p>-javaagent:/xxxx/skywalking/skywalking-agent/skywalking-agent.jar&lt;/p>
@@ -5816,7 +5816,7 @@ loading="lazy"
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="p">}&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
 &lt;/div>
-&lt;/div></description></item><item><title>SkywalkingAgent启动流程源码分析</title><link>https://blog.qisiii.asia/post/tech/distributed/skywalking/skywalkingagent/</link><pubDate>Tue, 29 Aug 2023 00:00:00 +0000</pubDate><guid>https://blog.qisiii.asia/post/tech/distributed/skywalking/skywalkingagent/</guid><description>&lt;p>Skywalking 从架构上分为三个大模块，分别是Agent、Oap（Backend&amp;amp;Storage）、UI。这篇文档主要是介绍Agent部分。这部分核心依赖的是java的agent技术，对这个技术陌生的可以先看一下&lt;a class="link" href="https://blog.qisiii.asia/post/tech/lang/javaagent/" >Agent&lt;/a> 这篇文章。Skywalking在agent的基础上利用&lt;a class="link" href="http://bytebuddy.net/#/tutorial-cn" target="_blank" rel="noopener"
+&lt;/div></description></item><item><title>SkywalkingAgent启动流程源码分析</title><link>https://qisiii.github.io/post/tech/distributed/skywalking/skywalkingagent/</link><pubDate>Tue, 29 Aug 2023 00:00:00 +0000</pubDate><guid>https://qisiii.github.io/post/tech/distributed/skywalking/skywalkingagent/</guid><description>&lt;p>Skywalking 从架构上分为三个大模块，分别是Agent、Oap（Backend&amp;amp;Storage）、UI。这篇文档主要是介绍Agent部分。这部分核心依赖的是java的agent技术，对这个技术陌生的可以先看一下&lt;a class="link" href="https://qisiii.github.io/post/tech/lang/javaagent/" >Agent&lt;/a> 这篇文章。Skywalking在agent的基础上利用&lt;a class="link" href="http://bytebuddy.net/#/tutorial-cn" target="_blank" rel="noopener"
 >ByteBuddy&lt;/a>类库对类和方法等进行加强，实现无入侵的监测。&lt;/p>
 &lt;h2 id="skywalkingagent类">SkyWalkingAgent类
 &lt;/h2>&lt;p>在官方的skywalking-agent包中，通过MANIFEST.MF的Premain-Class值，我们可以确定入口类是org.apache.skywalking.apm.agent.SkyWalkingAgent，而核心的方法就是里面的premain方法，大概的内容是以下四部分。&lt;/p>

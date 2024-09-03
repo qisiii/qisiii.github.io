@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Java on 起司的博客</title><link>https://blog.qisiii.asia/tags/java/</link><description>Recent content in Java on 起司的博客</description><generator>Hugo -- gohugo.io</generator><language>zh-cn</language><copyright>起司</copyright><lastBuildDate>Sun, 28 Jul 2024 17:14:47 +0800</lastBuildDate><atom:link href="https://blog.qisiii.asia/tags/java/index.xml" rel="self" type="application/rss+xml"/><item><title>Jstack使用</title><link>https://blog.qisiii.asia/post/tech/lang/jstack/</link><pubDate>Sun, 28 Jul 2024 17:14:47 +0800</pubDate><guid>https://blog.qisiii.asia/post/tech/lang/jstack/</guid><description>&lt;h2 id="jstack应用">Jstack应用
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Java on 起司的博客</title><link>https://qisiii.github.io/tags/java/</link><description>Recent content in Java on 起司的博客</description><generator>Hugo -- gohugo.io</generator><language>zh-cn</language><copyright>起司</copyright><lastBuildDate>Sun, 28 Jul 2024 17:14:47 +0800</lastBuildDate><atom:link href="https://qisiii.github.io/tags/java/index.xml" rel="self" type="application/rss+xml"/><item><title>Jstack使用</title><link>https://qisiii.github.io/post/tech/lang/jstack/</link><pubDate>Sun, 28 Jul 2024 17:14:47 +0800</pubDate><guid>https://qisiii.github.io/post/tech/lang/jstack/</guid><description>&lt;h2 id="jstack应用">Jstack应用
 &lt;/h2>&lt;p>jstack是java提供的工具，一般用于分析栈-线程相关的问题，常见的比如死锁问题，cpu过高问题。&lt;/p>
 &lt;p>jstack 命令使用方式如下：&lt;/p>
 &lt;p>&lt;code>jstack [-F][-l][-m] pid&lt;/code> 或者&lt;code>jstack [-F][-l][-m] [server_id@]&amp;lt;remote server IP or hostname&lt;/code>&lt;/p>
@@ -553,7 +553,7 @@ alt="monitor"
 &lt;p>&lt;a class="link" href="https://blog.csdn.net/CoreyXuu/article/details/110624151" target="_blank" rel="noopener"
 >jstack 命令的使用和问题排查分析思路_jstack pid-CSDN博客&lt;/a>&lt;/p>
 &lt;p>&lt;a class="link" href="https://peakzz.github.io/2021/11/12/Monitor%E5%AF%B9%E8%B1%A1%E5%85%A8%E8%A7%A3%E6%9E%90/" target="_blank" rel="noopener"
->Monitor对象全解析 - 张高峰的博客 | Peakiz Blog&lt;/a>&lt;/p></description></item><item><title>Java安全机制之一——SecurityManager和AccessController</title><link>https://blog.qisiii.asia/post/tech/lang/java_security/</link><pubDate>Wed, 08 Nov 2023 00:00:00 +0000</pubDate><guid>https://blog.qisiii.asia/post/tech/lang/java_security/</guid><description>&lt;h2 id="前言">前言：
+>Monitor对象全解析 - 张高峰的博客 | Peakiz Blog&lt;/a>&lt;/p></description></item><item><title>Java安全机制之一——SecurityManager和AccessController</title><link>https://qisiii.github.io/post/tech/lang/java_security/</link><pubDate>Wed, 08 Nov 2023 00:00:00 +0000</pubDate><guid>https://qisiii.github.io/post/tech/lang/java_security/</guid><description>&lt;h2 id="前言">前言：
 &lt;/h2>&lt;p>在看socket相关代码的时候，AbstractPlainSocketImpl中的一段代码吸引了我，其实之前见过很多次类似的代码，但一直不想去看，只知道肯定和权限什么的相关，这次既然又碰到了就研究一下，毕竟也不能对java基本代码一无所知。&lt;/p>
 &lt;div class="highlight">&lt;div class="chroma">
 &lt;table class="lntable">&lt;tr>&lt;td class="lntd">
@@ -819,7 +819,7 @@ loading="lazy"
 &lt;p>&lt;a class="link" href="https://docs.oracle.com/en/java/javase/20/security/java-security-overview1.html#GUID-BBEC2DC8-BA00-42B1-B52A-A49488FCF8FE" target="_blank" rel="noopener"
 >https://docs.oracle.com/en/java/javase/20/security/java-security-overview1.html#GUID-BBEC2DC8-BA00-42B1-B52A-A49488FCF8FE&lt;/a>&lt;/p>
 &lt;p>&lt;a class="link" href="https://www.cnblogs.com/liruilong/p/14810513.html" target="_blank" rel="noopener"
->AccessController.doPrivileged - 山河已无恙 - 博客园&lt;/a>&lt;/p></description></item><item><title>JavaAgent技术</title><link>https://blog.qisiii.asia/post/tech/lang/javaagent/</link><pubDate>Sun, 10 Sep 2023 00:00:00 +0000</pubDate><guid>https://blog.qisiii.asia/post/tech/lang/javaagent/</guid><description>&lt;blockquote>
+>AccessController.doPrivileged - 山河已无恙 - 博客园&lt;/a>&lt;/p></description></item><item><title>JavaAgent技术</title><link>https://qisiii.github.io/post/tech/lang/javaagent/</link><pubDate>Sun, 10 Sep 2023 00:00:00 +0000</pubDate><guid>https://qisiii.github.io/post/tech/lang/javaagent/</guid><description>&lt;blockquote>
 &lt;p>在定位公司问题的时候，需要了解一下skywalking的相关知识，而agent就提上了日程。&lt;/p>
 &lt;/blockquote>
 &lt;p>&lt;a class="link" href="https://docs.oracle.com/javase/8/docs/api/java/lang/instrument/package-summary.html" title="官网文档"
@@ -1290,7 +1290,7 @@ target="_blank" rel="noopener"
 >JAVA热更新1:Agent方式热更 | 花隐间-JAVA游戏技术解决方案&lt;/a>&lt;/p>
 &lt;p>&lt;a class="link" href="https://zhuanlan.zhihu.com/p/151843984" title="ByteBuddy入门教程"
 target="_blank" rel="noopener"
->ByteBuddy入门教程&lt;/a>&lt;/p></description></item><item><title>Java的SPI机制</title><link>https://blog.qisiii.asia/post/tech/lang/java_spi/</link><pubDate>Fri, 17 Mar 2023 00:00:00 +0000</pubDate><guid>https://blog.qisiii.asia/post/tech/lang/java_spi/</guid><description>&lt;p>&lt;img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=NjE1OWUxMGFjMWZiMGI3ZDkxYjk2M2IyYWRmYjFmZDZfZGFNQ3h4WU1oVFcyZUlYUVY3ZXhWUms3dVRjRzJScUhfVG9rZW46Qm1qRGJXU0RZb2l3VnV4SUJxTGNOTTJQbkZnXzE3MjMzMzkzNTk6MTcyMzM0Mjk1OV9WNA"
+>ByteBuddy入门教程&lt;/a>&lt;/p></description></item><item><title>Java的SPI机制</title><link>https://qisiii.github.io/post/tech/lang/java_spi/</link><pubDate>Fri, 17 Mar 2023 00:00:00 +0000</pubDate><guid>https://qisiii.github.io/post/tech/lang/java_spi/</guid><description>&lt;p>&lt;img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=NjE1OWUxMGFjMWZiMGI3ZDkxYjk2M2IyYWRmYjFmZDZfZGFNQ3h4WU1oVFcyZUlYUVY3ZXhWUms3dVRjRzJScUhfVG9rZW46Qm1qRGJXU0RZb2l3VnV4SUJxTGNOTTJQbkZnXzE3MjMzMzkzNTk6MTcyMzM0Mjk1OV9WNA"
 loading="lazy"
 >&lt;/p>
 &lt;p>&lt;img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=NjI3ODllMGU2NWFjYzNkYjg5NDE3MThhMTAzZjBhZTVfRFNoYkQ4ODlHdVJnUDBUUnZMNlB1ZEo0cUdGYVc5aDlfVG9rZW46VzlpV2JwOHVCb0pXdnN4M3YzeWNDUUVnblRlXzE3MjMzMzkzNTk6MTcyMzM0Mjk1OV9WNA"
@@ -1357,7 +1357,7 @@ loading="lazy"
 &lt;/div>&lt;p>&lt;img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=ZjEwOGNkYjkwOTU4NzgyZGFhMDIyNzliNzI1YTYzYmZfSTJwZ0ZuWmdzVEJCM0ZieUltV1c1TWFBa0gwek9NYmlfVG9rZW46S1NySWJnRjM3b2xkdm54UDFoM2M2aUVEblZlXzE3MjMzMzkzNTk6MTcyMzM0Mjk1OV9WNA"
 loading="lazy"
 >&lt;/p>
-&lt;p>从图中可以看出核心方法是hasNextService和nextService，acc是&lt;a class="link" href="https://blog.qisiii.asia/post/tech/lang/java_security/" >Java安全机制之一——SecurityManager和AccessController&lt;/a>，可以忽略不看。&lt;/p>
+&lt;p>从图中可以看出核心方法是hasNextService和nextService，acc是&lt;a class="link" href="https://qisiii.github.io/post/tech/lang/java_security/" >Java安全机制之一——SecurityManager和AccessController&lt;/a>，可以忽略不看。&lt;/p>
 &lt;div class="highlight">&lt;div class="chroma">
 &lt;table class="lntable">&lt;tr>&lt;td class="lntd">
 &lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
@@ -1484,7 +1484,7 @@ loading="lazy"
 &lt;/h2>&lt;p>&lt;a class="link" href="https://zhuanlan.zhihu.com/p/84337883" target="_blank" rel="noopener"
 >深入理解 Java 中 SPI 机制&lt;/a>&lt;/p>
 &lt;p>&lt;a class="link" href="https://blog.csdn.net/qq_52423918/article/details/130968307" target="_blank" rel="noopener"
->Java SPI概念、实现原理、优缺点、应用场景、使用步骤、实战SPI案例-CSDN博客&lt;/a>&lt;/p></description></item><item><title>Java集合源码分析</title><link>https://blog.qisiii.asia/post/tech/lang/javacollection/</link><pubDate>Wed, 16 Feb 2022 00:00:00 +0000</pubDate><guid>https://blog.qisiii.asia/post/tech/lang/javacollection/</guid><description>&lt;h2 id="hashmap源码分析">hashmap源码分析
+>Java SPI概念、实现原理、优缺点、应用场景、使用步骤、实战SPI案例-CSDN博客&lt;/a>&lt;/p></description></item><item><title>Java集合源码分析</title><link>https://qisiii.github.io/post/tech/lang/javacollection/</link><pubDate>Wed, 16 Feb 2022 00:00:00 +0000</pubDate><guid>https://qisiii.github.io/post/tech/lang/javacollection/</guid><description>&lt;h2 id="hashmap源码分析">hashmap源码分析
 &lt;/h2>&lt;h3 id="构造函数">构造函数
 &lt;/h3>&lt;p>initialCapacity 初始化大小，一般最好2次幂&lt;/p>
 &lt;div class="highlight">&lt;div class="chroma">
@@ -2849,7 +2849,7 @@ loading="lazy"
 &lt;p>&lt;a class="link" href="https://blog.csdn.net/ZOKEKAI/article/details/90051567" target="_blank" rel="noopener"
 >ConcurrentHashMap1.8 - 扩容详解_concurrenthashmap1.8的扩容机制-CSDN博客&lt;/a>&lt;/p>
 &lt;p>&lt;a class="link" href="https://blog.csdn.net/Unknownfuture/article/details/105369019" target="_blank" rel="noopener"
->ConcurrentHashMap之transfer()扩容深入源码分析-CSDN博客&lt;/a>&lt;/p></description></item><item><title>JavaLock类源码分析</title><link>https://blog.qisiii.asia/post/tech/lang/javalock/</link><pubDate>Mon, 14 Feb 2022 00:00:00 +0000</pubDate><guid>https://blog.qisiii.asia/post/tech/lang/javalock/</guid><description>&lt;h2 id="lock和condition接口">Lock和Condition接口
+>ConcurrentHashMap之transfer()扩容深入源码分析-CSDN博客&lt;/a>&lt;/p></description></item><item><title>JavaLock类源码分析</title><link>https://qisiii.github.io/post/tech/lang/javalock/</link><pubDate>Mon, 14 Feb 2022 00:00:00 +0000</pubDate><guid>https://qisiii.github.io/post/tech/lang/javalock/</guid><description>&lt;h2 id="lock和condition接口">Lock和Condition接口
 &lt;/h2>&lt;p>Lock是java中显示使用锁的方案，相比于synchronized，要更加灵活；&lt;/p>
 &lt;p>synchronized在可重入的情况下，加锁和解锁是相反的顺序，但是Lock可以以任意的顺序解锁；&lt;/p>
 &lt;p>而且synchronized必须限定在同一范围内使用，lock则可以在不同的范围；&lt;/p>
