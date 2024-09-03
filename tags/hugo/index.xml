@@ -439,6 +439,11 @@ loading="lazy"
 >将 Github Pages 个人博客录入搜索引擎（以 Bing 为例） - RainbowC0 - 博客园&lt;/a>&lt;/p>
 &lt;p>google &lt;a class="link" href="https://winxuan.github.io/posts/blog-google-search-include/" target="_blank" rel="noopener"
 >Google搜索收录Github Pages（Blog可以被Google搜索到） | Marvin&amp;rsquo;s blog&lt;/a>&lt;/p>
-&lt;h2 id="图片支持放大查看">图片支持放大查看
-&lt;/h2>&lt;p>&lt;a class="link" href="https://tianma8023.github.io/post/hexo-material-intergrate-image-display-feature/" target="_blank" rel="noopener"
->Hexo 折腾：利用 Fancybox 添加图片放大预览查看功能 | Tianma&lt;/a>&lt;/p></description></item></channel></rss>
+&lt;h2 id="图片支持放大查看">图片支持放大查看~~
+&lt;/h2>&lt;p>&lt;del>&lt;a class="link" href="https://tianma8023.github.io/post/hexo-material-intergrate-image-display-feature/" target="_blank" rel="noopener"
+>Hexo 折腾：利用 Fancybox 添加图片放大预览查看功能 | Tianma&lt;/a>&lt;/del>&lt;/p>
+&lt;h2 id="网站添加favicon">网站添加favicon
+&lt;/h2>&lt;p>截取成圆形图&lt;a class="link" href="https://bigimage.11zon.com/zh-cn/crop-circle-image/" target="_blank" rel="noopener"
+>作物圈图像在线-最佳图像裁剪工具&lt;/a>&lt;/p>
+&lt;p>&lt;a class="link" href="https://ellaann.github.io/p/%E6%B7%BB%E5%8A%A0favicon%E5%88%B0hugo%E7%9A%84%E7%BD%91%E7%AB%99%E4%B8%AD/" target="_blank" rel="noopener"
+>添加Favicon到Hugo的网站中&lt;/a>&lt;/p></description></item></channel></rss>
