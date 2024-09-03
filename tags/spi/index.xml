@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>SPI on 起司的博客</title><link>https://qisiii.github.io/tags/spi/</link><description>Recent content in SPI on 起司的博客</description><generator>Hugo -- gohugo.io</generator><language>zh-cn</language><copyright>起司</copyright><lastBuildDate>Sun, 17 Mar 2024 00:00:00 +0000</lastBuildDate><atom:link href="https://qisiii.github.io/tags/spi/index.xml" rel="self" type="application/rss+xml"/><item><title>Dubbo的SPI增强</title><link>https://qisiii.github.io/post/tech/distributed/dubbo/dubbo_spi/</link><pubDate>Sun, 17 Mar 2024 00:00:00 +0000</pubDate><guid>https://qisiii.github.io/post/tech/distributed/dubbo/dubbo_spi/</guid><description>&lt;p>&lt;a class="link" href="https://cn.dubbo.apache.org/zh-cn/overview/tasks/extensibility/" target="_blank" rel="noopener"
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>SPI on 起司的博客</title><link>https://blog.qisiii.asia/tags/spi/</link><description>Recent content in SPI on 起司的博客</description><generator>Hugo -- gohugo.io</generator><language>zh-cn</language><copyright>起司</copyright><lastBuildDate>Sun, 17 Mar 2024 00:00:00 +0000</lastBuildDate><atom:link href="https://blog.qisiii.asia/tags/spi/index.xml" rel="self" type="application/rss+xml"/><item><title>Dubbo的SPI增强</title><link>https://blog.qisiii.asia/post/tech/distributed/dubbo/dubbo_spi/</link><pubDate>Sun, 17 Mar 2024 00:00:00 +0000</pubDate><guid>https://blog.qisiii.asia/post/tech/distributed/dubbo/dubbo_spi/</guid><description>&lt;p>&lt;a class="link" href="https://cn.dubbo.apache.org/zh-cn/overview/tasks/extensibility/" target="_blank" rel="noopener"
 >自定义扩展&lt;/a>&lt;/p>
 &lt;p>Jdk的SPI缺点在于需要遍历所有的扩展类并实例化，dubbo对此做了优化。&lt;/p>
 &lt;ol>
@@ -536,7 +536,7 @@ loading="lazy"
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="p">}&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
 &lt;/div>
-&lt;/div></description></item><item><title>Java的SPI机制</title><link>https://qisiii.github.io/post/tech/lang/java_spi/</link><pubDate>Fri, 17 Mar 2023 00:00:00 +0000</pubDate><guid>https://qisiii.github.io/post/tech/lang/java_spi/</guid><description>&lt;p>&lt;img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=NjE1OWUxMGFjMWZiMGI3ZDkxYjk2M2IyYWRmYjFmZDZfZGFNQ3h4WU1oVFcyZUlYUVY3ZXhWUms3dVRjRzJScUhfVG9rZW46Qm1qRGJXU0RZb2l3VnV4SUJxTGNOTTJQbkZnXzE3MjMzMzkzNTk6MTcyMzM0Mjk1OV9WNA"
+&lt;/div></description></item><item><title>Java的SPI机制</title><link>https://blog.qisiii.asia/post/tech/lang/java_spi/</link><pubDate>Fri, 17 Mar 2023 00:00:00 +0000</pubDate><guid>https://blog.qisiii.asia/post/tech/lang/java_spi/</guid><description>&lt;p>&lt;img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=NjE1OWUxMGFjMWZiMGI3ZDkxYjk2M2IyYWRmYjFmZDZfZGFNQ3h4WU1oVFcyZUlYUVY3ZXhWUms3dVRjRzJScUhfVG9rZW46Qm1qRGJXU0RZb2l3VnV4SUJxTGNOTTJQbkZnXzE3MjMzMzkzNTk6MTcyMzM0Mjk1OV9WNA"
 loading="lazy"
 >&lt;/p>
 &lt;p>&lt;img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=NjI3ODllMGU2NWFjYzNkYjg5NDE3MThhMTAzZjBhZTVfRFNoYkQ4ODlHdVJnUDBUUnZMNlB1ZEo0cUdGYVc5aDlfVG9rZW46VzlpV2JwOHVCb0pXdnN4M3YzeWNDUUVnblRlXzE3MjMzMzkzNTk6MTcyMzM0Mjk1OV9WNA"
@@ -603,7 +603,7 @@ loading="lazy"
 &lt;/div>&lt;p>&lt;img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=ZjEwOGNkYjkwOTU4NzgyZGFhMDIyNzliNzI1YTYzYmZfSTJwZ0ZuWmdzVEJCM0ZieUltV1c1TWFBa0gwek9NYmlfVG9rZW46S1NySWJnRjM3b2xkdm54UDFoM2M2aUVEblZlXzE3MjMzMzkzNTk6MTcyMzM0Mjk1OV9WNA"
 loading="lazy"
 >&lt;/p>
-&lt;p>从图中可以看出核心方法是hasNextService和nextService，acc是&lt;a class="link" href="https://qisiii.github.io/post/tech/lang/java_security/" >Java安全机制之一——SecurityManager和AccessController&lt;/a>，可以忽略不看。&lt;/p>
+&lt;p>从图中可以看出核心方法是hasNextService和nextService，acc是&lt;a class="link" href="https://blog.qisiii.asia/post/tech/lang/java_security/" >Java安全机制之一——SecurityManager和AccessController&lt;/a>，可以忽略不看。&lt;/p>
 &lt;div class="highlight">&lt;div class="chroma">
 &lt;table class="lntable">&lt;tr>&lt;td class="lntd">
 &lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1

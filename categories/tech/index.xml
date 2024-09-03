@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>技术人生 on 起司的博客</title><link>https://qisiii.github.io/categories/tech/</link><description>Recent content in 技术人生 on 起司的博客</description><generator>Hugo -- gohugo.io</generator><language>zh-cn</language><copyright>起司</copyright><atom:link href="https://qisiii.github.io/categories/tech/index.xml" rel="self" type="application/rss+xml"/><item><title>Zookeeper源码分析-Zab协议</title><link>https://qisiii.github.io/post/tech/distributed/zookeeper/zab/</link><pubDate>Wed, 14 Aug 2024 15:08:39 +0800</pubDate><guid>https://qisiii.github.io/post/tech/distributed/zookeeper/zab/</guid><description>&lt;h2 id="基本概念">基本概念
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>技术人生 on 起司的博客</title><link>https://blog.qisiii.asia/categories/tech/</link><description>Recent content in 技术人生 on 起司的博客</description><generator>Hugo -- gohugo.io</generator><language>zh-cn</language><copyright>起司</copyright><atom:link href="https://blog.qisiii.asia/categories/tech/index.xml" rel="self" type="application/rss+xml"/><item><title>Zookeeper源码分析-Zab协议</title><link>https://blog.qisiii.asia/post/tech/distributed/zookeeper/zab/</link><pubDate>Wed, 14 Aug 2024 15:08:39 +0800</pubDate><guid>https://blog.qisiii.asia/post/tech/distributed/zookeeper/zab/</guid><description>&lt;h2 id="基本概念">基本概念
 &lt;/h2>&lt;p>建议读一下&lt;a class="link" href="https://learn.lianglianglee.com/%e4%b8%93%e6%a0%8f/24%e8%ae%b2%e5%90%83%e9%80%8f%e5%88%86%e5%b8%83%e5%bc%8f%e6%95%b0%e6%8d%ae%e5%ba%93-%e5%ae%8c/20%20%20%e5%85%b1%e8%af%86%e7%ae%97%e6%b3%95%ef%bc%9a%e4%b8%80%e6%ac%a1%e6%80%a7%e8%af%b4%e6%b8%85%e6%a5%9a%20Paxos%e3%80%81Raft%20%e7%ad%89%e7%ae%97%e6%b3%95%e7%9a%84%e5%8c%ba%e5%88%ab.md" target="_blank" rel="noopener"
 >20 共识算法：一次性说清楚 Paxos、Raft 等算法的区别&lt;/a>，里面讲的还算易懂。&lt;/p>
 &lt;p>ZAB是zookeeper专门为了保持分布式共识而实现的算法，算法的基石还是Paxos的原理，或者说Mluti Paxos的原理。和Raft算法很像，都具有leader的概念，消息都是通过leader去统一管理，其他节点只需要从leader同步消息即可，并且都是超过半数提交事务就认为成功了。&lt;/p>
@@ -7,10 +7,10 @@
 &lt;p>广播的意思是指当节点收到消息后，要将消息广播给其他的节点。那什么叫做原子呢？原子的意思是在这次广播中，要么所有的节点都收到消息并进行广播；要么所有的节点都放弃该条消息不做广播。&lt;/p>
 &lt;p>但仅是广播并不能保证所有节点的数据完全一致，还需要保证消息必须有序的处理，每个节点必须处理完上一个消息，才能处理下一条消息。&lt;/p>
 &lt;p>这是原子广播的两个基本要求：原子和有序。&lt;/p>
-&lt;p>当leader挂掉的时候，新的leader必须尽快了解并统一整个集群当前的进度。因此，在&lt;a class="link" href="https://qisiii.github.io/post/tech/distributed/zookeeper/election/#选举逻辑" >zk选举流程&lt;/a> 中，可以理解为什么必须选择最大事务ID作为leader，因为只有这样，才能在当前节点拥有最全的事务日志。当拥有了最全的事务后，从节点去进行同步到最新的进度。假如原来的leader又恢复了，那么就需要原来的leader丢弃超出现有leader的事务。这就是ZAB的另一部分&amp;ndash;崩溃恢复。&lt;/p>
+&lt;p>当leader挂掉的时候，新的leader必须尽快了解并统一整个集群当前的进度。因此，在&lt;a class="link" href="https://blog.qisiii.asia/post/tech/distributed/zookeeper/election/#选举逻辑" >zk选举流程&lt;/a> 中，可以理解为什么必须选择最大事务ID作为leader，因为只有这样，才能在当前节点拥有最全的事务日志。当拥有了最全的事务后，从节点去进行同步到最新的进度。假如原来的leader又恢复了，那么就需要原来的leader丢弃超出现有leader的事务。这就是ZAB的另一部分&amp;ndash;崩溃恢复。&lt;/p>
 &lt;h2 id="整体设计">整体设计
 &lt;/h2>&lt;p>所有的节点分为了Leader、Follower、Observer三种，其中Leader和Follower是有投票权的。Observer是一个只处理只读请求的节点，属于作为提交吞吐量的横向扩展机制。&lt;/p>
-&lt;p>之前的&lt;a class="link" href="https://qisiii.github.io/post/tech/distributed/zookeeper/election/" >选举机制&lt;/a>中也提到过，当选举结束之后，每个节点会更新自己的状态，当进入下一次循环的时候，会走到各自的case下执行各自的逻辑。&lt;/p>
+&lt;p>之前的&lt;a class="link" href="https://blog.qisiii.asia/post/tech/distributed/zookeeper/election/" >选举机制&lt;/a>中也提到过，当选举结束之后，每个节点会更新自己的状态，当进入下一次循环的时候，会走到各自的case下执行各自的逻辑。&lt;/p>
 &lt;p>虽然每个节点只有两行方法，但背后的逻辑还是蛮复杂的，make***方法是构建Zookeeper，可以理解为原子广播部分的逻辑。&lt;/p>
 &lt;p>而lead、followLeader和observeLeader则是启动部分，主要是崩溃恢复的逻辑。下面我们以leader和follower串一下这个流程。&lt;/p>
 &lt;div class="highlight">&lt;div class="chroma">
@@ -73,7 +73,7 @@
 loading="lazy"
 >&lt;/p>
 &lt;h4 id="election">ELECTION
-&lt;/h4>&lt;p>整个选举过程都是属于ELECTION状态，具体分析可以看&lt;a class="link" href="https://qisiii.github.io/post/tech/distributed/zookeeper/election/" >选举机制&lt;/a>&lt;/p>
+&lt;/h4>&lt;p>整个选举过程都是属于ELECTION状态，具体分析可以看&lt;a class="link" href="https://blog.qisiii.asia/post/tech/distributed/zookeeper/election/" >选举机制&lt;/a>&lt;/p>
 &lt;h4 id="discovery">DISCOVERY
 &lt;/h4>&lt;ol>
 &lt;li>
@@ -862,7 +862,7 @@ loading="lazy"
 &lt;/h3>&lt;p>&lt;img src="http://picgo.qisiii.asia/post/w39dhfwj7v37x15wz_psyqmc0000gn/T/3774ce7d18ce5323c3569e357f595f5e.jpg"
 loading="lazy"
 >&lt;/p>
-&lt;p>相比于单机版来说，集群的Processor显得有些多，但是像是PrepRequestProcessor、SyncRequestProcessor和FinnalProcessor都是复用，逻辑和&lt;a class="link" href="https://qisiii.github.io/post/tech/distributed/zookeeper/zookeeperservermain/#requestprocessor" >zookeeper源码-单机版&lt;/a>一样，这里就不赘述了。&lt;/p>
+&lt;p>相比于单机版来说，集群的Processor显得有些多，但是像是PrepRequestProcessor、SyncRequestProcessor和FinnalProcessor都是复用，逻辑和&lt;a class="link" href="https://blog.qisiii.asia/post/tech/distributed/zookeeper/zookeeperservermain/#requestprocessor" >zookeeper源码-单机版&lt;/a>一样，这里就不赘述了。&lt;/p>
 &lt;p>LeaderRequestProcessor只是做了一个checkUpgradeSession，处理本地会话创建临时节点的情况。&lt;/p>
 &lt;p>PropsoalRequestProcessor 的工作就是将请求以提案的方法发给各个节点，并且本地落库&lt;/p>
 &lt;p>CommitProcessor 用于处理本地事务和总事务的匹配处理，这个类的代码是我觉得最难理解的&lt;/p>
@@ -1193,7 +1193,7 @@ loading="lazy"
 &lt;p>&lt;a class="link" href="https://blog.csdn.net/Lanna_w/article/details/132414570" target="_blank" rel="noopener"
 >《Zookeeper》源码分析（十九）之 LearnerHandler-CSDN博客&lt;/a>&lt;/p>
 &lt;p>&lt;a class="link" href="https://learn.lianglianglee.com/%e4%b8%93%e6%a0%8f/24%e8%ae%b2%e5%90%83%e9%80%8f%e5%88%86%e5%b8%83%e5%bc%8f%e6%95%b0%e6%8d%ae%e5%ba%93-%e5%ae%8c/20%20%20%e5%85%b1%e8%af%86%e7%ae%97%e6%b3%95%ef%bc%9a%e4%b8%80%e6%ac%a1%e6%80%a7%e8%af%b4%e6%b8%85%e6%a5%9a%20Paxos%e3%80%81Raft%20%e7%ad%89%e7%ae%97%e6%b3%95%e7%9a%84%e5%8c%ba%e5%88%ab.md" target="_blank" rel="noopener"
->20 共识算法：一次性说清楚 Paxos、Raft 等算法的区别&lt;/a>&lt;/p></description></item><item><title>Zookeeper源码分析-选举机制</title><link>https://qisiii.github.io/post/tech/distributed/zookeeper/election/</link><pubDate>Fri, 09 Aug 2024 18:01:30 +0800</pubDate><guid>https://qisiii.github.io/post/tech/distributed/zookeeper/election/</guid><description>&lt;h2 id="部署">部署
+>20 共识算法：一次性说清楚 Paxos、Raft 等算法的区别&lt;/a>&lt;/p></description></item><item><title>Zookeeper源码分析-选举机制</title><link>https://blog.qisiii.asia/post/tech/distributed/zookeeper/election/</link><pubDate>Fri, 09 Aug 2024 18:01:30 +0800</pubDate><guid>https://blog.qisiii.asia/post/tech/distributed/zookeeper/election/</guid><description>&lt;h2 id="部署">部署
 &lt;/h2>&lt;p>在单机上部署伪集群，需要根据不同的配置文件启动不同的进程。&lt;/p>
 &lt;div class="highlight">&lt;div class="chroma">
 &lt;table class="lntable">&lt;tr>&lt;td class="lntd">
@@ -1966,7 +1966,7 @@ loading="lazy"
 &lt;/div>
 &lt;/div>&lt;h3 id="readonlyzookeeperserver">ReadOnlyZookeeperServer
 &lt;/h3>&lt;p>当处于选举状态时，假如&lt;code>readonlymode.enabled&lt;/code>为true，那么就创建一个只读的服务器，该服务器只提供查询，不能写入。&lt;/p>
-&lt;p>在&lt;a class="link" href="https://qisiii.github.io/post/tech/distributed/zookeeper/zookeeperservermain/" >zookeeper学习-单机模式&lt;/a>中，我们知道zkserver是由三个processor处理的，其中SyncRequestProcessor是处理事务的，将事务写入日志里。而在只读模式下可以看到，不存在这个processor，所以只能查，不能写。&lt;/p>
+&lt;p>在&lt;a class="link" href="https://blog.qisiii.asia/post/tech/distributed/zookeeper/zookeeperservermain/" >zookeeper学习-单机模式&lt;/a>中，我们知道zkserver是由三个processor处理的，其中SyncRequestProcessor是处理事务的，将事务写入日志里。而在只读模式下可以看到，不存在这个processor，所以只能查，不能写。&lt;/p>
 &lt;div class="highlight">&lt;div class="chroma">
 &lt;table class="lntable">&lt;tr>&lt;td class="lntd">
 &lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
@@ -2007,7 +2007,7 @@ loading="lazy"
 &lt;p>&lt;a class="link" href="https://juejin.cn/post/6989543523213115406#heading-22" target="_blank" rel="noopener"
 >【Zookeeper源码阅读】leader选举源码分析 - 掘金&lt;/a>&lt;/p>
 &lt;p>&lt;a class="link" href="https://juejin.cn/post/7112681401601769486" target="_blank" rel="noopener"
->【图解源码】Zookeeper3.7源码剖析，Session的管理机制，Leader选举投票规则，集群数据同步流程 - 掘金&lt;/a>&lt;/p></description></item><item><title>Zookeeper源码分析-watch机制</title><link>https://qisiii.github.io/post/tech/distributed/zookeeper/watch/</link><pubDate>Thu, 08 Aug 2024 23:34:10 +0800</pubDate><guid>https://qisiii.github.io/post/tech/distributed/zookeeper/watch/</guid><description>&lt;p>Zookeeper框架设计了一种叫做watch的机制，客户端可以给某个节点添加watcher，当节点改变的时候，服务端会推送一个消息到客户端。&lt;/p>
+>【图解源码】Zookeeper3.7源码剖析，Session的管理机制，Leader选举投票规则，集群数据同步流程 - 掘金&lt;/a>&lt;/p></description></item><item><title>Zookeeper源码分析-watch机制</title><link>https://blog.qisiii.asia/post/tech/distributed/zookeeper/watch/</link><pubDate>Thu, 08 Aug 2024 23:34:10 +0800</pubDate><guid>https://blog.qisiii.asia/post/tech/distributed/zookeeper/watch/</guid><description>&lt;p>Zookeeper框架设计了一种叫做watch的机制，客户端可以给某个节点添加watcher，当节点改变的时候，服务端会推送一个消息到客户端。&lt;/p>
 &lt;p>在3.6.0之前的版本，node上的watcher都是一次性的，即当收到服务端的通知后，如果还想监听需要再次设置，在3.6.0之后，可以设置一个永久且递归的watcher。&lt;/p>
 &lt;p>这个技术是很有用的，比如在dubbo中，consumer端可以只关注自己感兴趣的provider，而不用关心全部的provider，本文就来梳理一下这个watch机制。&lt;/p>
 &lt;p>目前普通的方法，watch机制仅允许在getData、exist、getChildren这三个方法调用的时候进行添加。或者直接调用addWatch方法给指定节点添加watcher。&lt;/p>
@@ -2279,7 +2279,7 @@ loading="lazy"
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">}&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
 &lt;/div>
-&lt;/div>&lt;p>至此，和客户端完成闭环。&lt;/p></description></item><item><title>Zookeeper源码学习-单机部分通信组件</title><link>https://qisiii.github.io/post/tech/distributed/zookeeper/zookeeperservermain/</link><pubDate>Mon, 05 Aug 2024 12:59:08 +0800</pubDate><guid>https://qisiii.github.io/post/tech/distributed/zookeeper/zookeeperservermain/</guid><description>&lt;h2 id="调试前准备">调试前准备
+&lt;/div>&lt;p>至此，和客户端完成闭环。&lt;/p></description></item><item><title>Zookeeper源码学习-单机部分通信组件</title><link>https://blog.qisiii.asia/post/tech/distributed/zookeeper/zookeeperservermain/</link><pubDate>Mon, 05 Aug 2024 12:59:08 +0800</pubDate><guid>https://blog.qisiii.asia/post/tech/distributed/zookeeper/zookeeperservermain/</guid><description>&lt;h2 id="调试前准备">调试前准备
 &lt;/h2>&lt;p>对于大部分的开源项目，一般都可以从其启动shell脚本中分析出来java启动类。我这里clone源码后以tag 3.9.1为主创建了一个分支，方便注释，调试。&lt;/p>
 &lt;p>在bin/zkServer.sh脚本中，其启动逻辑如下，如果是执行的./zkServer.sh start的话，最终执行的命令大概是&lt;/p>
 &lt;p>&lt;code>nohup java [一堆参数] org.apache.zookeeper.server.quorum.QuorumPeerMain [输出日志]&lt;/code>,ZOOMAIN变量可以往上溯源，四个出现的地方最终都是QuorumPeerMain类。因此QuorumPeerMain类就是zookeeper的启动类。&lt;/p>
@@ -4039,7 +4039,7 @@ loading="lazy"
 &lt;p>&lt;a class="link" href="https://mouday.github.io/coding-tree/zookeeper/zookeeper-code.html#_2-1-%E8%BE%85%E5%8A%A9%E6%BA%90%E7%A0%81" target="_blank" rel="noopener"
 >Zookeeper源码分析 | Coding Tree&lt;/a>&lt;/p>
 &lt;p>&lt;a class="link" href="https://www.cnblogs.com/cc11001100/p/9971808.html" target="_blank" rel="noopener"
->Zookeeper笔记之quota - CC11001100 - 博客园&lt;/a>&lt;/p></description></item><item><title>单服务器Redis集群部署记录</title><link>https://qisiii.github.io/post/tech/distributed/redis_cluster_deploy/</link><pubDate>Tue, 30 Jul 2024 23:27:58 +0800</pubDate><guid>https://qisiii.github.io/post/tech/distributed/redis_cluster_deploy/</guid><description>&lt;h2 id="部署">部署
+>Zookeeper笔记之quota - CC11001100 - 博客园&lt;/a>&lt;/p></description></item><item><title>单服务器Redis集群部署记录</title><link>https://blog.qisiii.asia/post/tech/distributed/redis_cluster_deploy/</link><pubDate>Tue, 30 Jul 2024 23:27:58 +0800</pubDate><guid>https://blog.qisiii.asia/post/tech/distributed/redis_cluster_deploy/</guid><description>&lt;h2 id="部署">部署
 &lt;/h2>&lt;p>参考&lt;a class="link" href="https://redis.com.cn/topics/cluster-tutorial.html" target="_blank" rel="noopener"
 >Redis 集群教程&lt;/a>使用单云服务器启动多个节点来当做redis集群，这里使用7000-7005这6个节点，三主三从&lt;/p>
 &lt;div class="highlight">&lt;div class="chroma">
@@ -4308,7 +4308,7 @@ loading="lazy"
 &lt;/h1>&lt;p>&lt;a class="link" href="https://redis.com.cn/topics/cluster-tutorial.html" target="_blank" rel="noopener"
 >Redis 集群教程&lt;/a>&lt;/p>
 &lt;p>&lt;a class="link" href="https://blog.csdn.net/qq_23747281/article/details/111882086" target="_blank" rel="noopener"
->springboot lettcue连接redis cluster定时刷新拓扑和遇到的问题解决-CSDN博客&lt;/a>&lt;/p></description></item><item><title>Jstack使用</title><link>https://qisiii.github.io/post/tech/lang/jstack/</link><pubDate>Sun, 28 Jul 2024 17:14:47 +0800</pubDate><guid>https://qisiii.github.io/post/tech/lang/jstack/</guid><description>&lt;h2 id="jstack应用">Jstack应用
+>springboot lettcue连接redis cluster定时刷新拓扑和遇到的问题解决-CSDN博客&lt;/a>&lt;/p></description></item><item><title>Jstack使用</title><link>https://blog.qisiii.asia/post/tech/lang/jstack/</link><pubDate>Sun, 28 Jul 2024 17:14:47 +0800</pubDate><guid>https://blog.qisiii.asia/post/tech/lang/jstack/</guid><description>&lt;h2 id="jstack应用">Jstack应用
 &lt;/h2>&lt;p>jstack是java提供的工具，一般用于分析栈-线程相关的问题，常见的比如死锁问题，cpu过高问题。&lt;/p>
 &lt;p>jstack 命令使用方式如下：&lt;/p>
 &lt;p>&lt;code>jstack [-F][-l][-m] pid&lt;/code> 或者&lt;code>jstack [-F][-l][-m] [server_id@]&amp;lt;remote server IP or hostname&lt;/code>&lt;/p>
@@ -4863,7 +4863,7 @@ alt="monitor"
 &lt;p>&lt;a class="link" href="https://blog.csdn.net/CoreyXuu/article/details/110624151" target="_blank" rel="noopener"
 >jstack 命令的使用和问题排查分析思路_jstack pid-CSDN博客&lt;/a>&lt;/p>
 &lt;p>&lt;a class="link" href="https://peakzz.github.io/2021/11/12/Monitor%E5%AF%B9%E8%B1%A1%E5%85%A8%E8%A7%A3%E6%9E%90/" target="_blank" rel="noopener"
->Monitor对象全解析 - 张高峰的博客 | Peakiz Blog&lt;/a>&lt;/p></description></item><item><title>SpringBean循环依赖处理流程</title><link>https://qisiii.github.io/post/tech/spring/cycle_bean/</link><pubDate>Thu, 20 Jun 2024 00:00:00 +0000</pubDate><guid>https://qisiii.github.io/post/tech/spring/cycle_bean/</guid><description>&lt;div class="highlight">&lt;div class="chroma">
+>Monitor对象全解析 - 张高峰的博客 | Peakiz Blog&lt;/a>&lt;/p></description></item><item><title>SpringBean循环依赖处理流程</title><link>https://blog.qisiii.asia/post/tech/spring/cycle_bean/</link><pubDate>Thu, 20 Jun 2024 00:00:00 +0000</pubDate><guid>https://blog.qisiii.asia/post/tech/spring/cycle_bean/</guid><description>&lt;div class="highlight">&lt;div class="chroma">
 &lt;table class="lntable">&lt;tr>&lt;td class="lntd">
 &lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
 &lt;/span>&lt;span class="lnt"> 2
@@ -4993,7 +4993,7 @@ loading="lazy"
 &lt;p>第二点这是，aop代理正常情况下是在bean初始化之后才进行的aop代理，只是在循环依赖的时候提前进行了代理。当一个bean本身不知道是否存在循环依赖的时候，不应该提前就进行代理，所以这里不管怎样都要放入二级缓存中去。&lt;/p>
 &lt;p>有没有循环依赖没有解决的场景？&lt;/p>
 &lt;p>有，对于都是构造器注入的bean，由于spring处理的循环依赖是在实例化后进行暴露的bean，而在构造器阶段，双方都需要对方的实力作为参数，就会报循环依赖。&lt;/p>
-&lt;p>还有一种情况，则是在bean已经被循环依赖处理后，自己通过其他方式返回了一个不是原来bean的bean，比如@Async的代理对象，通过beanpostprocessor进行了增强，导致Bean2所持有的bean1不对了，这个时候也算错误。&lt;/p></description></item><item><title>RefershScope源码分析</title><link>https://qisiii.github.io/post/tech/spring/refershscope/</link><pubDate>Sun, 26 May 2024 00:00:00 +0000</pubDate><guid>https://qisiii.github.io/post/tech/spring/refershscope/</guid><description>&lt;p>Spring中是存在多个Scope的，比如大部分的bean都是单例(Singleton)，还有一些不常用的比如原型(Prototype)、request、session、thread、servlet以及refresh。除了单例之外，其他的都是表示在某一个限定的范围内，是相同的bean，比如原型表示每次都是全新的bean，request表示每一次request是全新的bean。&lt;/p>
+&lt;p>还有一种情况，则是在bean已经被循环依赖处理后，自己通过其他方式返回了一个不是原来bean的bean，比如@Async的代理对象，通过beanpostprocessor进行了增强，导致Bean2所持有的bean1不对了，这个时候也算错误。&lt;/p></description></item><item><title>RefershScope源码分析</title><link>https://blog.qisiii.asia/post/tech/spring/refershscope/</link><pubDate>Sun, 26 May 2024 00:00:00 +0000</pubDate><guid>https://blog.qisiii.asia/post/tech/spring/refershscope/</guid><description>&lt;p>Spring中是存在多个Scope的，比如大部分的bean都是单例(Singleton)，还有一些不常用的比如原型(Prototype)、request、session、thread、servlet以及refresh。除了单例之外，其他的都是表示在某一个限定的范围内，是相同的bean，比如原型表示每次都是全新的bean，request表示每一次request是全新的bean。&lt;/p>
 &lt;p>RefreshScope，则表示每次Refresh的时候，都会获取全新的bean。这个注解的核心在于Scope注解，且value是refresh。&lt;/p>
 &lt;div class="highlight">&lt;div class="chroma">
 &lt;table class="lntable">&lt;tr>&lt;td class="lntd">
@@ -5632,7 +5632,7 @@ loading="lazy"
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="p">}&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
 &lt;/div>
-&lt;/div></description></item><item><title>Aop执行逻辑</title><link>https://qisiii.github.io/post/tech/spring/aop/</link><pubDate>Sat, 27 Apr 2024 00:00:00 +0000</pubDate><guid>https://qisiii.github.io/post/tech/spring/aop/</guid><description>&lt;h2 id="aopautoconfiguration">AopAutoConfiguration
+&lt;/div></description></item><item><title>Aop执行逻辑</title><link>https://blog.qisiii.asia/post/tech/spring/aop/</link><pubDate>Sat, 27 Apr 2024 00:00:00 +0000</pubDate><guid>https://blog.qisiii.asia/post/tech/spring/aop/</guid><description>&lt;h2 id="aopautoconfiguration">AopAutoConfiguration
 &lt;/h2>&lt;p>在spring-boot-autoconfiguration的spring.factories中指定了org.springframework.boot.autoconfigure.aop.AopAutoConfiguration这个bean，因此会进行执行&lt;/p>
 &lt;div class="highlight">&lt;div class="chroma">
 &lt;table class="lntable">&lt;tr>&lt;td class="lntd">
@@ -6553,7 +6553,7 @@ loading="lazy"
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="err">}&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
 &lt;/div>
-&lt;/div>&lt;p>此外，这里使用的不是TimSort，而是PartialOrder(离散里的偏序）&lt;/p></description></item><item><title>Dubbo的SPI增强</title><link>https://qisiii.github.io/post/tech/distributed/dubbo/dubbo_spi/</link><pubDate>Sun, 17 Mar 2024 00:00:00 +0000</pubDate><guid>https://qisiii.github.io/post/tech/distributed/dubbo/dubbo_spi/</guid><description>&lt;p>&lt;a class="link" href="https://cn.dubbo.apache.org/zh-cn/overview/tasks/extensibility/" target="_blank" rel="noopener"
+&lt;/div>&lt;p>此外，这里使用的不是TimSort，而是PartialOrder(离散里的偏序）&lt;/p></description></item><item><title>Dubbo的SPI增强</title><link>https://blog.qisiii.asia/post/tech/distributed/dubbo/dubbo_spi/</link><pubDate>Sun, 17 Mar 2024 00:00:00 +0000</pubDate><guid>https://blog.qisiii.asia/post/tech/distributed/dubbo/dubbo_spi/</guid><description>&lt;p>&lt;a class="link" href="https://cn.dubbo.apache.org/zh-cn/overview/tasks/extensibility/" target="_blank" rel="noopener"
 >自定义扩展&lt;/a>&lt;/p>
 &lt;p>Jdk的SPI缺点在于需要遍历所有的扩展类并实例化，dubbo对此做了优化。&lt;/p>
 &lt;ol>
@@ -7091,7 +7091,7 @@ loading="lazy"
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="p">}&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
 &lt;/div>
-&lt;/div></description></item><item><title>Guava的RateLimiter</title><link>https://qisiii.github.io/post/tech/tool/guava_ratelimiter/</link><pubDate>Sat, 06 Jan 2024 00:00:00 +0000</pubDate><guid>https://qisiii.github.io/post/tech/tool/guava_ratelimiter/</guid><description>&lt;p>单机的限流工具&lt;/p>
+&lt;/div></description></item><item><title>Guava的RateLimiter</title><link>https://blog.qisiii.asia/post/tech/tool/guava_ratelimiter/</link><pubDate>Sat, 06 Jan 2024 00:00:00 +0000</pubDate><guid>https://blog.qisiii.asia/post/tech/tool/guava_ratelimiter/</guid><description>&lt;p>单机的限流工具&lt;/p>
 &lt;h1 id="使用">使用
 &lt;/h1>&lt;div class="highlight">&lt;div class="chroma">
 &lt;table class="lntable">&lt;tr>&lt;td class="lntd">
@@ -7737,7 +7737,7 @@ loading="lazy"
 &lt;/div>
 &lt;/div>&lt;h1 id="参考文档">参考文档:
 &lt;/h1>&lt;p>&lt;a class="link" href="https://www.javadoop.com/post/rate-limiter" target="_blank" rel="noopener"
->RateLimiter 源码分析(Guava 和 Sentinel 实现)_Javadoop&lt;/a>&lt;/p></description></item><item><title>UndoLog和redoLog</title><link>https://qisiii.github.io/post/tech/mysql/undolog_redolog/</link><pubDate>Sat, 30 Dec 2023 00:00:00 +0000</pubDate><guid>https://qisiii.github.io/post/tech/mysql/undolog_redolog/</guid><description>&lt;h2 id="redolog">redolog
+>RateLimiter 源码分析(Guava 和 Sentinel 实现)_Javadoop&lt;/a>&lt;/p></description></item><item><title>UndoLog和redoLog</title><link>https://blog.qisiii.asia/post/tech/mysql/undolog_redolog/</link><pubDate>Sat, 30 Dec 2023 00:00:00 +0000</pubDate><guid>https://blog.qisiii.asia/post/tech/mysql/undolog_redolog/</guid><description>&lt;h2 id="redolog">redolog
 &lt;/h2>&lt;p>从ACID了解到，对于数据库来说，原子性和持久性是为了保证数据修改之后就不会再有变换，但是持久性这个动作不是一个原子性的操作，包含写入、未写入和正在写多个状态。&lt;/p>
 &lt;p>假如是未提交事务（内存操作），这个时候就将数据落盘，那么这个时候如果崩溃了，在恢复数据的时候，就要将落盘的数据修改为未提交事务之前的数据。&lt;/p>
 &lt;p>假如是提交事务了（内存操作），这个时候数据还没有落盘，这个时候如果崩溃，就要在磁盘补充所落下的部分。&lt;/p>
@@ -7787,7 +7787,7 @@ loading="lazy"
 &lt;p>&lt;a class="link" href="https://blog.csdn.net/huangjw_806/article/details/100927097" target="_blank" rel="noopener"
 >MySQL中binlog和redo log的一致性问题_binlog 和 redo不同步-CSDN博客&lt;/a>&lt;/p>
 &lt;p>&lt;a class="link" href="https://time.geekbang.org/column/article/76161" target="_blank" rel="noopener"
->23 | MySQL是怎么保证数据不丢的？-极客时间&lt;/a>&lt;/p></description></item><item><title>@Async源码分析</title><link>https://qisiii.github.io/post/tech/spring/async/</link><pubDate>Tue, 26 Dec 2023 00:00:00 +0000</pubDate><guid>https://qisiii.github.io/post/tech/spring/async/</guid><description>&lt;h2 id="enableasync">@EnableAsync
+>23 | MySQL是怎么保证数据不丢的？-极客时间&lt;/a>&lt;/p></description></item><item><title>@Async源码分析</title><link>https://blog.qisiii.asia/post/tech/spring/async/</link><pubDate>Tue, 26 Dec 2023 00:00:00 +0000</pubDate><guid>https://blog.qisiii.asia/post/tech/spring/async/</guid><description>&lt;h2 id="enableasync">@EnableAsync
 &lt;/h2>&lt;div class="highlight">&lt;div class="chroma">
 &lt;table class="lntable">&lt;tr>&lt;td class="lntd">
 &lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
@@ -7820,7 +7820,7 @@ loading="lazy"
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="kt">int&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nf">order&lt;/span>&lt;span class="p">()&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">default&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">Ordered&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">LOWEST_PRECEDENCE&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
 &lt;/div>
-&lt;/div>&lt;p>由&lt;a class="link" href="https://qisiii.github.io/post/tech/spring/beandefinitionregistion/" >Spring注册BeanDefinition的方式&lt;/a> 可知，@Enable的@Import注解中的AsyncConfigurationSelector是为了注册指定的bean，加上default AdviceMode.&lt;em>PROXY，结合下面代码，注册的是ProxyAsyncConfiguration，而里面最重要的是定义了AsyncAnnotationBeanPostProcessor这个Bean&lt;/em>&lt;/p>
+&lt;/div>&lt;p>由&lt;a class="link" href="https://blog.qisiii.asia/post/tech/spring/beandefinitionregistion/" >Spring注册BeanDefinition的方式&lt;/a> 可知，@Enable的@Import注解中的AsyncConfigurationSelector是为了注册指定的bean，加上default AdviceMode.&lt;em>PROXY，结合下面代码，注册的是ProxyAsyncConfiguration，而里面最重要的是定义了AsyncAnnotationBeanPostProcessor这个Bean&lt;/em>&lt;/p>
 &lt;div class="highlight">&lt;div class="chroma">
 &lt;table class="lntable">&lt;tr>&lt;td class="lntd">
 &lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
@@ -8245,7 +8245,7 @@ loading="lazy"
 &lt;p>先加载的如果没有@Async，那么后加载的bean注入的本身就是原bean，所以后加载的没有问题，然后后加载的流程走完之后，由于其带有@async，所以是加强过的，而先加载的bean依赖的是加强过的bean，所以这个时候两个bean都正确&lt;/p>
 &lt;h2 id="参考文档">参考文档:
 &lt;/h2>&lt;p>&lt;a class="link" href="https://zhuanlan.zhihu.com/p/366440373" target="_blank" rel="noopener"
->Spring Boot 2.0.0 升级到2.4.1 循环依赖问题的解决&lt;/a>&lt;/p></description></item><item><title>Spring注册BeanDefinition的方式</title><link>https://qisiii.github.io/post/tech/spring/beandefinitionregistion/</link><pubDate>Mon, 25 Dec 2023 00:00:00 +0000</pubDate><guid>https://qisiii.github.io/post/tech/spring/beandefinitionregistion/</guid><description>&lt;p>通过在org.springframework.beans.factory.support.DefaultListableBeanFactory#registerBeanDefinition这个方法打断点可以知晓所有的注册途径&lt;/p>
+>Spring Boot 2.0.0 升级到2.4.1 循环依赖问题的解决&lt;/a>&lt;/p></description></item><item><title>Spring注册BeanDefinition的方式</title><link>https://blog.qisiii.asia/post/tech/spring/beandefinitionregistion/</link><pubDate>Mon, 25 Dec 2023 00:00:00 +0000</pubDate><guid>https://blog.qisiii.asia/post/tech/spring/beandefinitionregistion/</guid><description>&lt;p>通过在org.springframework.beans.factory.support.DefaultListableBeanFactory#registerBeanDefinition这个方法打断点可以知晓所有的注册途径&lt;/p>
 &lt;h2 id="xml注册bean">xml注册bean
 &lt;/h2>&lt;div class="highlight">&lt;div class="chroma">
 &lt;table class="lntable">&lt;tr>&lt;td class="lntd">
@@ -8368,7 +8368,7 @@ loading="lazy"
 &lt;/h2>&lt;p>内部注册是指spring自己注册一些关键的bean，比如ConfigurationClassPostProcessor，通常是调用的AnnotationConfigUtils.&lt;em>registerAnnotationConfigProcessors方法注册的，一般是在refresh之前&lt;/em>&lt;/p>
 &lt;p>&lt;img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=MWQ5YTBlNzBiZGE4NWRhZDY5Njg3ZTkzZGFhNWFiM2Vfa1dZak54U21qRW5iNEhPc2NMd0h6WDdqSGlMWGhBMmxfVG9rZW46UjdGNmJiOFRmb0wwSnV4aFJMTmNxOWVLbndiXzE3MjMzNTkwNTI6MTcyMzM2MjY1Ml9WNA"
 loading="lazy"
->&lt;/p></description></item><item><title>偷偷开启的监控在吃内存</title><link>https://qisiii.github.io/post/tech/problem/springactuator_fullgc/</link><pubDate>Sun, 10 Dec 2023 00:00:00 +0000</pubDate><guid>https://qisiii.github.io/post/tech/problem/springactuator_fullgc/</guid><description>&lt;h2 id="整体复盘">整体复盘：
+>&lt;/p></description></item><item><title>偷偷开启的监控在吃内存</title><link>https://blog.qisiii.asia/post/tech/problem/springactuator_fullgc/</link><pubDate>Sun, 10 Dec 2023 00:00:00 +0000</pubDate><guid>https://blog.qisiii.asia/post/tech/problem/springactuator_fullgc/</guid><description>&lt;h2 id="整体复盘">整体复盘：
 &lt;/h2>&lt;p>一个不算普通的周五中午，同事收到了大量了cpu异常的报警。根据报警表现和通过arthas查看，很明显的问题就是内存不足，疯狂无效gc。而且结合arthas和gc日志查看，老年代打满了，gc不了一点。既然问题是内存问题，那么老样子，通过jmap和heap dump 文件分析。&lt;/p>
 &lt;p>不感兴趣的可以直接看结论&lt;/p>
 &lt;p>通过jmap命令查看的类似下图，并没有项目中明显的自定义类，而占空间最大的又是char数组，当时线上占900M左右，整个老年代也就1.8个G；此时dump文件同事还在下载，网速较慢。&lt;/p>
@@ -8798,7 +8798,7 @@ loading="lazy"
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="p">}&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
 &lt;/div>
-&lt;/div></description></item><item><title>Java安全机制之一——SecurityManager和AccessController</title><link>https://qisiii.github.io/post/tech/lang/java_security/</link><pubDate>Wed, 08 Nov 2023 00:00:00 +0000</pubDate><guid>https://qisiii.github.io/post/tech/lang/java_security/</guid><description>&lt;h2 id="前言">前言：
+&lt;/div></description></item><item><title>Java安全机制之一——SecurityManager和AccessController</title><link>https://blog.qisiii.asia/post/tech/lang/java_security/</link><pubDate>Wed, 08 Nov 2023 00:00:00 +0000</pubDate><guid>https://blog.qisiii.asia/post/tech/lang/java_security/</guid><description>&lt;h2 id="前言">前言：
 &lt;/h2>&lt;p>在看socket相关代码的时候，AbstractPlainSocketImpl中的一段代码吸引了我，其实之前见过很多次类似的代码，但一直不想去看，只知道肯定和权限什么的相关，这次既然又碰到了就研究一下，毕竟也不能对java基本代码一无所知。&lt;/p>
 &lt;div class="highlight">&lt;div class="chroma">
 &lt;table class="lntable">&lt;tr>&lt;td class="lntd">
@@ -9064,7 +9064,7 @@ loading="lazy"
 &lt;p>&lt;a class="link" href="https://docs.oracle.com/en/java/javase/20/security/java-security-overview1.html#GUID-BBEC2DC8-BA00-42B1-B52A-A49488FCF8FE" target="_blank" rel="noopener"
 >https://docs.oracle.com/en/java/javase/20/security/java-security-overview1.html#GUID-BBEC2DC8-BA00-42B1-B52A-A49488FCF8FE&lt;/a>&lt;/p>
 &lt;p>&lt;a class="link" href="https://www.cnblogs.com/liruilong/p/14810513.html" target="_blank" rel="noopener"
->AccessController.doPrivileged - 山河已无恙 - 博客园&lt;/a>&lt;/p></description></item><item><title>JavaAgent技术</title><link>https://qisiii.github.io/post/tech/lang/javaagent/</link><pubDate>Sun, 10 Sep 2023 00:00:00 +0000</pubDate><guid>https://qisiii.github.io/post/tech/lang/javaagent/</guid><description>&lt;blockquote>
+>AccessController.doPrivileged - 山河已无恙 - 博客园&lt;/a>&lt;/p></description></item><item><title>JavaAgent技术</title><link>https://blog.qisiii.asia/post/tech/lang/javaagent/</link><pubDate>Sun, 10 Sep 2023 00:00:00 +0000</pubDate><guid>https://blog.qisiii.asia/post/tech/lang/javaagent/</guid><description>&lt;blockquote>
 &lt;p>在定位公司问题的时候，需要了解一下skywalking的相关知识，而agent就提上了日程。&lt;/p>
 &lt;/blockquote>
 &lt;p>&lt;a class="link" href="https://docs.oracle.com/javase/8/docs/api/java/lang/instrument/package-summary.html" title="官网文档"
@@ -9535,7 +9535,7 @@ target="_blank" rel="noopener"
 >JAVA热更新1:Agent方式热更 | 花隐间-JAVA游戏技术解决方案&lt;/a>&lt;/p>
 &lt;p>&lt;a class="link" href="https://zhuanlan.zhihu.com/p/151843984" title="ByteBuddy入门教程"
 target="_blank" rel="noopener"
->ByteBuddy入门教程&lt;/a>&lt;/p></description></item><item><title>分析Skywalking的controller加强原理</title><link>https://qisiii.github.io/post/tech/distributed/skywalking/skywalkingcontroller/</link><pubDate>Sat, 02 Sep 2023 00:00:00 +0000</pubDate><guid>https://qisiii.github.io/post/tech/distributed/skywalking/skywalkingcontroller/</guid><description>&lt;p>在阅读本篇文章之前，建议先了解agent的启动流程，这对分析controller加强原理有很大的帮助，&lt;a class="link" href="https://qisiii.github.io/post/tech/distributed/skywalking/skywalkingagent/" >Skywalking Agent启动流程源码分析&lt;/a>&lt;/p>
+>ByteBuddy入门教程&lt;/a>&lt;/p></description></item><item><title>分析Skywalking的controller加强原理</title><link>https://blog.qisiii.asia/post/tech/distributed/skywalking/skywalkingcontroller/</link><pubDate>Sat, 02 Sep 2023 00:00:00 +0000</pubDate><guid>https://blog.qisiii.asia/post/tech/distributed/skywalking/skywalkingcontroller/</guid><description>&lt;p>在阅读本篇文章之前，建议先了解agent的启动流程，这对分析controller加强原理有很大的帮助，&lt;a class="link" href="https://blog.qisiii.asia/post/tech/distributed/skywalking/skywalkingagent/" >Skywalking Agent启动流程源码分析&lt;/a>&lt;/p>
 &lt;p>项目启动时我指定skywalking&lt;a class="link" href="https://www.apache.org/dyn/closer.cgi/skywalking/java-agent/8.16.0/apache-skywalking-java-agent-8.16.0.tgz" target="_blank" rel="noopener"
 >官方jar包&lt;/a>&lt;/p>
 &lt;p>-javaagent:/xxxx/skywalking/skywalking-agent/skywalking-agent.jar&lt;/p>
@@ -10505,7 +10505,7 @@ loading="lazy"
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="p">}&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
 &lt;/div>
-&lt;/div></description></item><item><title>SkywalkingAgent启动流程源码分析</title><link>https://qisiii.github.io/post/tech/distributed/skywalking/skywalkingagent/</link><pubDate>Tue, 29 Aug 2023 00:00:00 +0000</pubDate><guid>https://qisiii.github.io/post/tech/distributed/skywalking/skywalkingagent/</guid><description>&lt;p>Skywalking 从架构上分为三个大模块，分别是Agent、Oap（Backend&amp;amp;Storage）、UI。这篇文档主要是介绍Agent部分。这部分核心依赖的是java的agent技术，对这个技术陌生的可以先看一下&lt;a class="link" href="https://qisiii.github.io/post/tech/lang/javaagent/" >Agent&lt;/a> 这篇文章。Skywalking在agent的基础上利用&lt;a class="link" href="http://bytebuddy.net/#/tutorial-cn" target="_blank" rel="noopener"
+&lt;/div></description></item><item><title>SkywalkingAgent启动流程源码分析</title><link>https://blog.qisiii.asia/post/tech/distributed/skywalking/skywalkingagent/</link><pubDate>Tue, 29 Aug 2023 00:00:00 +0000</pubDate><guid>https://blog.qisiii.asia/post/tech/distributed/skywalking/skywalkingagent/</guid><description>&lt;p>Skywalking 从架构上分为三个大模块，分别是Agent、Oap（Backend&amp;amp;Storage）、UI。这篇文档主要是介绍Agent部分。这部分核心依赖的是java的agent技术，对这个技术陌生的可以先看一下&lt;a class="link" href="https://blog.qisiii.asia/post/tech/lang/javaagent/" >Agent&lt;/a> 这篇文章。Skywalking在agent的基础上利用&lt;a class="link" href="http://bytebuddy.net/#/tutorial-cn" target="_blank" rel="noopener"
 >ByteBuddy&lt;/a>类库对类和方法等进行加强，实现无入侵的监测。&lt;/p>
 &lt;h2 id="skywalkingagent类">SkyWalkingAgent类
 &lt;/h2>&lt;p>在官方的skywalking-agent包中，通过MANIFEST.MF的Premain-Class值，我们可以确定入口类是org.apache.skywalking.apm.agent.SkyWalkingAgent，而核心的方法就是里面的premain方法，大概的内容是以下四部分。&lt;/p>
@@ -11359,7 +11359,7 @@ loading="lazy"
 &lt;p>暂未研究&lt;/p>
 &lt;h2 id="参考文档">参考文档:
 &lt;/h2>&lt;p>&lt;a class="link" href="https://zhuanlan.zhihu.com/p/563375170" target="_blank" rel="noopener"
->Skywalking8.9.1源码解析&amp;lt;六&amp;gt;-Skywalking-agent版本识别机制&lt;/a>&lt;/p></description></item><item><title>记一次内存飙升、gc频繁、cpu飙高</title><link>https://qisiii.github.io/post/tech/problem/task_fullgc/</link><pubDate>Sat, 19 Aug 2023 00:00:00 +0000</pubDate><guid>https://qisiii.github.io/post/tech/problem/task_fullgc/</guid><description>&lt;h2 id="紧急排查">紧急排查：
+>Skywalking8.9.1源码解析&amp;lt;六&amp;gt;-Skywalking-agent版本识别机制&lt;/a>&lt;/p></description></item><item><title>记一次内存飙升、gc频繁、cpu飙高</title><link>https://blog.qisiii.asia/post/tech/problem/task_fullgc/</link><pubDate>Sat, 19 Aug 2023 00:00:00 +0000</pubDate><guid>https://blog.qisiii.asia/post/tech/problem/task_fullgc/</guid><description>&lt;h2 id="紧急排查">紧急排查：
 &lt;/h2>&lt;p>一个普通工作日的晚上8点，突然收到大量接口超时的报警，最高甚至有超100s，于是开始紧急排查。&lt;/p>
 &lt;p>首先是看监控面板里的内存监控和cpu监控，说到这里不得不吐槽一句公司的内存监控没什么软用（当时并不会熟练使用arthas)，监控的是pod节点内存情况，也就是说一直展示的都是历史最高的，因为jvm申请内存后是不会返还给实例的，所以并不能看出来什么。倒是cpu确实彪的很高。&lt;/p>
 &lt;p>直觉判断，肯定是内存上去了，频繁gc，导致的cpu飙高，那么是哪里的问题呢？&lt;/p>
@@ -11504,7 +11504,7 @@ loading="lazy"
 &lt;p>&lt;a class="link" href="https://www.jianshu.com/p/cf3d157e245f" target="_blank" rel="noopener"
 >面试官问：平时碰到系统CPU飙高和频繁GC，你会怎么排查？&lt;/a>&lt;/p>
 &lt;p>&lt;a class="link" href="https://blog.csdn.net/weixin_34409887/article/details/114746993" target="_blank" rel="noopener"
->java面试oom问题及答案_java面试中必问的oom问题_卜奕的博客-CSDN博客&lt;/a>&lt;/p></description></item><item><title>线程异常增长</title><link>https://qisiii.github.io/post/tech/problem/thread_exception/</link><pubDate>Fri, 18 Aug 2023 00:00:00 +0000</pubDate><guid>https://qisiii.github.io/post/tech/problem/thread_exception/</guid><description>&lt;p>小组群内leader甩出来一个截图，说是线程有些异常，一直在增长，从pool-1-thread一直到pool-285-thread，每个pool都只有三个线程：thread-1 thread-2 thread-3，第一反应感觉肯定和定时任务有关，这种稳定的有规律的一般都是和定时任务有关。&lt;/p>
+>java面试oom问题及答案_java面试中必问的oom问题_卜奕的博客-CSDN博客&lt;/a>&lt;/p></description></item><item><title>线程异常增长</title><link>https://blog.qisiii.asia/post/tech/problem/thread_exception/</link><pubDate>Fri, 18 Aug 2023 00:00:00 +0000</pubDate><guid>https://blog.qisiii.asia/post/tech/problem/thread_exception/</guid><description>&lt;p>小组群内leader甩出来一个截图，说是线程有些异常，一直在增长，从pool-1-thread一直到pool-285-thread，每个pool都只有三个线程：thread-1 thread-2 thread-3，第一反应感觉肯定和定时任务有关，这种稳定的有规律的一般都是和定时任务有关。&lt;/p>
 &lt;ol>
 &lt;li>
 &lt;p>定位线程是哪部分的代码&lt;/p>
@@ -11646,7 +11646,7 @@ loading="lazy"
 &lt;p>&lt;a class="link" href="https://blog.csdn.net/u014112521/article/details/121991115" target="_blank" rel="noopener"
 >idea + jconsole实现线程监控_idea查看线程运行情况_黑夜伴白行的博客-CSDN博客&lt;/a>&lt;/p>
 &lt;p>&lt;a class="link" href="https://blog.csdn.net/zhujiangtaotaise/article/details/122358731" target="_blank" rel="noopener"
->深入浅出线:程池的线程回收&amp;ndash;回收的是非核心线程吗?_非核心线程的是怎么回收的_小猪快跑22的博客-CSDN博客&lt;/a>&lt;/p></description></item><item><title>IDEA进程远程Debug</title><link>https://qisiii.github.io/post/tech/tool/remote_debug/</link><pubDate>Mon, 10 Jul 2023 00:00:00 +0000</pubDate><guid>https://qisiii.github.io/post/tech/tool/remote_debug/</guid><description>&lt;h2 id="普通的应用启动">普通的应用启动
+>深入浅出线:程池的线程回收&amp;ndash;回收的是非核心线程吗?_非核心线程的是怎么回收的_小猪快跑22的博客-CSDN博客&lt;/a>&lt;/p></description></item><item><title>IDEA进程远程Debug</title><link>https://blog.qisiii.asia/post/tech/tool/remote_debug/</link><pubDate>Mon, 10 Jul 2023 00:00:00 +0000</pubDate><guid>https://blog.qisiii.asia/post/tech/tool/remote_debug/</guid><description>&lt;h2 id="普通的应用启动">普通的应用启动
 &lt;/h2>&lt;p>新建一个Remote_JVM_Debug配置&lt;/p>
 &lt;p>&lt;img src="http://picgo.qisiii.asia/post/1723664070953.jpg"
 loading="lazy"
@@ -11810,7 +11810,7 @@ loading="lazy"
 &lt;/h1>&lt;p>&lt;a class="link" href="https://zhuanlan.zhihu.com/p/128033093" target="_blank" rel="noopener"
 >https://zhuanlan.zhihu.com/p/128033093&lt;/a>&lt;/p>
 &lt;p>&lt;a class="link" href="https://www.cnblogs.com/gaoyuechen/p/11811180.html" target="_blank" rel="noopener"
->https://www.cnblogs.com/gaoyuechen/p/11811180.html&lt;/a>&lt;/p></description></item><item><title>锁</title><link>https://qisiii.github.io/post/tech/mysql/db_lock/</link><pubDate>Wed, 14 Jun 2023 00:00:00 +0000</pubDate><guid>https://qisiii.github.io/post/tech/mysql/db_lock/</guid><description>&lt;h2 id="mvcc机制遗留的问题">MVCC机制遗留的问题
+>https://www.cnblogs.com/gaoyuechen/p/11811180.html&lt;/a>&lt;/p></description></item><item><title>锁</title><link>https://blog.qisiii.asia/post/tech/mysql/db_lock/</link><pubDate>Wed, 14 Jun 2023 00:00:00 +0000</pubDate><guid>https://blog.qisiii.asia/post/tech/mysql/db_lock/</guid><description>&lt;h2 id="mvcc机制遗留的问题">MVCC机制遗留的问题
 &lt;/h2>&lt;p>&lt;strong>为什么在可重复读级别下，幻读没有产生？&lt;/strong>&lt;/p>
 &lt;p>回想一下在事务隔离级别那篇文章中，可串行化是通过什么保证的？&lt;/p>
 &lt;p>对操作的每一行记录加读锁、写锁和范围锁；任何其他事务都必须等待持有锁的事务释放锁之后才能进行操作；&lt;/p>
@@ -12612,7 +12612,7 @@ loading="lazy"
 &lt;p>&lt;a class="link" href="https://blog.csdn.net/q2878948/article/details/96430129" target="_blank" rel="noopener"
 >mysql MDL读写锁阻塞，以及online ddl造成的“插队”现象_花落的速度的博客-CSDN博客&lt;/a>&lt;/p>
 &lt;p>&lt;a class="link" href="https://blog.csdn.net/zbh1957282580/article/details/122457542" target="_blank" rel="noopener"
->MYSQL查看表是否被锁、以及解锁_mysql查看锁表_清石小猿的博客-CSDN博客&lt;/a>&lt;/p></description></item><item><title>MVCC机制</title><link>https://qisiii.github.io/post/tech/mysql/mvcc/</link><pubDate>Mon, 05 Jun 2023 00:00:00 +0000</pubDate><guid>https://qisiii.github.io/post/tech/mysql/mvcc/</guid><description>&lt;img src="https://qisiii.github.io/blog-img/mvcc.png" alt="Featured image of post MVCC机制" />&lt;h2 id="事务隔离级别遗留问题">事务隔离级别遗留问题：
+>MYSQL查看表是否被锁、以及解锁_mysql查看锁表_清石小猿的博客-CSDN博客&lt;/a>&lt;/p></description></item><item><title>MVCC机制</title><link>https://blog.qisiii.asia/post/tech/mysql/mvcc/</link><pubDate>Mon, 05 Jun 2023 00:00:00 +0000</pubDate><guid>https://blog.qisiii.asia/post/tech/mysql/mvcc/</guid><description>&lt;img src="https://blog.qisiii.asia/blog-img/mvcc.png" alt="Featured image of post MVCC机制" />&lt;h2 id="事务隔离级别遗留问题">事务隔离级别遗留问题：
 &lt;/h2>&lt;p>在读已提交的级别下，事务B可以读到事务A持有写锁的的记录，且读到的是未更新前的，为何写读没有冲突？&lt;/p>
 &lt;p>可重复读级别，事务B可以更新事务A已经获取读锁的记录，且更新后，事务A依然可以获取读锁，为何读-写-读没有冲突？&lt;/p>
 &lt;p>在可重复读级别，幻读没有产生？&lt;/p>
@@ -13183,7 +13183,7 @@ loading="lazy"
 &lt;p>&lt;a class="link" href="http://blog.itpub.net/7728585/viewspace-2142302/" target="_blank" rel="noopener"
 >MYSQL innodb中的只读事物以及事物id的分配方式_ITPUB博客&lt;/a>&lt;/p>
 &lt;p>&lt;a class="link" href="https://blog.csdn.net/scugxl/article/details/102911145" target="_blank" rel="noopener"
->Mysql如何实现隔离级别 - 可重复读和读提交 源码分析_mysql 可重复度源码_择维士的博客-CSDN博客&lt;/a>&lt;/p></description></item><item><title>事务隔离级别</title><link>https://qisiii.github.io/post/tech/mysql/transaction_isolation/</link><pubDate>Tue, 30 May 2023 00:00:00 +0000</pubDate><guid>https://qisiii.github.io/post/tech/mysql/transaction_isolation/</guid><description>&lt;h2 id="标准隔离级别">标准隔离级别
+>Mysql如何实现隔离级别 - 可重复读和读提交 源码分析_mysql 可重复度源码_择维士的博客-CSDN博客&lt;/a>&lt;/p></description></item><item><title>事务隔离级别</title><link>https://blog.qisiii.asia/post/tech/mysql/transaction_isolation/</link><pubDate>Tue, 30 May 2023 00:00:00 +0000</pubDate><guid>https://blog.qisiii.asia/post/tech/mysql/transaction_isolation/</guid><description>&lt;h2 id="标准隔离级别">标准隔离级别
 &lt;/h2>&lt;p>读未提交、读已提交、可重复读、串行化&lt;/p>
 &lt;h3 id="串行化">串行化
 &lt;/h3>&lt;p>对事务中所有读写的数据加上读锁、写锁、范围锁。所以冲突的事务必须同步执行。&lt;/p>
@@ -13455,7 +13455,7 @@ loading="lazy"
 &lt;p>&lt;a class="link" href="https://time.geekbang.org/column/article/68963" target="_blank" rel="noopener"
 >03 | 事务隔离：为什么你改了我还看不见？-极客时间&lt;/a>&lt;/p>
 &lt;p>&lt;a class="link" href="https://www.cnblogs.com/henuqin/articles/16533094.html" target="_blank" rel="noopener"
->读未提交-为什么事务没提交就可以读到别人修改的数据 - 秦一居 - 博客园&lt;/a>&lt;/p></description></item><item><title>Java的SPI机制</title><link>https://qisiii.github.io/post/tech/lang/java_spi/</link><pubDate>Fri, 17 Mar 2023 00:00:00 +0000</pubDate><guid>https://qisiii.github.io/post/tech/lang/java_spi/</guid><description>&lt;p>&lt;img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=NjE1OWUxMGFjMWZiMGI3ZDkxYjk2M2IyYWRmYjFmZDZfZGFNQ3h4WU1oVFcyZUlYUVY3ZXhWUms3dVRjRzJScUhfVG9rZW46Qm1qRGJXU0RZb2l3VnV4SUJxTGNOTTJQbkZnXzE3MjMzMzkzNTk6MTcyMzM0Mjk1OV9WNA"
+>读未提交-为什么事务没提交就可以读到别人修改的数据 - 秦一居 - 博客园&lt;/a>&lt;/p></description></item><item><title>Java的SPI机制</title><link>https://blog.qisiii.asia/post/tech/lang/java_spi/</link><pubDate>Fri, 17 Mar 2023 00:00:00 +0000</pubDate><guid>https://blog.qisiii.asia/post/tech/lang/java_spi/</guid><description>&lt;p>&lt;img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=NjE1OWUxMGFjMWZiMGI3ZDkxYjk2M2IyYWRmYjFmZDZfZGFNQ3h4WU1oVFcyZUlYUVY3ZXhWUms3dVRjRzJScUhfVG9rZW46Qm1qRGJXU0RZb2l3VnV4SUJxTGNOTTJQbkZnXzE3MjMzMzkzNTk6MTcyMzM0Mjk1OV9WNA"
 loading="lazy"
 >&lt;/p>
 &lt;p>&lt;img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=NjI3ODllMGU2NWFjYzNkYjg5NDE3MThhMTAzZjBhZTVfRFNoYkQ4ODlHdVJnUDBUUnZMNlB1ZEo0cUdGYVc5aDlfVG9rZW46VzlpV2JwOHVCb0pXdnN4M3YzeWNDUUVnblRlXzE3MjMzMzkzNTk6MTcyMzM0Mjk1OV9WNA"
@@ -13522,7 +13522,7 @@ loading="lazy"
 &lt;/div>&lt;p>&lt;img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=ZjEwOGNkYjkwOTU4NzgyZGFhMDIyNzliNzI1YTYzYmZfSTJwZ0ZuWmdzVEJCM0ZieUltV1c1TWFBa0gwek9NYmlfVG9rZW46S1NySWJnRjM3b2xkdm54UDFoM2M2aUVEblZlXzE3MjMzMzkzNTk6MTcyMzM0Mjk1OV9WNA"
 loading="lazy"
 >&lt;/p>
-&lt;p>从图中可以看出核心方法是hasNextService和nextService，acc是&lt;a class="link" href="https://qisiii.github.io/post/tech/lang/java_security/" >Java安全机制之一——SecurityManager和AccessController&lt;/a>，可以忽略不看。&lt;/p>
+&lt;p>从图中可以看出核心方法是hasNextService和nextService，acc是&lt;a class="link" href="https://blog.qisiii.asia/post/tech/lang/java_security/" >Java安全机制之一——SecurityManager和AccessController&lt;/a>，可以忽略不看。&lt;/p>
 &lt;div class="highlight">&lt;div class="chroma">
 &lt;table class="lntable">&lt;tr>&lt;td class="lntd">
 &lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
@@ -13649,7 +13649,7 @@ loading="lazy"
 &lt;/h2>&lt;p>&lt;a class="link" href="https://zhuanlan.zhihu.com/p/84337883" target="_blank" rel="noopener"
 >深入理解 Java 中 SPI 机制&lt;/a>&lt;/p>
 &lt;p>&lt;a class="link" href="https://blog.csdn.net/qq_52423918/article/details/130968307" target="_blank" rel="noopener"
->Java SPI概念、实现原理、优缺点、应用场景、使用步骤、实战SPI案例-CSDN博客&lt;/a>&lt;/p></description></item><item><title>Java集合源码分析</title><link>https://qisiii.github.io/post/tech/lang/javacollection/</link><pubDate>Wed, 16 Feb 2022 00:00:00 +0000</pubDate><guid>https://qisiii.github.io/post/tech/lang/javacollection/</guid><description>&lt;h2 id="hashmap源码分析">hashmap源码分析
+>Java SPI概念、实现原理、优缺点、应用场景、使用步骤、实战SPI案例-CSDN博客&lt;/a>&lt;/p></description></item><item><title>Java集合源码分析</title><link>https://blog.qisiii.asia/post/tech/lang/javacollection/</link><pubDate>Wed, 16 Feb 2022 00:00:00 +0000</pubDate><guid>https://blog.qisiii.asia/post/tech/lang/javacollection/</guid><description>&lt;h2 id="hashmap源码分析">hashmap源码分析
 &lt;/h2>&lt;h3 id="构造函数">构造函数
 &lt;/h3>&lt;p>initialCapacity 初始化大小，一般最好2次幂&lt;/p>
 &lt;div class="highlight">&lt;div class="chroma">
@@ -15014,7 +15014,7 @@ loading="lazy"
 &lt;p>&lt;a class="link" href="https://blog.csdn.net/ZOKEKAI/article/details/90051567" target="_blank" rel="noopener"
 >ConcurrentHashMap1.8 - 扩容详解_concurrenthashmap1.8的扩容机制-CSDN博客&lt;/a>&lt;/p>
 &lt;p>&lt;a class="link" href="https://blog.csdn.net/Unknownfuture/article/details/105369019" target="_blank" rel="noopener"
->ConcurrentHashMap之transfer()扩容深入源码分析-CSDN博客&lt;/a>&lt;/p></description></item><item><title>JavaLock类源码分析</title><link>https://qisiii.github.io/post/tech/lang/javalock/</link><pubDate>Mon, 14 Feb 2022 00:00:00 +0000</pubDate><guid>https://qisiii.github.io/post/tech/lang/javalock/</guid><description>&lt;h2 id="lock和condition接口">Lock和Condition接口
+>ConcurrentHashMap之transfer()扩容深入源码分析-CSDN博客&lt;/a>&lt;/p></description></item><item><title>JavaLock类源码分析</title><link>https://blog.qisiii.asia/post/tech/lang/javalock/</link><pubDate>Mon, 14 Feb 2022 00:00:00 +0000</pubDate><guid>https://blog.qisiii.asia/post/tech/lang/javalock/</guid><description>&lt;h2 id="lock和condition接口">Lock和Condition接口
 &lt;/h2>&lt;p>Lock是java中显示使用锁的方案，相比于synchronized，要更加灵活；&lt;/p>
 &lt;p>synchronized在可重入的情况下，加锁和解锁是相反的顺序，但是Lock可以以任意的顺序解锁；&lt;/p>
 &lt;p>而且synchronized必须限定在同一范围内使用，lock则可以在不同的范围；&lt;/p>

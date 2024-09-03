@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>起司的博客</title><link>https://qisiii.github.io/post/tech/mysql/</link><description>Recent content on 起司的博客</description><generator>Hugo -- gohugo.io</generator><language>zh-cn</language><copyright>起司</copyright><atom:link href="https://qisiii.github.io/post/tech/mysql/index.xml" rel="self" type="application/rss+xml"/><item><title>UndoLog和redoLog</title><link>https://qisiii.github.io/post/tech/mysql/undolog_redolog/</link><pubDate>Sat, 30 Dec 2023 00:00:00 +0000</pubDate><guid>https://qisiii.github.io/post/tech/mysql/undolog_redolog/</guid><description>&lt;h2 id="redolog">redolog
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>起司的博客</title><link>https://blog.qisiii.asia/post/tech/mysql/</link><description>Recent content on 起司的博客</description><generator>Hugo -- gohugo.io</generator><language>zh-cn</language><copyright>起司</copyright><atom:link href="https://blog.qisiii.asia/post/tech/mysql/index.xml" rel="self" type="application/rss+xml"/><item><title>UndoLog和redoLog</title><link>https://blog.qisiii.asia/post/tech/mysql/undolog_redolog/</link><pubDate>Sat, 30 Dec 2023 00:00:00 +0000</pubDate><guid>https://blog.qisiii.asia/post/tech/mysql/undolog_redolog/</guid><description>&lt;h2 id="redolog">redolog
 &lt;/h2>&lt;p>从ACID了解到，对于数据库来说，原子性和持久性是为了保证数据修改之后就不会再有变换，但是持久性这个动作不是一个原子性的操作，包含写入、未写入和正在写多个状态。&lt;/p>
 &lt;p>假如是未提交事务（内存操作），这个时候就将数据落盘，那么这个时候如果崩溃了，在恢复数据的时候，就要将落盘的数据修改为未提交事务之前的数据。&lt;/p>
 &lt;p>假如是提交事务了（内存操作），这个时候数据还没有落盘，这个时候如果崩溃，就要在磁盘补充所落下的部分。&lt;/p>
@@ -48,7 +48,7 @@ loading="lazy"
 &lt;p>&lt;a class="link" href="https://blog.csdn.net/huangjw_806/article/details/100927097" target="_blank" rel="noopener"
 >MySQL中binlog和redo log的一致性问题_binlog 和 redo不同步-CSDN博客&lt;/a>&lt;/p>
 &lt;p>&lt;a class="link" href="https://time.geekbang.org/column/article/76161" target="_blank" rel="noopener"
->23 | MySQL是怎么保证数据不丢的？-极客时间&lt;/a>&lt;/p></description></item><item><title>锁</title><link>https://qisiii.github.io/post/tech/mysql/db_lock/</link><pubDate>Wed, 14 Jun 2023 00:00:00 +0000</pubDate><guid>https://qisiii.github.io/post/tech/mysql/db_lock/</guid><description>&lt;h2 id="mvcc机制遗留的问题">MVCC机制遗留的问题
+>23 | MySQL是怎么保证数据不丢的？-极客时间&lt;/a>&lt;/p></description></item><item><title>锁</title><link>https://blog.qisiii.asia/post/tech/mysql/db_lock/</link><pubDate>Wed, 14 Jun 2023 00:00:00 +0000</pubDate><guid>https://blog.qisiii.asia/post/tech/mysql/db_lock/</guid><description>&lt;h2 id="mvcc机制遗留的问题">MVCC机制遗留的问题
 &lt;/h2>&lt;p>&lt;strong>为什么在可重复读级别下，幻读没有产生？&lt;/strong>&lt;/p>
 &lt;p>回想一下在事务隔离级别那篇文章中，可串行化是通过什么保证的？&lt;/p>
 &lt;p>对操作的每一行记录加读锁、写锁和范围锁；任何其他事务都必须等待持有锁的事务释放锁之后才能进行操作；&lt;/p>
@@ -850,7 +850,7 @@ loading="lazy"
 &lt;p>&lt;a class="link" href="https://blog.csdn.net/q2878948/article/details/96430129" target="_blank" rel="noopener"
 >mysql MDL读写锁阻塞，以及online ddl造成的“插队”现象_花落的速度的博客-CSDN博客&lt;/a>&lt;/p>
 &lt;p>&lt;a class="link" href="https://blog.csdn.net/zbh1957282580/article/details/122457542" target="_blank" rel="noopener"
->MYSQL查看表是否被锁、以及解锁_mysql查看锁表_清石小猿的博客-CSDN博客&lt;/a>&lt;/p></description></item><item><title>MVCC机制</title><link>https://qisiii.github.io/post/tech/mysql/mvcc/</link><pubDate>Mon, 05 Jun 2023 00:00:00 +0000</pubDate><guid>https://qisiii.github.io/post/tech/mysql/mvcc/</guid><description>&lt;img src="https://qisiii.github.io/blog-img/mvcc.png" alt="Featured image of post MVCC机制" />&lt;h2 id="事务隔离级别遗留问题">事务隔离级别遗留问题：
+>MYSQL查看表是否被锁、以及解锁_mysql查看锁表_清石小猿的博客-CSDN博客&lt;/a>&lt;/p></description></item><item><title>MVCC机制</title><link>https://blog.qisiii.asia/post/tech/mysql/mvcc/</link><pubDate>Mon, 05 Jun 2023 00:00:00 +0000</pubDate><guid>https://blog.qisiii.asia/post/tech/mysql/mvcc/</guid><description>&lt;img src="https://blog.qisiii.asia/blog-img/mvcc.png" alt="Featured image of post MVCC机制" />&lt;h2 id="事务隔离级别遗留问题">事务隔离级别遗留问题：
 &lt;/h2>&lt;p>在读已提交的级别下，事务B可以读到事务A持有写锁的的记录，且读到的是未更新前的，为何写读没有冲突？&lt;/p>
 &lt;p>可重复读级别，事务B可以更新事务A已经获取读锁的记录，且更新后，事务A依然可以获取读锁，为何读-写-读没有冲突？&lt;/p>
 &lt;p>在可重复读级别，幻读没有产生？&lt;/p>
@@ -1421,7 +1421,7 @@ loading="lazy"
 &lt;p>&lt;a class="link" href="http://blog.itpub.net/7728585/viewspace-2142302/" target="_blank" rel="noopener"
 >MYSQL innodb中的只读事物以及事物id的分配方式_ITPUB博客&lt;/a>&lt;/p>
 &lt;p>&lt;a class="link" href="https://blog.csdn.net/scugxl/article/details/102911145" target="_blank" rel="noopener"
->Mysql如何实现隔离级别 - 可重复读和读提交 源码分析_mysql 可重复度源码_择维士的博客-CSDN博客&lt;/a>&lt;/p></description></item><item><title>事务隔离级别</title><link>https://qisiii.github.io/post/tech/mysql/transaction_isolation/</link><pubDate>Tue, 30 May 2023 00:00:00 +0000</pubDate><guid>https://qisiii.github.io/post/tech/mysql/transaction_isolation/</guid><description>&lt;h2 id="标准隔离级别">标准隔离级别
+>Mysql如何实现隔离级别 - 可重复读和读提交 源码分析_mysql 可重复度源码_择维士的博客-CSDN博客&lt;/a>&lt;/p></description></item><item><title>事务隔离级别</title><link>https://blog.qisiii.asia/post/tech/mysql/transaction_isolation/</link><pubDate>Tue, 30 May 2023 00:00:00 +0000</pubDate><guid>https://blog.qisiii.asia/post/tech/mysql/transaction_isolation/</guid><description>&lt;h2 id="标准隔离级别">标准隔离级别
 &lt;/h2>&lt;p>读未提交、读已提交、可重复读、串行化&lt;/p>
 &lt;h3 id="串行化">串行化
 &lt;/h3>&lt;p>对事务中所有读写的数据加上读锁、写锁、范围锁。所以冲突的事务必须同步执行。&lt;/p>

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>起司的博客</title><link>https://qisiii.github.io/post/tech/distributed/zookeeper/</link><description>Recent content on 起司的博客</description><generator>Hugo -- gohugo.io</generator><language>zh-cn</language><copyright>起司</copyright><atom:link href="https://qisiii.github.io/post/tech/distributed/zookeeper/index.xml" rel="self" type="application/rss+xml"/><item><title>Zookeeper源码分析-Zab协议</title><link>https://qisiii.github.io/post/tech/distributed/zookeeper/zab/</link><pubDate>Wed, 14 Aug 2024 15:08:39 +0800</pubDate><guid>https://qisiii.github.io/post/tech/distributed/zookeeper/zab/</guid><description>&lt;h2 id="基本概念">基本概念
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>起司的博客</title><link>https://blog.qisiii.asia/post/tech/distributed/zookeeper/</link><description>Recent content on 起司的博客</description><generator>Hugo -- gohugo.io</generator><language>zh-cn</language><copyright>起司</copyright><atom:link href="https://blog.qisiii.asia/post/tech/distributed/zookeeper/index.xml" rel="self" type="application/rss+xml"/><item><title>Zookeeper源码分析-Zab协议</title><link>https://blog.qisiii.asia/post/tech/distributed/zookeeper/zab/</link><pubDate>Wed, 14 Aug 2024 15:08:39 +0800</pubDate><guid>https://blog.qisiii.asia/post/tech/distributed/zookeeper/zab/</guid><description>&lt;h2 id="基本概念">基本概念
 &lt;/h2>&lt;p>建议读一下&lt;a class="link" href="https://learn.lianglianglee.com/%e4%b8%93%e6%a0%8f/24%e8%ae%b2%e5%90%83%e9%80%8f%e5%88%86%e5%b8%83%e5%bc%8f%e6%95%b0%e6%8d%ae%e5%ba%93-%e5%ae%8c/20%20%20%e5%85%b1%e8%af%86%e7%ae%97%e6%b3%95%ef%bc%9a%e4%b8%80%e6%ac%a1%e6%80%a7%e8%af%b4%e6%b8%85%e6%a5%9a%20Paxos%e3%80%81Raft%20%e7%ad%89%e7%ae%97%e6%b3%95%e7%9a%84%e5%8c%ba%e5%88%ab.md" target="_blank" rel="noopener"
 >20 共识算法：一次性说清楚 Paxos、Raft 等算法的区别&lt;/a>，里面讲的还算易懂。&lt;/p>
 &lt;p>ZAB是zookeeper专门为了保持分布式共识而实现的算法，算法的基石还是Paxos的原理，或者说Mluti Paxos的原理。和Raft算法很像，都具有leader的概念，消息都是通过leader去统一管理，其他节点只需要从leader同步消息即可，并且都是超过半数提交事务就认为成功了。&lt;/p>
@@ -7,10 +7,10 @@
 &lt;p>广播的意思是指当节点收到消息后，要将消息广播给其他的节点。那什么叫做原子呢？原子的意思是在这次广播中，要么所有的节点都收到消息并进行广播；要么所有的节点都放弃该条消息不做广播。&lt;/p>
 &lt;p>但仅是广播并不能保证所有节点的数据完全一致，还需要保证消息必须有序的处理，每个节点必须处理完上一个消息，才能处理下一条消息。&lt;/p>
 &lt;p>这是原子广播的两个基本要求：原子和有序。&lt;/p>
-&lt;p>当leader挂掉的时候，新的leader必须尽快了解并统一整个集群当前的进度。因此，在&lt;a class="link" href="https://qisiii.github.io/post/tech/distributed/zookeeper/election/#选举逻辑" >zk选举流程&lt;/a> 中，可以理解为什么必须选择最大事务ID作为leader，因为只有这样，才能在当前节点拥有最全的事务日志。当拥有了最全的事务后，从节点去进行同步到最新的进度。假如原来的leader又恢复了，那么就需要原来的leader丢弃超出现有leader的事务。这就是ZAB的另一部分&amp;ndash;崩溃恢复。&lt;/p>
+&lt;p>当leader挂掉的时候，新的leader必须尽快了解并统一整个集群当前的进度。因此，在&lt;a class="link" href="https://blog.qisiii.asia/post/tech/distributed/zookeeper/election/#选举逻辑" >zk选举流程&lt;/a> 中，可以理解为什么必须选择最大事务ID作为leader，因为只有这样，才能在当前节点拥有最全的事务日志。当拥有了最全的事务后，从节点去进行同步到最新的进度。假如原来的leader又恢复了，那么就需要原来的leader丢弃超出现有leader的事务。这就是ZAB的另一部分&amp;ndash;崩溃恢复。&lt;/p>
 &lt;h2 id="整体设计">整体设计
 &lt;/h2>&lt;p>所有的节点分为了Leader、Follower、Observer三种，其中Leader和Follower是有投票权的。Observer是一个只处理只读请求的节点，属于作为提交吞吐量的横向扩展机制。&lt;/p>
-&lt;p>之前的&lt;a class="link" href="https://qisiii.github.io/post/tech/distributed/zookeeper/election/" >选举机制&lt;/a>中也提到过，当选举结束之后，每个节点会更新自己的状态，当进入下一次循环的时候，会走到各自的case下执行各自的逻辑。&lt;/p>
+&lt;p>之前的&lt;a class="link" href="https://blog.qisiii.asia/post/tech/distributed/zookeeper/election/" >选举机制&lt;/a>中也提到过，当选举结束之后，每个节点会更新自己的状态，当进入下一次循环的时候，会走到各自的case下执行各自的逻辑。&lt;/p>
 &lt;p>虽然每个节点只有两行方法，但背后的逻辑还是蛮复杂的，make***方法是构建Zookeeper，可以理解为原子广播部分的逻辑。&lt;/p>
 &lt;p>而lead、followLeader和observeLeader则是启动部分，主要是崩溃恢复的逻辑。下面我们以leader和follower串一下这个流程。&lt;/p>
 &lt;div class="highlight">&lt;div class="chroma">
@@ -73,7 +73,7 @@
 loading="lazy"
 >&lt;/p>
 &lt;h4 id="election">ELECTION
-&lt;/h4>&lt;p>整个选举过程都是属于ELECTION状态，具体分析可以看&lt;a class="link" href="https://qisiii.github.io/post/tech/distributed/zookeeper/election/" >选举机制&lt;/a>&lt;/p>
+&lt;/h4>&lt;p>整个选举过程都是属于ELECTION状态，具体分析可以看&lt;a class="link" href="https://blog.qisiii.asia/post/tech/distributed/zookeeper/election/" >选举机制&lt;/a>&lt;/p>
 &lt;h4 id="discovery">DISCOVERY
 &lt;/h4>&lt;ol>
 &lt;li>
@@ -862,7 +862,7 @@ loading="lazy"
 &lt;/h3>&lt;p>&lt;img src="http://picgo.qisiii.asia/post/w39dhfwj7v37x15wz_psyqmc0000gn/T/3774ce7d18ce5323c3569e357f595f5e.jpg"
 loading="lazy"
 >&lt;/p>
-&lt;p>相比于单机版来说，集群的Processor显得有些多，但是像是PrepRequestProcessor、SyncRequestProcessor和FinnalProcessor都是复用，逻辑和&lt;a class="link" href="https://qisiii.github.io/post/tech/distributed/zookeeper/zookeeperservermain/#requestprocessor" >zookeeper源码-单机版&lt;/a>一样，这里就不赘述了。&lt;/p>
+&lt;p>相比于单机版来说，集群的Processor显得有些多，但是像是PrepRequestProcessor、SyncRequestProcessor和FinnalProcessor都是复用，逻辑和&lt;a class="link" href="https://blog.qisiii.asia/post/tech/distributed/zookeeper/zookeeperservermain/#requestprocessor" >zookeeper源码-单机版&lt;/a>一样，这里就不赘述了。&lt;/p>
 &lt;p>LeaderRequestProcessor只是做了一个checkUpgradeSession，处理本地会话创建临时节点的情况。&lt;/p>
 &lt;p>PropsoalRequestProcessor 的工作就是将请求以提案的方法发给各个节点，并且本地落库&lt;/p>
 &lt;p>CommitProcessor 用于处理本地事务和总事务的匹配处理，这个类的代码是我觉得最难理解的&lt;/p>
@@ -1193,7 +1193,7 @@ loading="lazy"
 &lt;p>&lt;a class="link" href="https://blog.csdn.net/Lanna_w/article/details/132414570" target="_blank" rel="noopener"
 >《Zookeeper》源码分析（十九）之 LearnerHandler-CSDN博客&lt;/a>&lt;/p>
 &lt;p>&lt;a class="link" href="https://learn.lianglianglee.com/%e4%b8%93%e6%a0%8f/24%e8%ae%b2%e5%90%83%e9%80%8f%e5%88%86%e5%b8%83%e5%bc%8f%e6%95%b0%e6%8d%ae%e5%ba%93-%e5%ae%8c/20%20%20%e5%85%b1%e8%af%86%e7%ae%97%e6%b3%95%ef%bc%9a%e4%b8%80%e6%ac%a1%e6%80%a7%e8%af%b4%e6%b8%85%e6%a5%9a%20Paxos%e3%80%81Raft%20%e7%ad%89%e7%ae%97%e6%b3%95%e7%9a%84%e5%8c%ba%e5%88%ab.md" target="_blank" rel="noopener"
->20 共识算法：一次性说清楚 Paxos、Raft 等算法的区别&lt;/a>&lt;/p></description></item><item><title>Zookeeper源码分析-选举机制</title><link>https://qisiii.github.io/post/tech/distributed/zookeeper/election/</link><pubDate>Fri, 09 Aug 2024 18:01:30 +0800</pubDate><guid>https://qisiii.github.io/post/tech/distributed/zookeeper/election/</guid><description>&lt;h2 id="部署">部署
+>20 共识算法：一次性说清楚 Paxos、Raft 等算法的区别&lt;/a>&lt;/p></description></item><item><title>Zookeeper源码分析-选举机制</title><link>https://blog.qisiii.asia/post/tech/distributed/zookeeper/election/</link><pubDate>Fri, 09 Aug 2024 18:01:30 +0800</pubDate><guid>https://blog.qisiii.asia/post/tech/distributed/zookeeper/election/</guid><description>&lt;h2 id="部署">部署
 &lt;/h2>&lt;p>在单机上部署伪集群，需要根据不同的配置文件启动不同的进程。&lt;/p>
 &lt;div class="highlight">&lt;div class="chroma">
 &lt;table class="lntable">&lt;tr>&lt;td class="lntd">
@@ -1966,7 +1966,7 @@ loading="lazy"
 &lt;/div>
 &lt;/div>&lt;h3 id="readonlyzookeeperserver">ReadOnlyZookeeperServer
 &lt;/h3>&lt;p>当处于选举状态时，假如&lt;code>readonlymode.enabled&lt;/code>为true，那么就创建一个只读的服务器，该服务器只提供查询，不能写入。&lt;/p>
-&lt;p>在&lt;a class="link" href="https://qisiii.github.io/post/tech/distributed/zookeeper/zookeeperservermain/" >zookeeper学习-单机模式&lt;/a>中，我们知道zkserver是由三个processor处理的，其中SyncRequestProcessor是处理事务的，将事务写入日志里。而在只读模式下可以看到，不存在这个processor，所以只能查，不能写。&lt;/p>
+&lt;p>在&lt;a class="link" href="https://blog.qisiii.asia/post/tech/distributed/zookeeper/zookeeperservermain/" >zookeeper学习-单机模式&lt;/a>中，我们知道zkserver是由三个processor处理的，其中SyncRequestProcessor是处理事务的，将事务写入日志里。而在只读模式下可以看到，不存在这个processor，所以只能查，不能写。&lt;/p>
 &lt;div class="highlight">&lt;div class="chroma">
 &lt;table class="lntable">&lt;tr>&lt;td class="lntd">
 &lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
@@ -2007,7 +2007,7 @@ loading="lazy"
 &lt;p>&lt;a class="link" href="https://juejin.cn/post/6989543523213115406#heading-22" target="_blank" rel="noopener"
 >【Zookeeper源码阅读】leader选举源码分析 - 掘金&lt;/a>&lt;/p>
 &lt;p>&lt;a class="link" href="https://juejin.cn/post/7112681401601769486" target="_blank" rel="noopener"
->【图解源码】Zookeeper3.7源码剖析，Session的管理机制，Leader选举投票规则，集群数据同步流程 - 掘金&lt;/a>&lt;/p></description></item><item><title>Zookeeper源码分析-watch机制</title><link>https://qisiii.github.io/post/tech/distributed/zookeeper/watch/</link><pubDate>Thu, 08 Aug 2024 23:34:10 +0800</pubDate><guid>https://qisiii.github.io/post/tech/distributed/zookeeper/watch/</guid><description>&lt;p>Zookeeper框架设计了一种叫做watch的机制，客户端可以给某个节点添加watcher，当节点改变的时候，服务端会推送一个消息到客户端。&lt;/p>
+>【图解源码】Zookeeper3.7源码剖析，Session的管理机制，Leader选举投票规则，集群数据同步流程 - 掘金&lt;/a>&lt;/p></description></item><item><title>Zookeeper源码分析-watch机制</title><link>https://blog.qisiii.asia/post/tech/distributed/zookeeper/watch/</link><pubDate>Thu, 08 Aug 2024 23:34:10 +0800</pubDate><guid>https://blog.qisiii.asia/post/tech/distributed/zookeeper/watch/</guid><description>&lt;p>Zookeeper框架设计了一种叫做watch的机制，客户端可以给某个节点添加watcher，当节点改变的时候，服务端会推送一个消息到客户端。&lt;/p>
 &lt;p>在3.6.0之前的版本，node上的watcher都是一次性的，即当收到服务端的通知后，如果还想监听需要再次设置，在3.6.0之后，可以设置一个永久且递归的watcher。&lt;/p>
 &lt;p>这个技术是很有用的，比如在dubbo中，consumer端可以只关注自己感兴趣的provider，而不用关心全部的provider，本文就来梳理一下这个watch机制。&lt;/p>
 &lt;p>目前普通的方法，watch机制仅允许在getData、exist、getChildren这三个方法调用的时候进行添加。或者直接调用addWatch方法给指定节点添加watcher。&lt;/p>
@@ -2279,7 +2279,7 @@ loading="lazy"
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">}&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
 &lt;/div>
-&lt;/div>&lt;p>至此，和客户端完成闭环。&lt;/p></description></item><item><title>Zookeeper源码学习-单机部分通信组件</title><link>https://qisiii.github.io/post/tech/distributed/zookeeper/zookeeperservermain/</link><pubDate>Mon, 05 Aug 2024 12:59:08 +0800</pubDate><guid>https://qisiii.github.io/post/tech/distributed/zookeeper/zookeeperservermain/</guid><description>&lt;h2 id="调试前准备">调试前准备
+&lt;/div>&lt;p>至此，和客户端完成闭环。&lt;/p></description></item><item><title>Zookeeper源码学习-单机部分通信组件</title><link>https://blog.qisiii.asia/post/tech/distributed/zookeeper/zookeeperservermain/</link><pubDate>Mon, 05 Aug 2024 12:59:08 +0800</pubDate><guid>https://blog.qisiii.asia/post/tech/distributed/zookeeper/zookeeperservermain/</guid><description>&lt;h2 id="调试前准备">调试前准备
 &lt;/h2>&lt;p>对于大部分的开源项目，一般都可以从其启动shell脚本中分析出来java启动类。我这里clone源码后以tag 3.9.1为主创建了一个分支，方便注释，调试。&lt;/p>
 &lt;p>在bin/zkServer.sh脚本中，其启动逻辑如下，如果是执行的./zkServer.sh start的话，最终执行的命令大概是&lt;/p>
 &lt;p>&lt;code>nohup java [一堆参数] org.apache.zookeeper.server.quorum.QuorumPeerMain [输出日志]&lt;/code>,ZOOMAIN变量可以往上溯源，四个出现的地方最终都是QuorumPeerMain类。因此QuorumPeerMain类就是zookeeper的启动类。&lt;/p>

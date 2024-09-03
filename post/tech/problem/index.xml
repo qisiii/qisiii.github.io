@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>起司的博客</title><link>https://qisiii.github.io/post/tech/problem/</link><description>Recent content on 起司的博客</description><generator>Hugo -- gohugo.io</generator><language>zh-cn</language><copyright>起司</copyright><atom:link href="https://qisiii.github.io/post/tech/problem/index.xml" rel="self" type="application/rss+xml"/><item><title>偷偷开启的监控在吃内存</title><link>https://qisiii.github.io/post/tech/problem/springactuator_fullgc/</link><pubDate>Sun, 10 Dec 2023 00:00:00 +0000</pubDate><guid>https://qisiii.github.io/post/tech/problem/springactuator_fullgc/</guid><description>&lt;h2 id="整体复盘">整体复盘：
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>起司的博客</title><link>https://blog.qisiii.asia/post/tech/problem/</link><description>Recent content on 起司的博客</description><generator>Hugo -- gohugo.io</generator><language>zh-cn</language><copyright>起司</copyright><atom:link href="https://blog.qisiii.asia/post/tech/problem/index.xml" rel="self" type="application/rss+xml"/><item><title>偷偷开启的监控在吃内存</title><link>https://blog.qisiii.asia/post/tech/problem/springactuator_fullgc/</link><pubDate>Sun, 10 Dec 2023 00:00:00 +0000</pubDate><guid>https://blog.qisiii.asia/post/tech/problem/springactuator_fullgc/</guid><description>&lt;h2 id="整体复盘">整体复盘：
 &lt;/h2>&lt;p>一个不算普通的周五中午，同事收到了大量了cpu异常的报警。根据报警表现和通过arthas查看，很明显的问题就是内存不足，疯狂无效gc。而且结合arthas和gc日志查看，老年代打满了，gc不了一点。既然问题是内存问题，那么老样子，通过jmap和heap dump 文件分析。&lt;/p>
 &lt;p>不感兴趣的可以直接看结论&lt;/p>
 &lt;p>通过jmap命令查看的类似下图，并没有项目中明显的自定义类，而占空间最大的又是char数组，当时线上占900M左右，整个老年代也就1.8个G；此时dump文件同事还在下载，网速较慢。&lt;/p>
@@ -428,7 +428,7 @@ loading="lazy"
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="p">}&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
 &lt;/div>
-&lt;/div></description></item><item><title>记一次内存飙升、gc频繁、cpu飙高</title><link>https://qisiii.github.io/post/tech/problem/task_fullgc/</link><pubDate>Sat, 19 Aug 2023 00:00:00 +0000</pubDate><guid>https://qisiii.github.io/post/tech/problem/task_fullgc/</guid><description>&lt;h2 id="紧急排查">紧急排查：
+&lt;/div></description></item><item><title>记一次内存飙升、gc频繁、cpu飙高</title><link>https://blog.qisiii.asia/post/tech/problem/task_fullgc/</link><pubDate>Sat, 19 Aug 2023 00:00:00 +0000</pubDate><guid>https://blog.qisiii.asia/post/tech/problem/task_fullgc/</guid><description>&lt;h2 id="紧急排查">紧急排查：
 &lt;/h2>&lt;p>一个普通工作日的晚上8点，突然收到大量接口超时的报警，最高甚至有超100s，于是开始紧急排查。&lt;/p>
 &lt;p>首先是看监控面板里的内存监控和cpu监控，说到这里不得不吐槽一句公司的内存监控没什么软用（当时并不会熟练使用arthas)，监控的是pod节点内存情况，也就是说一直展示的都是历史最高的，因为jvm申请内存后是不会返还给实例的，所以并不能看出来什么。倒是cpu确实彪的很高。&lt;/p>
 &lt;p>直觉判断，肯定是内存上去了，频繁gc，导致的cpu飙高，那么是哪里的问题呢？&lt;/p>
@@ -573,7 +573,7 @@ loading="lazy"
 &lt;p>&lt;a class="link" href="https://www.jianshu.com/p/cf3d157e245f" target="_blank" rel="noopener"
 >面试官问：平时碰到系统CPU飙高和频繁GC，你会怎么排查？&lt;/a>&lt;/p>
 &lt;p>&lt;a class="link" href="https://blog.csdn.net/weixin_34409887/article/details/114746993" target="_blank" rel="noopener"
->java面试oom问题及答案_java面试中必问的oom问题_卜奕的博客-CSDN博客&lt;/a>&lt;/p></description></item><item><title>线程异常增长</title><link>https://qisiii.github.io/post/tech/problem/thread_exception/</link><pubDate>Fri, 18 Aug 2023 00:00:00 +0000</pubDate><guid>https://qisiii.github.io/post/tech/problem/thread_exception/</guid><description>&lt;p>小组群内leader甩出来一个截图，说是线程有些异常，一直在增长，从pool-1-thread一直到pool-285-thread，每个pool都只有三个线程：thread-1 thread-2 thread-3，第一反应感觉肯定和定时任务有关，这种稳定的有规律的一般都是和定时任务有关。&lt;/p>
+>java面试oom问题及答案_java面试中必问的oom问题_卜奕的博客-CSDN博客&lt;/a>&lt;/p></description></item><item><title>线程异常增长</title><link>https://blog.qisiii.asia/post/tech/problem/thread_exception/</link><pubDate>Fri, 18 Aug 2023 00:00:00 +0000</pubDate><guid>https://blog.qisiii.asia/post/tech/problem/thread_exception/</guid><description>&lt;p>小组群内leader甩出来一个截图，说是线程有些异常，一直在增长，从pool-1-thread一直到pool-285-thread，每个pool都只有三个线程：thread-1 thread-2 thread-3，第一反应感觉肯定和定时任务有关，这种稳定的有规律的一般都是和定时任务有关。&lt;/p>
 &lt;ol>
 &lt;li>
 &lt;p>定位线程是哪部分的代码&lt;/p>
