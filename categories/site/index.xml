@@ -446,7 +446,12 @@ loading="lazy"
 &lt;/h2>&lt;p>截取成圆形图&lt;a class="link" href="https://bigimage.11zon.com/zh-cn/crop-circle-image/" target="_blank" rel="noopener"
 >作物圈图像在线-最佳图像裁剪工具&lt;/a>&lt;/p>
 &lt;p>&lt;a class="link" href="https://ellaann.github.io/p/%E6%B7%BB%E5%8A%A0favicon%E5%88%B0hugo%E7%9A%84%E7%BD%91%E7%AB%99%E4%B8%AD/" target="_blank" rel="noopener"
->添加Favicon到Hugo的网站中&lt;/a>&lt;/p></description></item><item><title>搭建自己的博客</title><link>https://qisiii.github.io/post/site/personsite/</link><pubDate>Tue, 23 Jul 2024 00:00:00 +0000</pubDate><guid>https://qisiii.github.io/post/site/personsite/</guid><description>&lt;h2 id="建站方式">建站方式
+>添加Favicon到Hugo的网站中&lt;/a>&lt;/p>
+&lt;h2 id="通过githubwebhook通知服务器自动构建">通过githubWebHook通知服务器自动构建
+&lt;/h2>&lt;p>&lt;a class="link" href="https://jimmysong.io/blog/github-webhook-website-auto-deploy/" target="_blank" rel="noopener"
+>使用 GitHub Webhook 实现静态网站自动化部署 · Jimmy Song&lt;/a>&lt;/p>
+&lt;h2 id="添加备案">添加备案
+&lt;/h2>&lt;p>在foot.customText:添加&lt;code> '&amp;lt;a href=&amp;quot;https://beian.miit.gov.cn/&amp;quot; target=&amp;quot;_blank&amp;quot;&amp;gt;京ICP备2023017017号-1&amp;lt;/a&amp;gt;'&lt;/code>&lt;/p></description></item><item><title>搭建自己的博客</title><link>https://qisiii.github.io/post/site/personsite/</link><pubDate>Tue, 23 Jul 2024 00:00:00 +0000</pubDate><guid>https://qisiii.github.io/post/site/personsite/</guid><description>&lt;h2 id="建站方式">建站方式
 &lt;/h2>&lt;p>选择建站方式，是使用动态建站（如WordPress、halo），还是使用静态建站（Jekyll、hexo、hugo）。&lt;/p>
 &lt;p>前者更偏向于传统的CMS管理系统，有后台管理页面，可以在管理页面发布，修改文章。除了需要服务器之外，需要同时了解前端、后端、数据库相关的知识，当然现有的项目完全可以简单配置后就可以开箱使用。&lt;/p>
 &lt;p>后者一般是使用各种开源项目，将文档转为静态资源（html），部署在服务器或者以GithubPages的方式供他人访问。而使用哪个开源项目进行建站，可以去&lt;a class="link" href="https://jamstack.org/generators/" target="_blank" rel="noopener"
