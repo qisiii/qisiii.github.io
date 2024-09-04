@@ -1,5 +1,5 @@
 <!doctype html><html lang=zh-cn dir=ltr><head><meta charset=utf-8><meta name=viewport content='width=device-width,initial-scale=1'><meta name=description content="Hashmap、ConcurrentHashMap、CopyOnWriteArrayList源码分析"><title>Java集合源码分析</title>
-<link rel=canonical href=https://qisiii.github.io/post/tech/lang/javacollection/><link rel=stylesheet href=/scss/style.min.7657e19dfcc00117e827b40bd92bcea286037ffa4a33e95fc533eaea79d078f9.css><meta property='og:title' content="Java集合源码分析"><meta property='og:description' content="Hashmap、ConcurrentHashMap、CopyOnWriteArrayList源码分析"><meta property='og:url' content='https://qisiii.github.io/post/tech/lang/javacollection/'><meta property='og:site_name' content='起司的博客'><meta property='og:type' content='article'><meta property='article:section' content='Post'><meta property='article:tag' content='Java'><meta property='article:published_time' content='2022-02-16T00:00:00+00:00'><meta property='article:modified_time' content='2024-09-03T18:42:30+00:00'><meta name=twitter:title content="Java集合源码分析"><meta name=twitter:description content="Hashmap、ConcurrentHashMap、CopyOnWriteArrayList源码分析"><link rel=alternate type=application/json href=https://qisiii.github.io/post/tech/lang/javacollection/index.json><link rel=alternate type=application/rss+xml href=https://qisiii.github.io/post/tech/lang/javacollection/index.xml><link rel="shortcut icon" href=/favicon.ico><script async src="https://www.googletagmanager.com/gtag/js?id=G-8NDCRP4S7S"></script><script>var dnt,doNotTrack=!1;if(!1&&(dnt=navigator.doNotTrack||window.doNotTrack||navigator.msDoNotTrack,doNotTrack=dnt=="1"||dnt=="yes"),!doNotTrack){window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","G-8NDCRP4S7S")}</script><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=manifest href=/site.webmanifest><span id=top></span></head><body class=article-page><script>(function(){const e="StackColorScheme";localStorage.getItem(e)||localStorage.setItem(e,"auto")})()</script><script>(function(){const t="StackColorScheme",e=localStorage.getItem(t),n=window.matchMedia("(prefers-color-scheme: dark)").matches===!0;e=="dark"||e==="auto"&&n?document.documentElement.dataset.scheme="dark":document.documentElement.dataset.scheme="light"})()</script><div class="container main-container flex on-phone--column extended"><aside class="sidebar left-sidebar sticky"><button class="hamburger hamburger--spin" type=button id=toggle-menu aria-label=切换菜单>
+<link rel=canonical href=https://qisiii.github.io/post/tech/lang/javacollection/><link rel=stylesheet href=/scss/style.min.7657e19dfcc00117e827b40bd92bcea286037ffa4a33e95fc533eaea79d078f9.css><meta property='og:title' content="Java集合源码分析"><meta property='og:description' content="Hashmap、ConcurrentHashMap、CopyOnWriteArrayList源码分析"><meta property='og:url' content='https://qisiii.github.io/post/tech/lang/javacollection/'><meta property='og:site_name' content='起司的博客'><meta property='og:type' content='article'><meta property='article:section' content='Post'><meta property='article:tag' content='Java'><meta property='article:published_time' content='2022-02-16T00:00:00+00:00'><meta property='article:modified_time' content='2024-09-04T16:07:21+00:00'><meta name=twitter:title content="Java集合源码分析"><meta name=twitter:description content="Hashmap、ConcurrentHashMap、CopyOnWriteArrayList源码分析"><link rel=alternate type=application/json href=https://qisiii.github.io/post/tech/lang/javacollection/index.json><link rel=alternate type=application/rss+xml href=https://qisiii.github.io/post/tech/lang/javacollection/index.xml><link rel="shortcut icon" href=/favicon.ico><script async src="https://www.googletagmanager.com/gtag/js?id=G-8NDCRP4S7S"></script><script>var dnt,doNotTrack=!1;if(!1&&(dnt=navigator.doNotTrack||window.doNotTrack||navigator.msDoNotTrack,doNotTrack=dnt=="1"||dnt=="yes"),!doNotTrack){window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","G-8NDCRP4S7S")}</script><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=manifest href=/site.webmanifest><span id=top></span></head><body class=article-page><script>(function(){const e="StackColorScheme";localStorage.getItem(e)||localStorage.setItem(e,"auto")})()</script><script>(function(){const t="StackColorScheme",e=localStorage.getItem(t),n=window.matchMedia("(prefers-color-scheme: dark)").matches===!0;e=="dark"||e==="auto"&&n?document.documentElement.dataset.scheme="dark":document.documentElement.dataset.scheme="light"})()</script><div class="container main-container flex on-phone--column extended"><aside class="sidebar left-sidebar sticky"><button class="hamburger hamburger--spin" type=button id=toggle-menu aria-label=切换菜单>
 <span class=hamburger-box><span class=hamburger-inner></span></span></button><header><figure class=site-avatar><a href=/><img src=/img/avatar_huf89847f5290877d03a6309f0caaa56f1_43584_300x0_resize_box_3.png width=300 height=300 class=site-logo loading=lazy alt=Avatar></a></figure><div class=site-meta><h1 class=site-name><a href=/>起司的博客</a></h1><h2 class=site-description></h2></div></header><ol class=menu-social><li><a href=https://github.com/qisiii target=_blank title=GitHub rel=me><svg class="icon icon-tabler icon-tabler-brand-github" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 19c-4.3 1.4-4.3-2.5-6-3m12 5v-3.5c0-1 .1-1.4-.5-2 2.8-.3 5.5-1.4 5.5-6a4.6 4.6.0 00-1.3-3.2 4.2 4.2.0 00-.1-3.2s-1.1-.3-3.5 1.3a12.3 12.3.0 00-6.2.0C6.5 2.8 5.4 3.1 5.4 3.1a4.2 4.2.0 00-.1 3.2A4.6 4.6.0 004 9.5c0 4.6 2.7 5.7 5.5 6-.6.6-.6 1.2-.5 2V21"/></svg></a></li><li><a href=/index.xml target=_blank title=rss rel=me><svg class="icon icon-tabler icon-tabler-rss" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="5" cy="19" r="1"/><path d="M4 4a16 16 0 0116 16"/><path d="M4 11a9 9 0 019 9"/></svg></a></li></ol><ol class=menu id=main-menu><li><a href=/><svg class="icon icon-tabler icon-tabler-home" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><polyline points="5 12 3 12 12 3 21 12 19 12"/><path d="M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/><path d="M9 21v-6a2 2 0 012-2h2a2 2 0 012 2v6"/></svg>
 <span>首页|Home</span></a></li><li><a href=/post/friends target=_blank><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-heart-handshake"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M19.5 12.572 12 20l-7.5-7.428A5 5 0 1112 6.006a5 5 0 117.5 6.572"/><path d="M12 6 8.707 9.293a1 1 0 000 1.414l.543.543c.69.69 1.81.69 2.5.0l1-1a3.182 3.182.0 014.5.0l2.25 2.25"/><path d="M12.5 15.5l2 2"/><path d="M15 13l2 2"/></svg>
 <span>友链|Friends</span></a></li><li><a href=/post/search target=_blank><svg class="icon icon-tabler icon-tabler-search" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="10" cy="10" r="7"/><line x1="21" y1="21" x2="15" y2="15"/></svg>
@@ -7,29 +7,8 @@
 <svg class="icon icon-tabler icon-tabler-toggle-right" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="16" cy="12" r="2"/><rect x="2" y="6" width="20" height="12" rx="6"/></svg>
 <span>暗色模式</span></li></ol></li></ol></aside><aside class="sidebar right-sidebar sticky"><section class="widget archives"><div class=widget-icon><svg class="icon icon-tabler icon-tabler-hash" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><line x1="5" y1="9" x2="19" y2="9"/><line x1="5" y1="15" x2="19" y2="15"/><line x1="11" y1="4" x2="7" y2="20"/><line x1="17" y1="4" x2="13" y2="20"/></svg></div><h2 class="widget-title section-title">目录</h2><div class=widget--toc><nav id=TableOfContents><ol><li><a href=#hashmap源码分析>hashmap源码分析</a><ol><li><a href=#构造函数>构造函数</a></li><li><a href=#tablesizefor>tableSizeFor</a></li><li><a href=#put>put()</a></li><li><a href=#hash>hash()</a></li><li><a href=#putval>putVal()</a></li><li><a href=#putmapentries>putMapEntries()</a></li><li><a href=#resize>resize()</a></li><li><a href=#treeifybin>treeifyBin</a></li></ol></li><li><a href=#linkedhashmap>LinkedHashMap</a></li><li><a href=#concurrenthashmap>ConcurrentHashMap</a><ol><li><a href=#putval-1>putval()</a></li><li><a href=#addcount>addCount()</a></li><li><a href=#helptransfer>helpTransfer（）</a></li><li><a href=#transfer>transfer()</a></li><li><a href=#为什么不需要锁>为什么不需要锁？</a></li></ol></li><li><a href=#copyonwritearraylist>CopyOnWriteArrayList</a></li><li><a href=#参考资料>参考资料</a></li></ol></nav></div></section></aside><main class="main full-width"><article class=main-article><header class=article-header><div class=article-details><header class=article-category><a href=/categories/tech/>技术人生</a></header><div class=article-title-wrapper><h2 class=article-title><a href=/post/tech/lang/javacollection/>Java集合源码分析</a></h2><h3 class=article-subtitle>Hashmap、ConcurrentHashMap、CopyOnWriteArrayList源码分析</h3></div><footer class=article-time><div><svg class="icon icon-tabler icon-tabler-calendar-time" width="56" height="56" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><path d="M11.795 21H5a2 2 0 01-2-2V7a2 2 0 012-2h12a2 2 0 012 2v4"/><circle cx="18" cy="18" r="4"/><path d="M15 3v4"/><path d="M7 3v4"/><path d="M3 11h16"/><path d="M18 16.496V18l1 1"/></svg>
 <time class=article-time--published>2022-02-16</time></div><div><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-hourglass-empty"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M6 20v-2a6 6 0 1112 0v2a1 1 0 01-1 1H7a1 1 0 01-1-1z"/><path d="M6 4v2a6 6 0 1012 0V4a1 1 0 00-1-1H7A1 1 0 006 4z"/></svg>
-<time class=article-time--reading>13分钟</time></div><span id=busuanzi_container_value_page_pv><i class="far fa-eye fa-fw"></i>
-<span id=busuanzi_value_page_pv></span>&nbsp;</span><svg class="icon icon-tabler icon-tabler-tag" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><path d="M11 3l9 9a1.5 1.5.0 010 2l-6 6a1.5 1.5.0 01-2 0L3 11V7a4 4 0 014-4h4"/><circle cx="9" cy="9" r="2"/></svg><div class=artile-time-reading><a href=https://qisiii.github.io/tags/java>#Java</a></div></footer></div></header><section class=article-content><h2 id=hashmap源码分析>hashmap源码分析</h2><h3 id=构造函数>构造函数</h3><p>initialCapacity 初始化大小，一般最好2次幂</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span><span class=lnt>16
-</span><span class=lnt>17
-</span><span class=lnt>18
-</span><span class=lnt>19
-</span><span class=lnt>20
-</span><span class=lnt>21
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-gdscript3 data-lang=gdscript3><span class=line><span class=cl><span class=n>public</span> <span class=n>HashMap</span><span class=p>(</span><span class=ne>int</span> <span class=n>initialCapacity</span><span class=p>,</span> <span class=ne>float</span> <span class=n>loadFactor</span><span class=p>)</span> <span class=p>{</span>
+<time class=article-time--reading>11分钟</time></div><span id=busuanzi_container_value_page_pv><i class="far fa-eye fa-fw"></i>
+<span id=busuanzi_value_page_pv></span>&nbsp;</span><svg class="icon icon-tabler icon-tabler-tag" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><path d="M11 3l9 9a1.5 1.5.0 010 2l-6 6a1.5 1.5.0 01-2 0L3 11V7a4 4 0 014-4h4"/><circle cx="9" cy="9" r="2"/></svg><div class=artile-time-reading><a href=https://qisiii.github.io/tags/java>#Java</a></div></footer></div></header><section class=article-content><h2 id=hashmap源码分析>hashmap源码分析</h2><h3 id=构造函数>构造函数</h3><p>initialCapacity 初始化大小，一般最好2次幂</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-gdscript3 data-lang=gdscript3><span class=line><span class=cl><span class=n>public</span> <span class=n>HashMap</span><span class=p>(</span><span class=ne>int</span> <span class=n>initialCapacity</span><span class=p>,</span> <span class=ne>float</span> <span class=n>loadFactor</span><span class=p>)</span> <span class=p>{</span>
 </span></span><span class=line><span class=cl><span class=o>//</span><span class=err>初始化值默认是</span><span class=mi>16</span>
 </span></span><span class=line><span class=cl>    <span class=k>if</span> <span class=p>(</span><span class=n>initialCapacity</span> <span class=o>&lt;</span> <span class=mi>0</span><span class=p>)</span>
 </span></span><span class=line><span class=cl>        <span class=n>throw</span> <span class=n>new</span> <span class=n>IllegalArgumentException</span><span class=p>(</span><span class=s2>&#34;Illegal initial capacity: &#34;</span> <span class=o>+</span>
@@ -50,22 +29,7 @@
 </span></span><span class=line><span class=cl>    <span class=n>this</span><span class=o>.</span><span class=n>loadFactor</span> <span class=o>=</span> <span class=n>DEFAULT_LOAD_FACTOR</span><span class=p>;</span>
 </span></span><span class=line><span class=cl>    <span class=n>putMapEntries</span><span class=p>(</span><span class=n>m</span><span class=p>,</span> <span class=bp>false</span><span class=p>);</span>
 </span></span><span class=line><span class=cl><span class=p>}</span>
-</span></span></code></pre></td></tr></table></div></div><h3 id=tablesizefor>tableSizeFor</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>/**
+</span></span></code></pre></div><h3 id=tablesizefor>tableSizeFor</h3><div class=highlight><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>/**
 </span></span><span class=line><span class=cl> * Returns a power of two size for the given target capacity.
 </span></span><span class=line><span class=cl> */
 </span></span><span class=line><span class=cl> //生成一个大于等于 c 且为 2 的 N 次方的最小整数
@@ -80,19 +44,7 @@
 </span></span><span class=line><span class=cl>    n |= n &gt;&gt;&gt; 16;
 </span></span><span class=line><span class=cl>    return (n &lt; 0) ? 1 : (n &gt;= MAXIMUM_CAPACITY) ? MAXIMUM_CAPACITY : n + 1;
 </span></span><span class=line><span class=cl>}
-</span></span></code></pre></td></tr></table></div></div><h3 id=put>put()</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>public V put(K key, V value) {
+</span></span></code></pre></div><h3 id=put>put()</h3><div class=highlight><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>public V put(K key, V value) {
 </span></span><span class=line><span class=cl>    return putVal(hash(key), key, value, false, true);
 </span></span><span class=line><span class=cl>}
 </span></span><span class=line><span class=cl>先了解一下hash
@@ -104,64 +56,9 @@
 </span></span><span class=line><span class=cl>//集合数组下标获取方式
 </span></span><span class=line><span class=cl>if ((p = tab[i = (n - 1) &amp; hash]) == null)
 </span></span><span class=line><span class=cl>    tab[i] = newNode(hash, key, value, null);
-</span></span></code></pre></td></tr></table></div></div><h3 id=hash>hash()</h3><p>一般称之为扰动函数，可以看出hash表进行存储的时候，用的是key的hash值，理论上是32位值，但数组没那么大呀，默认也才16，所以通过数组下标获取方式的源码来看</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl> //所以是拿map的空间对hash掩码，
+</span></span></code></pre></div><h3 id=hash>hash()</h3><p>一般称之为扰动函数，可以看出hash表进行存储的时候，用的是key的hash值，理论上是32位值，但数组没那么大呀，默认也才16，所以通过数组下标获取方式的源码来看</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl> //所以是拿map的空间对hash掩码，
 </span></span><span class=line><span class=cl> tab[i = (n - 1) &amp; hash]
-</span></span></code></pre></td></tr></table></div></div><p><img src=http://picgo.qisiii.asia/post/11-09-55-34-image.png loading=lazy></p><p><img src=http://picgo.qisiii.asia/post/11-09-56-00-image.png loading=lazy></p><p>我们可以将32位与n-1（其实刚好是掩码）做与操作，但是这样存储，会严重依赖于低位的信息，具体内容可以看<a class=link href=https://www.cnblogs.com/zhengwang/p/8136164.html target=_blank rel=noopener>HashMap中的hash函数 - 淡腾的枫 - 博客园</a>，所以官方在与之前，先让高位和低位进行异或，增加了随机性</p><h3 id=putval>putVal()</h3><p>将链表转化为树</p><p><em>TREEIFY_THRESHOLD=8</em></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span><span class=lnt>16
-</span><span class=lnt>17
-</span><span class=lnt>18
-</span><span class=lnt>19
-</span><span class=lnt>20
-</span><span class=lnt>21
-</span><span class=lnt>22
-</span><span class=lnt>23
-</span><span class=lnt>24
-</span><span class=lnt>25
-</span><span class=lnt>26
-</span><span class=lnt>27
-</span><span class=lnt>28
-</span><span class=lnt>29
-</span><span class=lnt>30
-</span><span class=lnt>31
-</span><span class=lnt>32
-</span><span class=lnt>33
-</span><span class=lnt>34
-</span><span class=lnt>35
-</span><span class=lnt>36
-</span><span class=lnt>37
-</span><span class=lnt>38
-</span><span class=lnt>39
-</span><span class=lnt>40
-</span><span class=lnt>41
-</span><span class=lnt>42
-</span><span class=lnt>43
-</span><span class=lnt>44
-</span><span class=lnt>45
-</span><span class=lnt>46
-</span><span class=lnt>47
-</span><span class=lnt>48
-</span><span class=lnt>49
-</span><span class=lnt>50
-</span><span class=lnt>51
-</span><span class=lnt>52
-</span><span class=lnt>53
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>//evict为false则表示处于创建中，查看调用方就只有clone，new Map(otherMap),readObject时是false
+</span></span></code></pre></div><p><img src=http://picgo.qisiii.asia/post/11-09-55-34-image.png loading=lazy></p><p><img src=http://picgo.qisiii.asia/post/11-09-56-00-image.png loading=lazy></p><p>我们可以将32位与n-1（其实刚好是掩码）做与操作，但是这样存储，会严重依赖于低位的信息，具体内容可以看<a class=link href=https://www.cnblogs.com/zhengwang/p/8136164.html target=_blank rel=noopener>HashMap中的hash函数 - 淡腾的枫 - 博客园</a>，所以官方在与之前，先让高位和低位进行异或，增加了随机性</p><h3 id=putval>putVal()</h3><p>将链表转化为树</p><p><em>TREEIFY_THRESHOLD=8</em></p><div class=highlight><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>//evict为false则表示处于创建中，查看调用方就只有clone，new Map(otherMap),readObject时是false
 </span></span><span class=line><span class=cl>final V putVal(int hash, K key, V value, boolean onlyIfAbsent,
 </span></span><span class=line><span class=cl>               boolean evict) {
 </span></span><span class=line><span class=cl>    //数组加链表结构
@@ -214,27 +111,7 @@
 </span></span><span class=line><span class=cl>    afterNodeInsertion(evict);
 </span></span><span class=line><span class=cl>    return null;
 </span></span><span class=line><span class=cl>}
-</span></span></code></pre></td></tr></table></div></div><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span><span class=lnt>16
-</span><span class=lnt>17
-</span><span class=lnt>18
-</span><span class=lnt>19
-</span><span class=lnt>20
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>//get节点
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>//get节点
 </span></span><span class=line><span class=cl>final Node&lt;K,V&gt; getNode(int hash, Object key) {
 </span></span><span class=line><span class=cl>    Node&lt;K,V&gt;[] tab; Node&lt;K,V&gt; first, e; int n; K k;
 </span></span><span class=line><span class=cl>    if ((tab = table) != null &amp;&amp; (n = tab.length) &gt; 0 &amp;&amp;
@@ -254,29 +131,7 @@
 </span></span><span class=line><span class=cl>    }
 </span></span><span class=line><span class=cl>    return null;
 </span></span><span class=line><span class=cl>}
-</span></span></code></pre></td></tr></table></div></div><h3 id=putmapentries>putMapEntries()</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span><span class=lnt>16
-</span><span class=lnt>17
-</span><span class=lnt>18
-</span><span class=lnt>19
-</span><span class=lnt>20
-</span><span class=lnt>21
-</span><span class=lnt>22
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-gdscript3 data-lang=gdscript3><span class=line><span class=cl><span class=n>final</span> <span class=n>void</span> <span class=n>putMapEntries</span><span class=p>(</span><span class=n>Map</span><span class=o>&lt;</span><span class=err>?</span> <span class=k>extends</span> <span class=n>K</span><span class=p>,</span> <span class=err>?</span> <span class=k>extends</span> <span class=n>V</span><span class=o>&gt;</span> <span class=n>m</span><span class=p>,</span> <span class=n>boolean</span> <span class=n>evict</span><span class=p>)</span> <span class=p>{</span>
+</span></span></code></pre></div><h3 id=putmapentries>putMapEntries()</h3><div class=highlight><pre tabindex=0 class=chroma><code class=language-gdscript3 data-lang=gdscript3><span class=line><span class=cl><span class=n>final</span> <span class=n>void</span> <span class=n>putMapEntries</span><span class=p>(</span><span class=n>Map</span><span class=o>&lt;</span><span class=err>?</span> <span class=k>extends</span> <span class=n>K</span><span class=p>,</span> <span class=err>?</span> <span class=k>extends</span> <span class=n>V</span><span class=o>&gt;</span> <span class=n>m</span><span class=p>,</span> <span class=n>boolean</span> <span class=n>evict</span><span class=p>)</span> <span class=p>{</span>
 </span></span><span class=line><span class=cl>    <span class=ne>int</span> <span class=n>s</span> <span class=o>=</span> <span class=n>m</span><span class=o>.</span><span class=n>size</span><span class=p>();</span>
 </span></span><span class=line><span class=cl>    <span class=k>if</span> <span class=p>(</span><span class=n>s</span> <span class=o>&gt;</span> <span class=mi>0</span><span class=p>)</span> <span class=p>{</span>
 </span></span><span class=line><span class=cl>        <span class=o>//</span><span class=err>为空的时候初始化</span>
@@ -298,92 +153,7 @@
 </span></span><span class=line><span class=cl>        <span class=p>}</span>
 </span></span><span class=line><span class=cl>    <span class=p>}</span>
 </span></span><span class=line><span class=cl><span class=p>}</span>
-</span></span></code></pre></td></tr></table></div></div><h3 id=resize>resize()</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span><span class=lnt>16
-</span><span class=lnt>17
-</span><span class=lnt>18
-</span><span class=lnt>19
-</span><span class=lnt>20
-</span><span class=lnt>21
-</span><span class=lnt>22
-</span><span class=lnt>23
-</span><span class=lnt>24
-</span><span class=lnt>25
-</span><span class=lnt>26
-</span><span class=lnt>27
-</span><span class=lnt>28
-</span><span class=lnt>29
-</span><span class=lnt>30
-</span><span class=lnt>31
-</span><span class=lnt>32
-</span><span class=lnt>33
-</span><span class=lnt>34
-</span><span class=lnt>35
-</span><span class=lnt>36
-</span><span class=lnt>37
-</span><span class=lnt>38
-</span><span class=lnt>39
-</span><span class=lnt>40
-</span><span class=lnt>41
-</span><span class=lnt>42
-</span><span class=lnt>43
-</span><span class=lnt>44
-</span><span class=lnt>45
-</span><span class=lnt>46
-</span><span class=lnt>47
-</span><span class=lnt>48
-</span><span class=lnt>49
-</span><span class=lnt>50
-</span><span class=lnt>51
-</span><span class=lnt>52
-</span><span class=lnt>53
-</span><span class=lnt>54
-</span><span class=lnt>55
-</span><span class=lnt>56
-</span><span class=lnt>57
-</span><span class=lnt>58
-</span><span class=lnt>59
-</span><span class=lnt>60
-</span><span class=lnt>61
-</span><span class=lnt>62
-</span><span class=lnt>63
-</span><span class=lnt>64
-</span><span class=lnt>65
-</span><span class=lnt>66
-</span><span class=lnt>67
-</span><span class=lnt>68
-</span><span class=lnt>69
-</span><span class=lnt>70
-</span><span class=lnt>71
-</span><span class=lnt>72
-</span><span class=lnt>73
-</span><span class=lnt>74
-</span><span class=lnt>75
-</span><span class=lnt>76
-</span><span class=lnt>77
-</span><span class=lnt>78
-</span><span class=lnt>79
-</span><span class=lnt>80
-</span><span class=lnt>81
-</span><span class=lnt>82
-</span><span class=lnt>83
-</span><span class=lnt>84
-</span><span class=lnt>85
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-gdscript3 data-lang=gdscript3><span class=line><span class=cl><span class=n>final</span> <span class=ne>Node</span><span class=o>&lt;</span><span class=n>K</span><span class=p>,</span><span class=n>V</span><span class=o>&gt;</span><span class=p>[]</span> <span class=n>resize</span><span class=p>()</span> <span class=p>{</span>
+</span></span></code></pre></div><h3 id=resize>resize()</h3><div class=highlight><pre tabindex=0 class=chroma><code class=language-gdscript3 data-lang=gdscript3><span class=line><span class=cl><span class=n>final</span> <span class=ne>Node</span><span class=o>&lt;</span><span class=n>K</span><span class=p>,</span><span class=n>V</span><span class=o>&gt;</span><span class=p>[]</span> <span class=n>resize</span><span class=p>()</span> <span class=p>{</span>
 </span></span><span class=line><span class=cl>    <span class=ne>Node</span><span class=o>&lt;</span><span class=n>K</span><span class=p>,</span><span class=n>V</span><span class=o>&gt;</span><span class=p>[]</span> <span class=n>oldTab</span> <span class=o>=</span> <span class=n>table</span><span class=p>;</span>
 </span></span><span class=line><span class=cl>    <span class=ne>int</span> <span class=n>oldCap</span> <span class=o>=</span> <span class=p>(</span><span class=n>oldTab</span> <span class=o>==</span> <span class=n>null</span><span class=p>)</span> <span class=err>?</span> <span class=mi>0</span> <span class=p>:</span> <span class=n>oldTab</span><span class=o>.</span><span class=n>length</span><span class=p>;</span>
 </span></span><span class=line><span class=cl>    <span class=ne>int</span> <span class=n>oldThr</span> <span class=o>=</span> <span class=n>threshold</span><span class=p>;</span>
@@ -468,29 +238,7 @@
 </span></span><span class=line><span class=cl>    <span class=p>}</span>
 </span></span><span class=line><span class=cl>    <span class=k>return</span> <span class=n>newTab</span><span class=p>;</span>
 </span></span><span class=line><span class=cl><span class=p>}</span>
-</span></span></code></pre></td></tr></table></div></div><p><img src=http://picgo.qisiii.asia/post/11-09-57-47-image.png loading=lazy></p><p><img src=http://picgo.qisiii.asia/post/11-09-57-59-image.png loading=lazy></p><h3 id=treeifybin>treeifyBin</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span><span class=lnt>16
-</span><span class=lnt>17
-</span><span class=lnt>18
-</span><span class=lnt>19
-</span><span class=lnt>20
-</span><span class=lnt>21
-</span><span class=lnt>22
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=kd>final</span><span class=w> </span><span class=kt>void</span><span class=w> </span><span class=nf>treeifyBin</span><span class=p>(</span><span class=n>Node</span><span class=o>&lt;</span><span class=n>K</span><span class=p>,</span><span class=n>V</span><span class=o>&gt;[]</span><span class=w> </span><span class=n>tab</span><span class=p>,</span><span class=w> </span><span class=kt>int</span><span class=w> </span><span class=n>hash</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></code></pre></div><p><img src=http://picgo.qisiii.asia/post/11-09-57-47-image.png loading=lazy></p><p><img src=http://picgo.qisiii.asia/post/11-09-57-59-image.png loading=lazy></p><h3 id=treeifybin>treeifyBin</h3><div class=highlight><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=kd>final</span><span class=w> </span><span class=kt>void</span><span class=w> </span><span class=nf>treeifyBin</span><span class=p>(</span><span class=n>Node</span><span class=o>&lt;</span><span class=n>K</span><span class=p>,</span><span class=n>V</span><span class=o>&gt;[]</span><span class=w> </span><span class=n>tab</span><span class=p>,</span><span class=w> </span><span class=kt>int</span><span class=w> </span><span class=n>hash</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kt>int</span><span class=w> </span><span class=n>n</span><span class=p>,</span><span class=w> </span><span class=n>index</span><span class=p>;</span><span class=w> </span><span class=n>Node</span><span class=o>&lt;</span><span class=n>K</span><span class=p>,</span><span class=n>V</span><span class=o>&gt;</span><span class=w> </span><span class=n>e</span><span class=p>;</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>//node的总数过少，只会扩容，不会转树</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>if</span><span class=w> </span><span class=p>(</span><span class=n>tab</span><span class=w> </span><span class=o>==</span><span class=w> </span><span class=kc>null</span><span class=w> </span><span class=o>||</span><span class=w> </span><span class=p>(</span><span class=n>n</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>tab</span><span class=p>.</span><span class=na>length</span><span class=p>)</span><span class=w> </span><span class=o>&lt;</span><span class=w> </span><span class=n>MIN_TREEIFY_CAPACITY</span><span class=p>)</span><span class=w>
@@ -512,78 +260,7 @@
 </span></span></span><span class=line><span class=cl><span class=w>            </span><span class=n>hd</span><span class=p>.</span><span class=na>treeify</span><span class=p>(</span><span class=n>tab</span><span class=p>);</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
-</span></span></span></code></pre></td></tr></table></div></div><h2 id=linkedhashmap>LinkedHashMap</h2><p><a class=link href=https://blog.csdn.net/justloveyou_/article/details/71713781 target=_blank rel=noopener>Map 综述(二):彻头彻尾理解 LinkedHashMap_Rico&rsquo;s Blogs-CSDN博客_linkedhashmap</a></p><p>额外维护了一个双向链表，所以可以记录顺序</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span><span class=lnt>16
-</span><span class=lnt>17
-</span><span class=lnt>18
-</span><span class=lnt>19
-</span><span class=lnt>20
-</span><span class=lnt>21
-</span><span class=lnt>22
-</span><span class=lnt>23
-</span><span class=lnt>24
-</span><span class=lnt>25
-</span><span class=lnt>26
-</span><span class=lnt>27
-</span><span class=lnt>28
-</span><span class=lnt>29
-</span><span class=lnt>30
-</span><span class=lnt>31
-</span><span class=lnt>32
-</span><span class=lnt>33
-</span><span class=lnt>34
-</span><span class=lnt>35
-</span><span class=lnt>36
-</span><span class=lnt>37
-</span><span class=lnt>38
-</span><span class=lnt>39
-</span><span class=lnt>40
-</span><span class=lnt>41
-</span><span class=lnt>42
-</span><span class=lnt>43
-</span><span class=lnt>44
-</span><span class=lnt>45
-</span><span class=lnt>46
-</span><span class=lnt>47
-</span><span class=lnt>48
-</span><span class=lnt>49
-</span><span class=lnt>50
-</span><span class=lnt>51
-</span><span class=lnt>52
-</span><span class=lnt>53
-</span><span class=lnt>54
-</span><span class=lnt>55
-</span><span class=lnt>56
-</span><span class=lnt>57
-</span><span class=lnt>58
-</span><span class=lnt>59
-</span><span class=lnt>60
-</span><span class=lnt>61
-</span><span class=lnt>62
-</span><span class=lnt>63
-</span><span class=lnt>64
-</span><span class=lnt>65
-</span><span class=lnt>66
-</span><span class=lnt>67
-</span><span class=lnt>68
-</span><span class=lnt>69
-</span><span class=lnt>70
-</span><span class=lnt>71
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>//新建节点会调子类方法
+</span></span></span></code></pre></div><h2 id=linkedhashmap>LinkedHashMap</h2><p><a class=link href=https://blog.csdn.net/justloveyou_/article/details/71713781 target=_blank rel=noopener>Map 综述(二):彻头彻尾理解 LinkedHashMap_Rico&rsquo;s Blogs-CSDN博客_linkedhashmap</a></p><p>额外维护了一个双向链表，所以可以记录顺序</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>//新建节点会调子类方法
 </span></span><span class=line><span class=cl>Node&lt;K,V&gt; newNode(int hash, K key, V value, Node&lt;K,V&gt; e) {
 </span></span><span class=line><span class=cl>    LinkedHashMap.Entry&lt;K,V&gt; p =
 </span></span><span class=line><span class=cl>        new LinkedHashMap.Entry&lt;K,V&gt;(hash, key, value, e);
@@ -654,73 +331,7 @@
 </span></span><span class=line><span class=cl>        removeNode(hash(key), key, null, false, true);
 </span></span><span class=line><span class=cl>    }
 </span></span><span class=line><span class=cl>}
-</span></span></code></pre></td></tr></table></div></div><h2 id=concurrenthashmap>ConcurrentHashMap</h2><blockquote><p>volatile的数组只针对数组的引用具有volatile的语义，而不是它的元素</p></blockquote><h3 id=putval-1>putval()</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span><span class=lnt>16
-</span><span class=lnt>17
-</span><span class=lnt>18
-</span><span class=lnt>19
-</span><span class=lnt>20
-</span><span class=lnt>21
-</span><span class=lnt>22
-</span><span class=lnt>23
-</span><span class=lnt>24
-</span><span class=lnt>25
-</span><span class=lnt>26
-</span><span class=lnt>27
-</span><span class=lnt>28
-</span><span class=lnt>29
-</span><span class=lnt>30
-</span><span class=lnt>31
-</span><span class=lnt>32
-</span><span class=lnt>33
-</span><span class=lnt>34
-</span><span class=lnt>35
-</span><span class=lnt>36
-</span><span class=lnt>37
-</span><span class=lnt>38
-</span><span class=lnt>39
-</span><span class=lnt>40
-</span><span class=lnt>41
-</span><span class=lnt>42
-</span><span class=lnt>43
-</span><span class=lnt>44
-</span><span class=lnt>45
-</span><span class=lnt>46
-</span><span class=lnt>47
-</span><span class=lnt>48
-</span><span class=lnt>49
-</span><span class=lnt>50
-</span><span class=lnt>51
-</span><span class=lnt>52
-</span><span class=lnt>53
-</span><span class=lnt>54
-</span><span class=lnt>55
-</span><span class=lnt>56
-</span><span class=lnt>57
-</span><span class=lnt>58
-</span><span class=lnt>59
-</span><span class=lnt>60
-</span><span class=lnt>61
-</span><span class=lnt>62
-</span><span class=lnt>63
-</span><span class=lnt>64
-</span><span class=lnt>65
-</span><span class=lnt>66
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>final V putVal(K key, V value, boolean onlyIfAbsent) {
+</span></span></code></pre></div><h2 id=concurrenthashmap>ConcurrentHashMap</h2><blockquote><p>volatile的数组只针对数组的引用具有volatile的语义，而不是它的元素</p></blockquote><h3 id=putval-1>putval()</h3><div class=highlight><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>final V putVal(K key, V value, boolean onlyIfAbsent) {
 </span></span><span class=line><span class=cl>    if (key == null || value == null) throw new NullPointerException();
 </span></span><span class=line><span class=cl>    int hash = spread(key.hashCode());
 </span></span><span class=line><span class=cl>    int binCount = 0;
@@ -786,33 +397,7 @@
 </span></span><span class=line><span class=cl>    addCount(1L, binCount);
 </span></span><span class=line><span class=cl>    return null;
 </span></span><span class=line><span class=cl>}
-</span></span></code></pre></td></tr></table></div></div><h3 id=addcount>addCount()</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span><span class=lnt>16
-</span><span class=lnt>17
-</span><span class=lnt>18
-</span><span class=lnt>19
-</span><span class=lnt>20
-</span><span class=lnt>21
-</span><span class=lnt>22
-</span><span class=lnt>23
-</span><span class=lnt>24
-</span><span class=lnt>25
-</span><span class=lnt>26
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>//新增元素时，也就是在调用 putVal 方法后，为了通用，增加了个 check 入参，用于指定是否可能会出现扩容的情况
+</span></span></code></pre></div><h3 id=addcount>addCount()</h3><div class=highlight><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>//新增元素时，也就是在调用 putVal 方法后，为了通用，增加了个 check 入参，用于指定是否可能会出现扩容的情况
 </span></span><span class=line><span class=cl>//check &gt;= 0 即为可能出现扩容的情况，例如 putVal方法中的调用
 </span></span><span class=line><span class=cl>private final void addCount(long x, int check){
 </span></span><span class=line><span class=cl>    ... ...
@@ -838,31 +423,7 @@
 </span></span><span class=line><span class=cl>            s = sumCount();
 </span></span><span class=line><span class=cl>        }
 </span></span><span class=line><span class=cl>    }
-</span></span></code></pre></td></tr></table></div></div><h3 id=helptransfer>helpTransfer（）</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span><span class=lnt>16
-</span><span class=lnt>17
-</span><span class=lnt>18
-</span><span class=lnt>19
-</span><span class=lnt>20
-</span><span class=lnt>21
-</span><span class=lnt>22
-</span><span class=lnt>23
-</span><span class=lnt>24
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>final Node&lt;K,V&gt;[] helpTransfer(Node&lt;K,V&gt;[] tab, Node&lt;K,V&gt; f) {
+</span></span></code></pre></div><h3 id=helptransfer>helpTransfer（）</h3><div class=highlight><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>final Node&lt;K,V&gt;[] helpTransfer(Node&lt;K,V&gt;[] tab, Node&lt;K,V&gt; f) {
 </span></span><span class=line><span class=cl>    Node&lt;K,V&gt;[] nextTab; int sc;
 </span></span><span class=line><span class=cl>    // 如果 table 不是空 且 node 节点是转移类型，数据检验
 </span></span><span class=line><span class=cl>    // 且 node 节点的 nextTable（新 table） 不是空，同样也是数据校验
@@ -886,126 +447,7 @@
 </span></span><span class=line><span class=cl>    }
 </span></span><span class=line><span class=cl>    return table;
 </span></span><span class=line><span class=cl>}
-</span></span></code></pre></td></tr></table></div></div><h3 id=transfer>transfer()</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>  1
-</span><span class=lnt>  2
-</span><span class=lnt>  3
-</span><span class=lnt>  4
-</span><span class=lnt>  5
-</span><span class=lnt>  6
-</span><span class=lnt>  7
-</span><span class=lnt>  8
-</span><span class=lnt>  9
-</span><span class=lnt> 10
-</span><span class=lnt> 11
-</span><span class=lnt> 12
-</span><span class=lnt> 13
-</span><span class=lnt> 14
-</span><span class=lnt> 15
-</span><span class=lnt> 16
-</span><span class=lnt> 17
-</span><span class=lnt> 18
-</span><span class=lnt> 19
-</span><span class=lnt> 20
-</span><span class=lnt> 21
-</span><span class=lnt> 22
-</span><span class=lnt> 23
-</span><span class=lnt> 24
-</span><span class=lnt> 25
-</span><span class=lnt> 26
-</span><span class=lnt> 27
-</span><span class=lnt> 28
-</span><span class=lnt> 29
-</span><span class=lnt> 30
-</span><span class=lnt> 31
-</span><span class=lnt> 32
-</span><span class=lnt> 33
-</span><span class=lnt> 34
-</span><span class=lnt> 35
-</span><span class=lnt> 36
-</span><span class=lnt> 37
-</span><span class=lnt> 38
-</span><span class=lnt> 39
-</span><span class=lnt> 40
-</span><span class=lnt> 41
-</span><span class=lnt> 42
-</span><span class=lnt> 43
-</span><span class=lnt> 44
-</span><span class=lnt> 45
-</span><span class=lnt> 46
-</span><span class=lnt> 47
-</span><span class=lnt> 48
-</span><span class=lnt> 49
-</span><span class=lnt> 50
-</span><span class=lnt> 51
-</span><span class=lnt> 52
-</span><span class=lnt> 53
-</span><span class=lnt> 54
-</span><span class=lnt> 55
-</span><span class=lnt> 56
-</span><span class=lnt> 57
-</span><span class=lnt> 58
-</span><span class=lnt> 59
-</span><span class=lnt> 60
-</span><span class=lnt> 61
-</span><span class=lnt> 62
-</span><span class=lnt> 63
-</span><span class=lnt> 64
-</span><span class=lnt> 65
-</span><span class=lnt> 66
-</span><span class=lnt> 67
-</span><span class=lnt> 68
-</span><span class=lnt> 69
-</span><span class=lnt> 70
-</span><span class=lnt> 71
-</span><span class=lnt> 72
-</span><span class=lnt> 73
-</span><span class=lnt> 74
-</span><span class=lnt> 75
-</span><span class=lnt> 76
-</span><span class=lnt> 77
-</span><span class=lnt> 78
-</span><span class=lnt> 79
-</span><span class=lnt> 80
-</span><span class=lnt> 81
-</span><span class=lnt> 82
-</span><span class=lnt> 83
-</span><span class=lnt> 84
-</span><span class=lnt> 85
-</span><span class=lnt> 86
-</span><span class=lnt> 87
-</span><span class=lnt> 88
-</span><span class=lnt> 89
-</span><span class=lnt> 90
-</span><span class=lnt> 91
-</span><span class=lnt> 92
-</span><span class=lnt> 93
-</span><span class=lnt> 94
-</span><span class=lnt> 95
-</span><span class=lnt> 96
-</span><span class=lnt> 97
-</span><span class=lnt> 98
-</span><span class=lnt> 99
-</span><span class=lnt>100
-</span><span class=lnt>101
-</span><span class=lnt>102
-</span><span class=lnt>103
-</span><span class=lnt>104
-</span><span class=lnt>105
-</span><span class=lnt>106
-</span><span class=lnt>107
-</span><span class=lnt>108
-</span><span class=lnt>109
-</span><span class=lnt>110
-</span><span class=lnt>111
-</span><span class=lnt>112
-</span><span class=lnt>113
-</span><span class=lnt>114
-</span><span class=lnt>115
-</span><span class=lnt>116
-</span><span class=lnt>117
-</span><span class=lnt>118
-</span><span class=lnt>119
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>private final void transfer(Node&lt;K,V&gt;[] tab, Node&lt;K,V&gt;[] nextTab) {
+</span></span></code></pre></div><h3 id=transfer>transfer()</h3><div class=highlight><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>private final void transfer(Node&lt;K,V&gt;[] tab, Node&lt;K,V&gt;[] nextTab) {
 </span></span><span class=line><span class=cl>    int n = tab.length, stride;
 </span></span><span class=line><span class=cl>    //每个线程需要处理的桶的数量，不清楚这里为什么要除以8
 </span></span><span class=line><span class=cl>    if ((stride = (NCPU &gt; 1) ? (n &gt;&gt;&gt; 3) / NCPU : n) &lt; MIN_TRANSFER_STRIDE)
@@ -1124,59 +566,12 @@
 </span></span><span class=line><span class=cl>        }
 </span></span><span class=line><span class=cl>    }
 </span></span><span class=line><span class=cl>}
-</span></span></code></pre></td></tr></table></div></div><h3 id=为什么不需要锁>为什么不需要锁？</h3><p>在1.8中ConcurrentHashMap的get操作全程不需要加锁，这也是它比其他并发集合比如hashtable、用Collections.synchronizedMap()包装的hashmap;安全效率高的原因之一</p><p>get操作全程不需要加锁是因为Node的成员val是用volatile修饰的和数组用volatile修饰没有关系。</p><p>数组用volatile修饰主要是保证在数组扩容的时候保证可见性。</p><h2 id=copyonwritearraylist>CopyOnWriteArrayList</h2><p>ArrayList是线程不安全的，看add方法就知道了，很有可能多个线程取到的size都是相同的，然后又同时更新了</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span><span class=lnt>5
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-SQL data-lang=SQL><span class=line><span class=cl><span class=k>public</span><span class=w> </span><span class=nb>boolean</span><span class=w> </span><span class=k>add</span><span class=p>(</span><span class=n>E</span><span class=w> </span><span class=n>e</span><span class=p>)</span><span class=w> </span><span class=err>{</span><span class=w>
+</span></span></code></pre></div><h3 id=为什么不需要锁>为什么不需要锁？</h3><p>在1.8中ConcurrentHashMap的get操作全程不需要加锁，这也是它比其他并发集合比如hashtable、用Collections.synchronizedMap()包装的hashmap;安全效率高的原因之一</p><p>get操作全程不需要加锁是因为Node的成员val是用volatile修饰的和数组用volatile修饰没有关系。</p><p>数组用volatile修饰主要是保证在数组扩容的时候保证可见性。</p><h2 id=copyonwritearraylist>CopyOnWriteArrayList</h2><p>ArrayList是线程不安全的，看add方法就知道了，很有可能多个线程取到的size都是相同的，然后又同时更新了</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-SQL data-lang=SQL><span class=line><span class=cl><span class=k>public</span><span class=w> </span><span class=nb>boolean</span><span class=w> </span><span class=k>add</span><span class=p>(</span><span class=n>E</span><span class=w> </span><span class=n>e</span><span class=p>)</span><span class=w> </span><span class=err>{</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>ensureCapacityInternal</span><span class=p>(</span><span class=k>size</span><span class=w> </span><span class=o>+</span><span class=w> </span><span class=mi>1</span><span class=p>);</span><span class=w>  </span><span class=o>//</span><span class=w> </span><span class=n>Increments</span><span class=w> </span><span class=n>modCount</span><span class=o>!!</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>elementData</span><span class=p>[</span><span class=k>size</span><span class=o>++</span><span class=p>]</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>e</span><span class=p>;</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>return</span><span class=w> </span><span class=k>true</span><span class=p>;</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w></span><span class=err>}</span><span class=w>
-</span></span></span></code></pre></td></tr></table></div></div><p>CopyOnWrite字如其名，当存在写的时候，会先将数据复制一份出来，然后对复制的进行修改，然后将引用指过去。</p><p>为啥这么设计呢？因为这样和读可以不冲突了，而写的时候都是通过加锁</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span><span class=lnt>16
-</span><span class=lnt>17
-</span><span class=lnt>18
-</span><span class=lnt>19
-</span><span class=lnt>20
-</span><span class=lnt>21
-</span><span class=lnt>22
-</span><span class=lnt>23
-</span><span class=lnt>24
-</span><span class=lnt>25
-</span><span class=lnt>26
-</span><span class=lnt>27
-</span><span class=lnt>28
-</span><span class=lnt>29
-</span><span class=lnt>30
-</span><span class=lnt>31
-</span><span class=lnt>32
-</span><span class=lnt>33
-</span><span class=lnt>34
-</span><span class=lnt>35
-</span><span class=lnt>36
-</span><span class=lnt>37
-</span><span class=lnt>38
-</span><span class=lnt>39
-</span><span class=lnt>40
-</span><span class=lnt>41
-</span><span class=lnt>42
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-SQL data-lang=SQL><span class=line><span class=cl><span class=k>public</span><span class=w> </span><span class=nb>boolean</span><span class=w> </span><span class=k>add</span><span class=p>(</span><span class=n>E</span><span class=w> </span><span class=n>e</span><span class=p>)</span><span class=w> </span><span class=err>{</span><span class=w>
+</span></span></span></code></pre></div><p>CopyOnWrite字如其名，当存在写的时候，会先将数据复制一份出来，然后对复制的进行修改，然后将引用指过去。</p><p>为啥这么设计呢？因为这样和读可以不冲突了，而写的时候都是通过加锁</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-SQL data-lang=SQL><span class=line><span class=cl><span class=k>public</span><span class=w> </span><span class=nb>boolean</span><span class=w> </span><span class=k>add</span><span class=p>(</span><span class=n>E</span><span class=w> </span><span class=n>e</span><span class=p>)</span><span class=w> </span><span class=err>{</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>final</span><span class=w> </span><span class=n>ReentrantLock</span><span class=w> </span><span class=k>lock</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>this</span><span class=p>.</span><span class=k>lock</span><span class=p>;</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>lock</span><span class=p>.</span><span class=k>lock</span><span class=p>();</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>try</span><span class=w> </span><span class=err>{</span><span class=w>
@@ -1218,9 +613,9 @@
 </span></span></span><span class=line><span class=cl><span class=w>        </span><span class=k>lock</span><span class=p>.</span><span class=n>unlock</span><span class=p>();</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=err>}</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w></span><span class=err>}</span><span class=w>
-</span></span></span></code></pre></td></tr></table></div></div><h2 id=参考资料>参考资料</h2><p><a class=link href=https://blog.csdn.net/pcwl1206/article/details/85040309 target=_blank rel=noopener>【搞定Java8新特性】之Java7/8 中的 HashMap 和 ConcurrentHashMap 全解析_Java学习-CSDN博客</a></p><p><a class=link href=https://coolshell.cn/articles/9606.html target=_blank rel=noopener>疫苗：Java HashMap的死循环 | 酷 壳 - CoolShell</a></p><p><a class=link href=https://blog.csdn.net/weixin_41565013/article/details/93190786 target=_blank rel=noopener>深入理解HashMap(三)resize方法解析_BodyCoding-CSDN博客_hashmap resize()</a></p><p><a class=link href=https://blog.csdn.net/sayWhat_sayHello/article/details/83120324 target=_blank rel=noopener>HashMap的最大容量为什么是2的30次方(1左移30)?_与望-CSDN博客</a></p><p><a class=link href=https://blog.csdn.net/ZOKEKAI/article/details/90051567 target=_blank rel=noopener>ConcurrentHashMap1.8 - 扩容详解_concurrenthashmap1.8的扩容机制-CSDN博客</a></p><p><a class=link href=https://blog.csdn.net/Unknownfuture/article/details/105369019 target=_blank rel=noopener>ConcurrentHashMap之transfer()扩容深入源码分析-CSDN博客</a></p></section><footer class=article-footer><section class=article-tags><a href=/tags/java/>Java</a></section><section class=article-copyright><svg class="icon icon-tabler icon-tabler-copyright" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="12" cy="12" r="9"/><path d="M14.5 9a3.5 4 0 100 6"/></svg>
+</span></span></span></code></pre></div><h2 id=参考资料>参考资料</h2><p><a class=link href=https://blog.csdn.net/pcwl1206/article/details/85040309 target=_blank rel=noopener>【搞定Java8新特性】之Java7/8 中的 HashMap 和 ConcurrentHashMap 全解析_Java学习-CSDN博客</a></p><p><a class=link href=https://coolshell.cn/articles/9606.html target=_blank rel=noopener>疫苗：Java HashMap的死循环 | 酷 壳 - CoolShell</a></p><p><a class=link href=https://blog.csdn.net/weixin_41565013/article/details/93190786 target=_blank rel=noopener>深入理解HashMap(三)resize方法解析_BodyCoding-CSDN博客_hashmap resize()</a></p><p><a class=link href=https://blog.csdn.net/sayWhat_sayHello/article/details/83120324 target=_blank rel=noopener>HashMap的最大容量为什么是2的30次方(1左移30)?_与望-CSDN博客</a></p><p><a class=link href=https://blog.csdn.net/ZOKEKAI/article/details/90051567 target=_blank rel=noopener>ConcurrentHashMap1.8 - 扩容详解_concurrenthashmap1.8的扩容机制-CSDN博客</a></p><p><a class=link href=https://blog.csdn.net/Unknownfuture/article/details/105369019 target=_blank rel=noopener>ConcurrentHashMap之transfer()扩容深入源码分析-CSDN博客</a></p></section><footer class=article-footer><section class=article-tags><a href=/tags/java/>Java</a></section><section class=article-copyright><svg class="icon icon-tabler icon-tabler-copyright" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="12" cy="12" r="9"/><path d="M14.5 9a3.5 4 0 100 6"/></svg>
 <span>Licensed under CC BY-NC-SA 4.0</span></section><section class=article-lastmod><svg class="icon icon-tabler icon-tabler-clock" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>
-<span>最后更新于 2024-09-03</span></section></footer></article><aside class=related-content--wrapper><h2 class=section-title>相关文章</h2><div class=related-content><div class="flex article-list--tile"><article><a href=/post/tech/lang/java_spi/><div class=article-details><h2 class=article-title>Java的SPI机制</h2></div></a></article><article><a href=/post/tech/distributed/zookeeper/zab/><div class=article-details><h2 class=article-title>Zookeeper源码分析-Zab协议</h2></div></a></article><article><a href=/post/tech/distributed/zookeeper/election/><div class=article-details><h2 class=article-title>Zookeeper源码分析-选举机制</h2></div></a></article><article><a href=/post/tech/distributed/zookeeper/watch/><div class=article-details><h2 class=article-title>Zookeeper源码分析-watch机制</h2></div></a></article><article><a href=/post/tech/distributed/zookeeper/zookeeperservermain/><div class=article-details><h2 class=article-title>Zookeeper源码学习-单机部分通信组件</h2></div></a></article></div></div></aside><script src=//cdn.jsdelivr.net/npm/twikoo@1.6.21/dist/twikoo.all.min.js></script><div id=tcomment></div><style>.twikoo{background-color:var(--card-background);border-radius:var(--card-border-radius);box-shadow:var(--shadow-l1);padding:var(--card-padding)}:root[data-scheme=dark]{--twikoo-body-text-color-main:rgba(255, 255, 255, 0.9);--twikoo-body-text-color:rgba(255, 255, 255, 0.7)}.twikoo .el-input-group__prepend,.twikoo .tk-action-icon,.twikoo .tk-submit-action-icon,.twikoo .tk-time,.twikoo .tk-comments-no,.twikoo .tk-comments-count{color:var(--twikoo-body-text-color)}.twikoo .el-input__inner,.twikoo .el-textarea__inner,.twikoo .tk-preview-container,.twikoo .tk-content,.twikoo .tk-nick,.twikoo .tk-send{color:var(--twikoo-body-text-color-main)}.twikoo .el-button{color:var(--twikoo-body-text-color)!important}.twikoo .el-input__count{color:var(--twikoo-body-text-color)!important}.OwO .OwO-body{background-color:var(--body-background)!important;color:var(--body-text-color)!important}</style><script>twikoo.init({envId:"https://qisiii-twikoo.hf.space",el:"#tcomment"})</script><a href=#top aria-label="go to top" class=top-link id=top-link style=display:none><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-chevron-up"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M6 15l6-6 6 6"/></svg>
+<span>最后更新于 2024-09-04</span></section></footer></article><aside class=related-content--wrapper><h2 class=section-title>相关文章</h2><div class=related-content><div class="flex article-list--tile"><article><a href=/post/tech/lang/java_spi/><div class=article-details><h2 class=article-title>Java的SPI机制</h2></div></a></article><article><a href=/post/tech/distributed/zookeeper/zab/><div class=article-details><h2 class=article-title>Zookeeper源码分析-Zab协议</h2></div></a></article><article><a href=/post/tech/distributed/zookeeper/election/><div class=article-details><h2 class=article-title>Zookeeper源码分析-选举机制</h2></div></a></article><article><a href=/post/tech/distributed/zookeeper/watch/><div class=article-details><h2 class=article-title>Zookeeper源码分析-watch机制</h2></div></a></article><article><a href=/post/tech/distributed/zookeeper/zookeeperservermain/><div class=article-details><h2 class=article-title>Zookeeper源码学习-单机部分通信组件</h2></div></a></article></div></div></aside><script src=//cdn.jsdelivr.net/npm/twikoo@1.6.21/dist/twikoo.all.min.js></script><div id=tcomment></div><style>.twikoo{background-color:var(--card-background);border-radius:var(--card-border-radius);box-shadow:var(--shadow-l1);padding:var(--card-padding)}:root[data-scheme=dark]{--twikoo-body-text-color-main:rgba(255, 255, 255, 0.9);--twikoo-body-text-color:rgba(255, 255, 255, 0.7)}.twikoo .el-input-group__prepend,.twikoo .tk-action-icon,.twikoo .tk-submit-action-icon,.twikoo .tk-time,.twikoo .tk-comments-no,.twikoo .tk-comments-count{color:var(--twikoo-body-text-color)}.twikoo .el-input__inner,.twikoo .el-textarea__inner,.twikoo .tk-preview-container,.twikoo .tk-content,.twikoo .tk-nick,.twikoo .tk-send{color:var(--twikoo-body-text-color-main)}.twikoo .el-button{color:var(--twikoo-body-text-color)!important}.twikoo .el-input__count{color:var(--twikoo-body-text-color)!important}.OwO .OwO-body{background-color:var(--body-background)!important;color:var(--body-text-color)!important}</style><script>twikoo.init({envId:"https://qisiii-twikoo.hf.space",el:"#tcomment"})</script><a href=#top aria-label="go to top" class=top-link id=top-link style=display:none><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-chevron-up"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M6 15l6-6 6 6"/></svg>
 </a><script src=https://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js></script><script type=text/javascript>$(window).scroll(function(){$(this).scrollTop()>300?$("#top-link").show():$("#top-link").hide()})</script><footer class=site-footer><section class=copyright>&copy;
 2022 -
 2024 起司</section><section class=powerby><a href=https://beian.miit.gov.cn/ target=_blank>京ICP备2023017017号-1</a><br>使用 <a href=https://gohugo.io/ target=_blank rel=noopener>Hugo</a> 构建<br>主题 <b><a href=https://github.com/CaiJimmy/hugo-theme-stack target=_blank rel=noopener data-version=3.26.0>Stack</a></b> 由 <a href=https://jimmycai.com target=_blank rel=noopener>Jimmy</a> 设计

@@ -36,30 +36,7 @@ alt="monitor"
 &lt;p>一种是释放了但是线程是核心线程，可能还会继续调用，此时线程状态会为WAITING或者TIMED_WAITING，此时这个线程就会被放入到右边的waitSet。当调用notify或者到指定时间之后，就会将线程重新添加到左边的entrySet中再次尝试获取锁。&lt;/p>
 &lt;h4 id="线程的操作">线程的操作
 &lt;/h4>&lt;p>线程的操作是指在stack文件堆栈信息中，用于描述线程对锁、对象的一些操作，堆栈信息一般如下面这般，-locked就是线程的操作，分为几类：&lt;/p>
-&lt;div class="highlight">&lt;div class="chroma">
-&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
-&lt;/span>&lt;span class="lnt"> 2
-&lt;/span>&lt;span class="lnt"> 3
-&lt;/span>&lt;span class="lnt"> 4
-&lt;/span>&lt;span class="lnt"> 5
-&lt;/span>&lt;span class="lnt"> 6
-&lt;/span>&lt;span class="lnt"> 7
-&lt;/span>&lt;span class="lnt"> 8
-&lt;/span>&lt;span class="lnt"> 9
-&lt;/span>&lt;span class="lnt">10
-&lt;/span>&lt;span class="lnt">11
-&lt;/span>&lt;span class="lnt">12
-&lt;/span>&lt;span class="lnt">13
-&lt;/span>&lt;span class="lnt">14
-&lt;/span>&lt;span class="lnt">15
-&lt;/span>&lt;span class="lnt">16
-&lt;/span>&lt;span class="lnt">17
-&lt;/span>&lt;span class="lnt">18
-&lt;/span>&lt;span class="lnt">19
-&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
-&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code class="language-java" data-lang="java">&lt;span class="line">&lt;span class="cl">&lt;span class="n">java&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">lang&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">Thread&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">State&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">TIMED_WAITING&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">sleeping&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w">
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-java" data-lang="java">&lt;span class="line">&lt;span class="cl">&lt;span class="n">java&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">lang&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">Thread&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">State&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">TIMED_WAITING&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">sleeping&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">at&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">java&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">lang&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">Thread&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">sleep&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">Native&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">Method&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">at&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">com&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">qisi&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">simple&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">Jvisualvm&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">JStackExample&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">test1&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">JStackExample&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">java&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="n">18&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">locked&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">&amp;lt;&lt;/span>&lt;span class="n">0x000000076adddbb8&lt;/span>&lt;span class="o">&amp;gt;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">a&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">com&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">qisi&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">simple&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">Jvisualvm&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">JStackExample&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w">
@@ -78,53 +55,13 @@ alt="monitor"
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">at&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">java&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">util&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">concurrent&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">ThreadPoolExecutor&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">runWorker&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">ThreadPoolExecutor&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">java&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="n">1134&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">at&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">java&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">util&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">concurrent&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">ThreadPoolExecutor$Worker&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">run&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">ThreadPoolExecutor&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">java&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="n">624&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">at&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">java&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">lang&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">Thread&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">run&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">Thread&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">java&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="n">750&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
-&lt;/div>
-&lt;/div>&lt;p>&lt;strong>locked [地址]&lt;/strong>：当前线程持有锁，即持有monitor&lt;/p>
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>&lt;strong>locked [地址]&lt;/strong>：当前线程持有锁，即持有monitor&lt;/p>
 &lt;p>&lt;strong>waiting on [地址]&lt;/strong> ：线程释放锁，等待通知，即在waitSet中&lt;/p>
 &lt;p>&lt;strong>waiting to lock [地址]&lt;/strong>：线程获取锁失败，正在等待获取锁，即在entrySet中&lt;/p>
 &lt;p>&lt;strong>parking to wait for [地址]&lt;/strong>：这种的是属于非synchronized锁的信息，多用于Lock锁，对应park方法，具体参考&lt;a class="link" href="https://stackoverflow.com/questions/11337384/java-thread-dump-difference-between-waiting-to-lock-and-parking-to-wait-for" target="_blank" rel="noopener"
 >multithreading - Java thread dump: Difference between &amp;quot;waiting to lock&amp;quot; and &amp;quot;parking to wait for&amp;quot;? - Stack Overflow&lt;/a>&lt;/p>
 &lt;h4 id="例子">例子：
-&lt;/h4>&lt;div class="highlight">&lt;div class="chroma">
-&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
-&lt;/span>&lt;span class="lnt"> 2
-&lt;/span>&lt;span class="lnt"> 3
-&lt;/span>&lt;span class="lnt"> 4
-&lt;/span>&lt;span class="lnt"> 5
-&lt;/span>&lt;span class="lnt"> 6
-&lt;/span>&lt;span class="lnt"> 7
-&lt;/span>&lt;span class="lnt"> 8
-&lt;/span>&lt;span class="lnt"> 9
-&lt;/span>&lt;span class="lnt">10
-&lt;/span>&lt;span class="lnt">11
-&lt;/span>&lt;span class="lnt">12
-&lt;/span>&lt;span class="lnt">13
-&lt;/span>&lt;span class="lnt">14
-&lt;/span>&lt;span class="lnt">15
-&lt;/span>&lt;span class="lnt">16
-&lt;/span>&lt;span class="lnt">17
-&lt;/span>&lt;span class="lnt">18
-&lt;/span>&lt;span class="lnt">19
-&lt;/span>&lt;span class="lnt">20
-&lt;/span>&lt;span class="lnt">21
-&lt;/span>&lt;span class="lnt">22
-&lt;/span>&lt;span class="lnt">23
-&lt;/span>&lt;span class="lnt">24
-&lt;/span>&lt;span class="lnt">25
-&lt;/span>&lt;span class="lnt">26
-&lt;/span>&lt;span class="lnt">27
-&lt;/span>&lt;span class="lnt">28
-&lt;/span>&lt;span class="lnt">29
-&lt;/span>&lt;span class="lnt">30
-&lt;/span>&lt;span class="lnt">31
-&lt;/span>&lt;span class="lnt">32
-&lt;/span>&lt;span class="lnt">33
-&lt;/span>&lt;span class="lnt">34
-&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
-&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code class="language-java" data-lang="java">&lt;span class="line">&lt;span class="cl">&lt;span class="kd">static&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">Boolean&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">flag&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="kc">true&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/h4>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-java" data-lang="java">&lt;span class="line">&lt;span class="cl">&lt;span class="kd">static&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">Boolean&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">flag&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="kc">true&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="kd">synchronized&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="kt">void&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nf">producer&lt;/span>&lt;span class="p">(){&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">System&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">out&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">println&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">Thread&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">currentThread&lt;/span>&lt;span class="p">().&lt;/span>&lt;span class="na">getName&lt;/span>&lt;span class="p">()&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="s">&amp;#34;抢到了锁&amp;#34;&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">while&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">flag&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">{&lt;/span>&lt;span class="w">
@@ -158,67 +95,8 @@ alt="monitor"
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">executorService&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">execute&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">example&lt;/span>&lt;span class="p">::&lt;/span>&lt;span class="n">producer&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">executorService&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">execute&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">example&lt;/span>&lt;span class="p">::&lt;/span>&lt;span class="n">consumer&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">};&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
-&lt;/div>
-&lt;/div>&lt;p>一个简单的生产者-消费者例子，生成两次堆栈，分别在producer sleep时和&lt;/p>
-&lt;div class="highlight">&lt;div class="chroma">
-&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
-&lt;/span>&lt;span class="lnt"> 2
-&lt;/span>&lt;span class="lnt"> 3
-&lt;/span>&lt;span class="lnt"> 4
-&lt;/span>&lt;span class="lnt"> 5
-&lt;/span>&lt;span class="lnt"> 6
-&lt;/span>&lt;span class="lnt"> 7
-&lt;/span>&lt;span class="lnt"> 8
-&lt;/span>&lt;span class="lnt"> 9
-&lt;/span>&lt;span class="lnt">10
-&lt;/span>&lt;span class="lnt">11
-&lt;/span>&lt;span class="lnt">12
-&lt;/span>&lt;span class="lnt">13
-&lt;/span>&lt;span class="lnt">14
-&lt;/span>&lt;span class="lnt">15
-&lt;/span>&lt;span class="lnt">16
-&lt;/span>&lt;span class="lnt">17
-&lt;/span>&lt;span class="lnt">18
-&lt;/span>&lt;span class="lnt">19
-&lt;/span>&lt;span class="lnt">20
-&lt;/span>&lt;span class="lnt">21
-&lt;/span>&lt;span class="lnt">22
-&lt;/span>&lt;span class="lnt">23
-&lt;/span>&lt;span class="lnt">24
-&lt;/span>&lt;span class="lnt">25
-&lt;/span>&lt;span class="lnt">26
-&lt;/span>&lt;span class="lnt">27
-&lt;/span>&lt;span class="lnt">28
-&lt;/span>&lt;span class="lnt">29
-&lt;/span>&lt;span class="lnt">30
-&lt;/span>&lt;span class="lnt">31
-&lt;/span>&lt;span class="lnt">32
-&lt;/span>&lt;span class="lnt">33
-&lt;/span>&lt;span class="lnt">34
-&lt;/span>&lt;span class="lnt">35
-&lt;/span>&lt;span class="lnt">36
-&lt;/span>&lt;span class="lnt">37
-&lt;/span>&lt;span class="lnt">38
-&lt;/span>&lt;span class="lnt">39
-&lt;/span>&lt;span class="lnt">40
-&lt;/span>&lt;span class="lnt">41
-&lt;/span>&lt;span class="lnt">42
-&lt;/span>&lt;span class="lnt">43
-&lt;/span>&lt;span class="lnt">44
-&lt;/span>&lt;span class="lnt">45
-&lt;/span>&lt;span class="lnt">46
-&lt;/span>&lt;span class="lnt">47
-&lt;/span>&lt;span class="lnt">48
-&lt;/span>&lt;span class="lnt">49
-&lt;/span>&lt;span class="lnt">50
-&lt;/span>&lt;span class="lnt">51
-&lt;/span>&lt;span class="lnt">52
-&lt;/span>&lt;span class="lnt">53
-&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
-&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code class="language-java" data-lang="java">&lt;span class="line">&lt;span class="cl">&lt;span class="n">2024&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="n">07&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="n">28&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">21&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="n">52&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="n">21&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>一个简单的生产者-消费者例子，生成两次堆栈，分别在producer sleep时和&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-java" data-lang="java">&lt;span class="line">&lt;span class="cl">&lt;span class="n">2024&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="n">07&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="n">28&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">21&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="n">52&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="n">21&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="n">Full&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">thread&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">dump&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">OpenJDK&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">64&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="n">Bit&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">Server&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nf">VM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">25&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">392&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="n">b08&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">mixed&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">mode&lt;/span>&lt;span class="p">):&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="s">&amp;#34;Attach Listener&amp;#34;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="err">#&lt;/span>&lt;span class="n">14&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">daemon&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">prio&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="n">9&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">os_prio&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="n">31&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">tid&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="n">0x0000000128811800&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">nid&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="n">0x5b03&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">waiting&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">on&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">condition&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">[&lt;/span>&lt;span class="n">0x0000000000000000&lt;/span>&lt;span class="o">]&lt;/span>&lt;span class="w">
@@ -271,49 +149,13 @@ alt="monitor"
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">at&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">java&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">util&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">concurrent&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">ThreadPoolExecutor&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">runWorker&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">ThreadPoolExecutor&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">java&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="n">1149&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">at&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">java&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">util&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">concurrent&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">ThreadPoolExecutor$Worker&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">run&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">ThreadPoolExecutor&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">java&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="n">624&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">at&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">java&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">lang&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">Thread&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">run&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">Thread&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">java&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="n">750&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
-&lt;/div>
-&lt;/div>&lt;p> 先看21:52:21时的信息，&lt;/p>
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p> 先看21:52:21时的信息，&lt;/p>
 &lt;p>由于是thread1先执行producer，获取到锁，表现为-locked &amp;lt;0x000000076adddbb8&amp;gt;，当执行到sleep时，状态变为TIMED_WAITING&lt;/p>
 &lt;p>当执行到wait时，thread1会释放锁，所以在2024-07-28 21:52:26，新增了一条- waiting on &amp;lt;0x000000076adddbb8&amp;gt;，同时状态变为了BLOCKED，表示在等待锁。此时thread2获取到锁,thread2新增- locked &amp;lt;0x000000076adddbb8&amp;gt;，状态为TIMED_WAITING&lt;/p>
 &lt;p>当thread的sleep醒来执行了notify时，后面的堆栈信息虽然没有抓取到，但可以推测出来，thread1被唤醒，因此，thread1会再次获取到锁，从堆栈信息来看则是waiting on会变为lock，因为此时只有thread1需要锁，如果有多个线程都需要锁，有可能会变成waiting to lock&lt;/p>
 &lt;h2 id="死循环cpu打满问题">死循环cpu打满问题
 &lt;/h2>&lt;h3 id="测试代码">测试代码：
-&lt;/h3>&lt;div class="highlight">&lt;div class="chroma">
-&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
-&lt;/span>&lt;span class="lnt"> 2
-&lt;/span>&lt;span class="lnt"> 3
-&lt;/span>&lt;span class="lnt"> 4
-&lt;/span>&lt;span class="lnt"> 5
-&lt;/span>&lt;span class="lnt"> 6
-&lt;/span>&lt;span class="lnt"> 7
-&lt;/span>&lt;span class="lnt"> 8
-&lt;/span>&lt;span class="lnt"> 9
-&lt;/span>&lt;span class="lnt">10
-&lt;/span>&lt;span class="lnt">11
-&lt;/span>&lt;span class="lnt">12
-&lt;/span>&lt;span class="lnt">13
-&lt;/span>&lt;span class="lnt">14
-&lt;/span>&lt;span class="lnt">15
-&lt;/span>&lt;span class="lnt">16
-&lt;/span>&lt;span class="lnt">17
-&lt;/span>&lt;span class="lnt">18
-&lt;/span>&lt;span class="lnt">19
-&lt;/span>&lt;span class="lnt">20
-&lt;/span>&lt;span class="lnt">21
-&lt;/span>&lt;span class="lnt">22
-&lt;/span>&lt;span class="lnt">23
-&lt;/span>&lt;span class="lnt">24
-&lt;/span>&lt;span class="lnt">25
-&lt;/span>&lt;span class="lnt">26
-&lt;/span>&lt;span class="lnt">27
-&lt;/span>&lt;span class="lnt">28
-&lt;/span>&lt;span class="lnt">29
-&lt;/span>&lt;span class="lnt">30
-&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
-&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code class="language-java" data-lang="java">&lt;span class="line">&lt;span class="cl">&lt;span class="cm">/**
+&lt;/h3>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-java" data-lang="java">&lt;span class="line">&lt;span class="cl">&lt;span class="cm">/**
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="cm"> * @author : qisi
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="cm"> * @date: 2024/7/28
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="cm"> * @description: cpu打满测试用例
@@ -343,86 +185,11 @@ alt="monitor"
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">new&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">Thread&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">full&lt;/span>&lt;span class="p">).&lt;/span>&lt;span class="na">start&lt;/span>&lt;span class="p">();&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">}&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="p">}&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
-&lt;/div>
-&lt;/div>&lt;p>根据top -pid [应用Id]找到cpu最高的tid，将10进制tid转换为16进制&lt;/p>
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>根据top -pid [应用Id]找到cpu最高的tid，将10进制tid转换为16进制&lt;/p>
 &lt;p>根据jstack pid 生成tdump文件，根据转换出来的16进制，搜索对应的nid，此时的线程大概率是runnbale，不然怎么可能死循环，然后根据调用链路去找项目中对应的位置。&lt;/p>
 &lt;h2 id="死锁问题">死锁问题
 &lt;/h2>&lt;p>测试代码&lt;/p>
-&lt;div class="highlight">&lt;div class="chroma">
-&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
-&lt;/span>&lt;span class="lnt"> 2
-&lt;/span>&lt;span class="lnt"> 3
-&lt;/span>&lt;span class="lnt"> 4
-&lt;/span>&lt;span class="lnt"> 5
-&lt;/span>&lt;span class="lnt"> 6
-&lt;/span>&lt;span class="lnt"> 7
-&lt;/span>&lt;span class="lnt"> 8
-&lt;/span>&lt;span class="lnt"> 9
-&lt;/span>&lt;span class="lnt">10
-&lt;/span>&lt;span class="lnt">11
-&lt;/span>&lt;span class="lnt">12
-&lt;/span>&lt;span class="lnt">13
-&lt;/span>&lt;span class="lnt">14
-&lt;/span>&lt;span class="lnt">15
-&lt;/span>&lt;span class="lnt">16
-&lt;/span>&lt;span class="lnt">17
-&lt;/span>&lt;span class="lnt">18
-&lt;/span>&lt;span class="lnt">19
-&lt;/span>&lt;span class="lnt">20
-&lt;/span>&lt;span class="lnt">21
-&lt;/span>&lt;span class="lnt">22
-&lt;/span>&lt;span class="lnt">23
-&lt;/span>&lt;span class="lnt">24
-&lt;/span>&lt;span class="lnt">25
-&lt;/span>&lt;span class="lnt">26
-&lt;/span>&lt;span class="lnt">27
-&lt;/span>&lt;span class="lnt">28
-&lt;/span>&lt;span class="lnt">29
-&lt;/span>&lt;span class="lnt">30
-&lt;/span>&lt;span class="lnt">31
-&lt;/span>&lt;span class="lnt">32
-&lt;/span>&lt;span class="lnt">33
-&lt;/span>&lt;span class="lnt">34
-&lt;/span>&lt;span class="lnt">35
-&lt;/span>&lt;span class="lnt">36
-&lt;/span>&lt;span class="lnt">37
-&lt;/span>&lt;span class="lnt">38
-&lt;/span>&lt;span class="lnt">39
-&lt;/span>&lt;span class="lnt">40
-&lt;/span>&lt;span class="lnt">41
-&lt;/span>&lt;span class="lnt">42
-&lt;/span>&lt;span class="lnt">43
-&lt;/span>&lt;span class="lnt">44
-&lt;/span>&lt;span class="lnt">45
-&lt;/span>&lt;span class="lnt">46
-&lt;/span>&lt;span class="lnt">47
-&lt;/span>&lt;span class="lnt">48
-&lt;/span>&lt;span class="lnt">49
-&lt;/span>&lt;span class="lnt">50
-&lt;/span>&lt;span class="lnt">51
-&lt;/span>&lt;span class="lnt">52
-&lt;/span>&lt;span class="lnt">53
-&lt;/span>&lt;span class="lnt">54
-&lt;/span>&lt;span class="lnt">55
-&lt;/span>&lt;span class="lnt">56
-&lt;/span>&lt;span class="lnt">57
-&lt;/span>&lt;span class="lnt">58
-&lt;/span>&lt;span class="lnt">59
-&lt;/span>&lt;span class="lnt">60
-&lt;/span>&lt;span class="lnt">61
-&lt;/span>&lt;span class="lnt">62
-&lt;/span>&lt;span class="lnt">63
-&lt;/span>&lt;span class="lnt">64
-&lt;/span>&lt;span class="lnt">65
-&lt;/span>&lt;span class="lnt">66
-&lt;/span>&lt;span class="lnt">67
-&lt;/span>&lt;span class="lnt">68
-&lt;/span>&lt;span class="lnt">69
-&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
-&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code class="language-java" data-lang="java">&lt;span class="line">&lt;span class="cl">&lt;span class="kd">public&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="kd">class&lt;/span> &lt;span class="nc">DeadLockExample&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">{&lt;/span>&lt;span class="w">
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-java" data-lang="java">&lt;span class="line">&lt;span class="cl">&lt;span class="kd">public&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="kd">class&lt;/span> &lt;span class="nc">DeadLockExample&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">{&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="kd">public&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">Object&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">resourceA&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">new&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">Object&lt;/span>&lt;span class="p">();&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="kd">public&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">Object&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">resourceB&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">new&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">Object&lt;/span>&lt;span class="p">();&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="kd">public&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="kd">static&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="kt">void&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nf">main&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">String&lt;/span>&lt;span class="o">[]&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">args&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">{&lt;/span>&lt;span class="w">
@@ -491,36 +258,9 @@ alt="monitor"
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">new&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">Thread&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">runnableB&lt;/span>&lt;span class="p">).&lt;/span>&lt;span class="na">start&lt;/span>&lt;span class="p">();&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">}&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="p">}&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
-&lt;/div>
-&lt;/div>&lt;p>这段程序执行后，runnableA在持有resourceA后会再尝试获取resourceB锁，但此时resourceB锁已经被runnableB获取，释放的条件则是runnableB执行完，但是runnableB执行过程又在等待resourceA锁，这样就陷入了死锁。&lt;/p>
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>这段程序执行后，runnableA在持有resourceA后会再尝试获取resourceB锁，但此时resourceB锁已经被runnableB获取，释放的条件则是runnableB执行完，但是runnableB执行过程又在等待resourceA锁，这样就陷入了死锁。&lt;/p>
 &lt;p>使用jps获取pid，使用jstack pid生成文件。文件内容大致就是下面这样，其中大部分都是如同第一段一般，只有在出现死锁的时候，才会出现第二段（Found one Java-level deadlock），并清楚的告诉是哪些线程陷入死锁。&lt;/p>
-&lt;div class="highlight">&lt;div class="chroma">
-&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
-&lt;/span>&lt;span class="lnt"> 2
-&lt;/span>&lt;span class="lnt"> 3
-&lt;/span>&lt;span class="lnt"> 4
-&lt;/span>&lt;span class="lnt"> 5
-&lt;/span>&lt;span class="lnt"> 6
-&lt;/span>&lt;span class="lnt"> 7
-&lt;/span>&lt;span class="lnt"> 8
-&lt;/span>&lt;span class="lnt"> 9
-&lt;/span>&lt;span class="lnt">10
-&lt;/span>&lt;span class="lnt">11
-&lt;/span>&lt;span class="lnt">12
-&lt;/span>&lt;span class="lnt">13
-&lt;/span>&lt;span class="lnt">14
-&lt;/span>&lt;span class="lnt">15
-&lt;/span>&lt;span class="lnt">16
-&lt;/span>&lt;span class="lnt">17
-&lt;/span>&lt;span class="lnt">18
-&lt;/span>&lt;span class="lnt">19
-&lt;/span>&lt;span class="lnt">20
-&lt;/span>&lt;span class="lnt">21
-&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
-&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code class="language-java" data-lang="java">&lt;span class="line">&lt;span class="cl">&lt;span class="s">&amp;#34;Thread-1&amp;#34;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="err">#&lt;/span>&lt;span class="n">14&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">prio&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="n">5&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">os_prio&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="n">31&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">tid&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="n">0x0000000125809000&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">nid&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="n">0x7a03&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">waiting&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">for&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">monitor&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">entry&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">[&lt;/span>&lt;span class="n">0x000000016efba000&lt;/span>&lt;span class="o">]&lt;/span>&lt;span class="w">
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-java" data-lang="java">&lt;span class="line">&lt;span class="cl">&lt;span class="s">&amp;#34;Thread-1&amp;#34;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="err">#&lt;/span>&lt;span class="n">14&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">prio&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="n">5&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">os_prio&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="n">31&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">tid&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="n">0x0000000125809000&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">nid&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="n">0x7a03&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">waiting&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">for&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">monitor&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">entry&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">[&lt;/span>&lt;span class="n">0x000000016efba000&lt;/span>&lt;span class="o">]&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">java&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">lang&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">Thread&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">State&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">BLOCKED&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">on&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">object&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">monitor&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">at&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">com&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">qisi&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">simple&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">Jvisualvm&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">DeadLockExample$2&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">run&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">DeadLockExample&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">java&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="n">59&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">waiting&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">to&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">lock&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">&amp;lt;&lt;/span>&lt;span class="n">0x000000076b5dee40&lt;/span>&lt;span class="o">&amp;gt;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">a&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">java&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">lang&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">Object&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w">
@@ -541,9 +281,7 @@ alt="monitor"
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="p">......&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="n">Found&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">1&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">deadlock&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
-&lt;/div>
-&lt;/div>&lt;h2 id="参考文档">参考文档：
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="参考文档">参考文档：
 &lt;/h2>&lt;p>&lt;a class="link" href="https://zihengcat.github.io/2019/08/09/java-tutorial-for-language-adavanced-deadlock-example-and-solution/" target="_blank" rel="noopener"
 >https://zihengcat.github.io/2019/08/09/java-tutorial-for-language-adavanced-deadlock-example-and-solution/&lt;/a>&lt;/p>
 &lt;p>&lt;a class="link" href="https://cloud.tencent.com/developer/article/1683376" target="_blank" rel="noopener"
@@ -559,27 +297,13 @@ alt="monitor"
 loading="lazy"
 >&lt;/p>
 &lt;p>填入自己的服务器的ip和任意一个没有被占用的端口号（非当前应用启动用的端口号），然后重点是下面这段代码&lt;/p>
-&lt;div class="highlight">&lt;div class="chroma">
-&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
-&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
-&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code class="language-java" data-lang="java">&lt;span class="line">&lt;span class="cl">&lt;span class="o">-&lt;/span>&lt;span class="n">agentlib&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="n">jdwp&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="n">transport&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="n">dt_socket&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">server&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="n">y&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">suspend&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="n">n&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">address&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="n">8100&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
-&lt;/div>
-&lt;/div>&lt;p>&lt;img src="http://picgo.qisiii.asia/post/1723664128443.jpg"
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-java" data-lang="java">&lt;span class="line">&lt;span class="cl">&lt;span class="o">-&lt;/span>&lt;span class="n">agentlib&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="n">jdwp&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="n">transport&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="n">dt_socket&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">server&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="n">y&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">suspend&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="n">n&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">address&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="n">8100&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>&lt;img src="http://picgo.qisiii.asia/post/1723664128443.jpg"
 loading="lazy"
 >&lt;/p>
 &lt;p>在服务器启动对应应用，上面提到的代码必须在 java -jar xxx.jar 的-jar前面，而我的启动命令是下面这样，绿色为新插入的&lt;/p>
-&lt;div class="highlight">&lt;div class="chroma">
-&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
-&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
-&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code class="language-C" data-lang="C">&lt;span class="line">&lt;span class="cl">&lt;span class="n">nohup&lt;/span> &lt;span class="n">java&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="n">Xms128m&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="n">Xmx128m&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="n">Xmn40m&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nl">XX&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="n">HeapDumpOnOutOfMemoryError&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nl">XX&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="n">HeapDumpPath&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="n">logs&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="n">jvm&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nl">Xloggc&lt;/span>&lt;span class="p">:.&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="n">logs&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="n">jvm&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="n">gc&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">log&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nl">XX&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="n">PrintGCDetails&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nl">XX&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="n">PrintGCDateStamps&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nl">agentlib&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="n">jdwp&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="n">transport&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="n">dt_socket&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">server&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="n">y&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">suspend&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="n">n&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">address&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="mi">8100&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="n">jar&lt;/span> &lt;span class="n">callback&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mf">1.0&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="n">SNAPSHOT&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">jar&lt;/span> &lt;span class="o">--&lt;/span>&lt;span class="n">spring&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">profiles&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">active&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="n">prod&lt;/span> &lt;span class="o">&amp;amp;&lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
-&lt;/div>
-&lt;/div>&lt;p>在确认服务器启动之后，在本地点debug启动按钮，如果打印了下面这个语句，就证明连接成功&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-C" data-lang="C">&lt;span class="line">&lt;span class="cl">&lt;span class="n">nohup&lt;/span> &lt;span class="n">java&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="n">Xms128m&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="n">Xmx128m&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="n">Xmn40m&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nl">XX&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="n">HeapDumpOnOutOfMemoryError&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nl">XX&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="n">HeapDumpPath&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="n">logs&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="n">jvm&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nl">Xloggc&lt;/span>&lt;span class="p">:.&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="n">logs&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="n">jvm&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="n">gc&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">log&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nl">XX&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="n">PrintGCDetails&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nl">XX&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="n">PrintGCDateStamps&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nl">agentlib&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="n">jdwp&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="n">transport&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="n">dt_socket&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">server&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="n">y&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">suspend&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="n">n&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">address&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="mi">8100&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="n">jar&lt;/span> &lt;span class="n">callback&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mf">1.0&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="n">SNAPSHOT&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">jar&lt;/span> &lt;span class="o">--&lt;/span>&lt;span class="n">spring&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">profiles&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">active&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="n">prod&lt;/span> &lt;span class="o">&amp;amp;&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>在确认服务器启动之后，在本地点debug启动按钮，如果打印了下面这个语句，就证明连接成功&lt;/p>
 &lt;p>&lt;img src="http://picgo.qisiii.asia/post/1723664107079.jpg"
 loading="lazy"
 >&lt;/p>
@@ -590,23 +314,7 @@ loading="lazy"
 &lt;h2 id="docker启动">docker启动
 &lt;/h2>&lt;p>IDEA的配置不变，整体的区别就是docker在打包时要暴露出来调试的接口，启动命令-p 映射端口也要有两个&lt;/p>
 &lt;p>dockerfile如下&lt;/p>
-&lt;div class="highlight">&lt;div class="chroma">
-&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
-&lt;/span>&lt;span class="lnt"> 2
-&lt;/span>&lt;span class="lnt"> 3
-&lt;/span>&lt;span class="lnt"> 4
-&lt;/span>&lt;span class="lnt"> 5
-&lt;/span>&lt;span class="lnt"> 6
-&lt;/span>&lt;span class="lnt"> 7
-&lt;/span>&lt;span class="lnt"> 8
-&lt;/span>&lt;span class="lnt"> 9
-&lt;/span>&lt;span class="lnt">10
-&lt;/span>&lt;span class="lnt">11
-&lt;/span>&lt;span class="lnt">12
-&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
-&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code class="language-Dockerfile" data-lang="Dockerfile">&lt;span class="line">&lt;span class="cl">&lt;span class="k">FROM&lt;/span>&lt;span class="s"> openjdk:8&lt;/span>&lt;span class="err">
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-Dockerfile" data-lang="Dockerfile">&lt;span class="line">&lt;span class="cl">&lt;span class="k">FROM&lt;/span>&lt;span class="s"> openjdk:8&lt;/span>&lt;span class="err">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">&lt;/span>&lt;span class="k">LABEL&lt;/span> &lt;span class="nv">maintainer&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s2">&amp;#34;qisiii@example.com&amp;#34;&lt;/span>&lt;span class="err">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">&lt;/span>&lt;span class="k">WORKDIR&lt;/span>&lt;span class="s"> /app&lt;/span>&lt;span class="err">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">&lt;/span>&lt;span class="c">#这里的路径不能使用父级的,即../&lt;/span>&lt;span class="err">
@@ -618,60 +326,13 @@ loading="lazy"
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">&lt;/span>&lt;span class="k">ENV&lt;/span> &lt;span class="nv">JAVA_OPTS&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s1">&amp;#39;&amp;#39;&lt;/span>&lt;span class="err">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">&lt;/span>&lt;span class="k">ENV&lt;/span> &lt;span class="nv">JAVA_OPTS2&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s1">&amp;#39;--spring.profiles.active=prod&amp;#39;&lt;/span>&lt;span class="err">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">&lt;/span>&lt;span class="k">ENTRYPOINT&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="s2">&amp;#34;sh&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="s2">&amp;#34;-c&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="s2">&amp;#34;java ${JAVA_OPTS} -jar app.jar ${JAVA_OPTS2}&amp;#34;&lt;/span>&lt;span class="p">]&lt;/span>&lt;span class="err">
-&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
-&lt;/div>
-&lt;/div>&lt;div class="highlight">&lt;div class="chroma">
-&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
-&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
-&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code class="language-Dockerfile" data-lang="Dockerfile">&lt;span class="line">&lt;span class="cl">docker run -e &lt;span class="s2">&amp;#34;JAVA_OPTS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=8100&amp;#34;&lt;/span> -d -p 8101:8101 -p 8100:8100 --name open-platform open-platform:1.0.0&lt;span class="err">
-&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
-&lt;/div>
-&lt;/div>&lt;h2 id="k8s启动">k8s启动
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-Dockerfile" data-lang="Dockerfile">&lt;span class="line">&lt;span class="cl">docker run -e &lt;span class="s2">&amp;#34;JAVA_OPTS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=8100&amp;#34;&lt;/span> -d -p 8101:8101 -p 8100:8100 --name open-platform open-platform:1.0.0&lt;span class="err">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="k8s启动">k8s启动
 &lt;/h2>&lt;p>idea本身的配置和通过docker启动一样，只需要修改k8s里相关的配置就可以了&lt;/p>
 &lt;p>镜像依然使用docker那个镜像，我是在deployment对应的yml文件中添加的里面的环境变量&lt;/p>
-&lt;div class="highlight">&lt;div class="chroma">
-&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
-&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
-&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code class="language-Dockerfile" data-lang="Dockerfile">&lt;span class="line">&lt;span class="cl">apiVersion: apps/v1 &lt;span class="c1">#kubectl api-versions 可以通过这条指令去看版本信息kind: Deployment # 指定资源类别metadata: #资源的一些元数据 name: open-platform #deloyment的名称 labels: app: open-platform #标签spec: replicas: 1 #创建pod的个数 selector: matchLabels: app: open-platform #满足标签为这个的时候相关的pod才能被调度到 template: metadata: labels: app: open-platform spec: imagePullSecrets: - name: aliyun containers: - name: open-platform image: registry.cn-hangzhou.aliyuncs.com/qisiii/open-platform:1.0.1 imagePullPolicy: IfNotPresent ports: - containerPort: 8101 env: - name: JAVA_OPTS value: &amp;#34;-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=8100&amp;#34;&lt;/span>&lt;span class="err">
-&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
-&lt;/div>
-&lt;/div>&lt;p>然后我在service里面暴露了端口号&lt;/p>
-&lt;div class="highlight">&lt;div class="chroma">
-&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
-&lt;/span>&lt;span class="lnt"> 2
-&lt;/span>&lt;span class="lnt"> 3
-&lt;/span>&lt;span class="lnt"> 4
-&lt;/span>&lt;span class="lnt"> 5
-&lt;/span>&lt;span class="lnt"> 6
-&lt;/span>&lt;span class="lnt"> 7
-&lt;/span>&lt;span class="lnt"> 8
-&lt;/span>&lt;span class="lnt"> 9
-&lt;/span>&lt;span class="lnt">10
-&lt;/span>&lt;span class="lnt">11
-&lt;/span>&lt;span class="lnt">12
-&lt;/span>&lt;span class="lnt">13
-&lt;/span>&lt;span class="lnt">14
-&lt;/span>&lt;span class="lnt">15
-&lt;/span>&lt;span class="lnt">16
-&lt;/span>&lt;span class="lnt">17
-&lt;/span>&lt;span class="lnt">18
-&lt;/span>&lt;span class="lnt">19
-&lt;/span>&lt;span class="lnt">20
-&lt;/span>&lt;span class="lnt">21
-&lt;/span>&lt;span class="lnt">22
-&lt;/span>&lt;span class="lnt">23
-&lt;/span>&lt;span class="lnt">24
-&lt;/span>&lt;span class="lnt">25
-&lt;/span>&lt;span class="lnt">26
-&lt;/span>&lt;span class="lnt">27
-&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
-&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code class="language-Dockerfile" data-lang="Dockerfile">&lt;span class="line">&lt;span class="cl">&lt;span class="o">{&lt;/span> &lt;span class="err">
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-Dockerfile" data-lang="Dockerfile">&lt;span class="line">&lt;span class="cl">apiVersion: apps/v1 &lt;span class="c1">#kubectl api-versions 可以通过这条指令去看版本信息kind: Deployment # 指定资源类别metadata: #资源的一些元数据 name: open-platform #deloyment的名称 labels: app: open-platform #标签spec: replicas: 1 #创建pod的个数 selector: matchLabels: app: open-platform #满足标签为这个的时候相关的pod才能被调度到 template: metadata: labels: app: open-platform spec: imagePullSecrets: - name: aliyun containers: - name: open-platform image: registry.cn-hangzhou.aliyuncs.com/qisiii/open-platform:1.0.1 imagePullPolicy: IfNotPresent ports: - containerPort: 8101 env: - name: JAVA_OPTS value: &amp;#34;-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=8100&amp;#34;&lt;/span>&lt;span class="err">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>然后我在service里面暴露了端口号&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-Dockerfile" data-lang="Dockerfile">&lt;span class="line">&lt;span class="cl">&lt;span class="o">{&lt;/span> &lt;span class="err">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">&lt;/span>&lt;span class="s2">&amp;#34;kind&amp;#34;&lt;/span>: &lt;span class="s2">&amp;#34;Service&amp;#34;&lt;/span>, &lt;span class="err">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">&lt;/span> &lt;span class="s2">&amp;#34;apiVersion&amp;#34;&lt;/span>: &lt;span class="s2">&amp;#34;v1&amp;#34;&lt;/span>, &lt;span class="err">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">&lt;/span> &lt;span class="s2">&amp;#34;metadata&amp;#34;&lt;/span>: &lt;span class="o">{&lt;/span> &lt;span class="err">
@@ -698,18 +359,9 @@ loading="lazy"
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">&lt;/span> &lt;span class="o">]&lt;/span> &lt;span class="err">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">&lt;/span> &lt;span class="o">}&lt;/span> &lt;span class="err">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">&lt;/span>&lt;span class="o">}&lt;/span> &lt;span class="err">
-&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
-&lt;/div>
-&lt;/div>&lt;p>并且在最后通过post-forward转发时同时转发了两个端口号&lt;/p>
-&lt;div class="highlight">&lt;div class="chroma">
-&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
-&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
-&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code class="language-Dockerfile" data-lang="Dockerfile">&lt;span class="line">&lt;span class="cl">kubectl port-forward --address 0.0.0.0 service/open-platform-service 8101:80 8100:8100&lt;span class="err">
-&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
-&lt;/div>
-&lt;/div>&lt;p>这个时候本地idea启动debug，打上断点，远程触发访问&lt;/p>
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>并且在最后通过post-forward转发时同时转发了两个端口号&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-Dockerfile" data-lang="Dockerfile">&lt;span class="line">&lt;span class="cl">kubectl port-forward --address 0.0.0.0 service/open-platform-service 8101:80 8100:8100&lt;span class="err">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>这个时候本地idea启动debug，打上断点，远程触发访问&lt;/p>
 &lt;p>&lt;img src="http://picgo.qisiii.asia/post/1723664166715.jpg"
 loading="lazy"
 >&lt;/p>

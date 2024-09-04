@@ -1,5 +1,5 @@
-<!doctype html><html lang=zh-cn dir=ltr><head><meta charset=utf-8><meta name=viewport content='width=device-width,initial-scale=1'><meta name=description content="部署 在单机上部署伪集群，需要根据不同的配置文件启动不同的进程。 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 #这是zoo1.cfg的内容 tickTime=2000 initLimit=10 syncLimit=5 dataDir=/opt/soft/zookeeper/data/1 clientPort=2181 #第一个"><title>Zookeeper源码分析-选举机制</title>
-<link rel=canonical href=https://qisiii.github.io/post/tech/distributed/zookeeper/election/><link rel=stylesheet href=/scss/style.min.7657e19dfcc00117e827b40bd92bcea286037ffa4a33e95fc533eaea79d078f9.css><meta property='og:title' content="Zookeeper源码分析-选举机制"><meta property='og:description' content="部署 在单机上部署伪集群，需要根据不同的配置文件启动不同的进程。 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 #这是zoo1.cfg的内容 tickTime=2000 initLimit=10 syncLimit=5 dataDir=/opt/soft/zookeeper/data/1 clientPort=2181 #第一个"><meta property='og:url' content='https://qisiii.github.io/post/tech/distributed/zookeeper/election/'><meta property='og:site_name' content='起司的博客'><meta property='og:type' content='article'><meta property='article:section' content='Post'><meta property='article:tag' content='中间件'><meta property='article:tag' content='注册中心'><meta property='article:tag' content='zookeeper'><meta property='article:published_time' content='2024-08-09T18:01:30+08:00'><meta property='article:modified_time' content='2024-09-03T18:42:30+00:00'><meta name=twitter:title content="Zookeeper源码分析-选举机制"><meta name=twitter:description content="部署 在单机上部署伪集群，需要根据不同的配置文件启动不同的进程。 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 #这是zoo1.cfg的内容 tickTime=2000 initLimit=10 syncLimit=5 dataDir=/opt/soft/zookeeper/data/1 clientPort=2181 #第一个"><link rel=alternate type=application/json href=https://qisiii.github.io/post/tech/distributed/zookeeper/election/index.json><link rel=alternate type=application/rss+xml href=https://qisiii.github.io/post/tech/distributed/zookeeper/election/index.xml><link rel="shortcut icon" href=/favicon.ico><script async src="https://www.googletagmanager.com/gtag/js?id=G-8NDCRP4S7S"></script><script>var dnt,doNotTrack=!1;if(!1&&(dnt=navigator.doNotTrack||window.doNotTrack||navigator.msDoNotTrack,doNotTrack=dnt=="1"||dnt=="yes"),!doNotTrack){window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","G-8NDCRP4S7S")}</script><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=manifest href=/site.webmanifest><span id=top></span></head><body class=article-page><script>(function(){const e="StackColorScheme";localStorage.getItem(e)||localStorage.setItem(e,"auto")})()</script><script>(function(){const t="StackColorScheme",e=localStorage.getItem(t),n=window.matchMedia("(prefers-color-scheme: dark)").matches===!0;e=="dark"||e==="auto"&&n?document.documentElement.dataset.scheme="dark":document.documentElement.dataset.scheme="light"})()</script><div class="container main-container flex on-phone--column extended"><aside class="sidebar left-sidebar sticky"><button class="hamburger hamburger--spin" type=button id=toggle-menu aria-label=切换菜单>
+<!doctype html><html lang=zh-cn dir=ltr><head><meta charset=utf-8><meta name=viewport content='width=device-width,initial-scale=1'><meta name=description content="部署 在单机上部署伪集群，需要根据不同的配置文件启动不同的进程。 #这是zoo1.cfg的内容 tickTime=2000 initLimit=10 syncLimit=5 dataDir=/opt/soft/zookeeper/data/1 clientPort=2181 #第一个端口号用于zk集群同步数据，第二"><title>Zookeeper源码分析-选举机制</title>
+<link rel=canonical href=https://qisiii.github.io/post/tech/distributed/zookeeper/election/><link rel=stylesheet href=/scss/style.min.7657e19dfcc00117e827b40bd92bcea286037ffa4a33e95fc533eaea79d078f9.css><meta property='og:title' content="Zookeeper源码分析-选举机制"><meta property='og:description' content="部署 在单机上部署伪集群，需要根据不同的配置文件启动不同的进程。 #这是zoo1.cfg的内容 tickTime=2000 initLimit=10 syncLimit=5 dataDir=/opt/soft/zookeeper/data/1 clientPort=2181 #第一个端口号用于zk集群同步数据，第二"><meta property='og:url' content='https://qisiii.github.io/post/tech/distributed/zookeeper/election/'><meta property='og:site_name' content='起司的博客'><meta property='og:type' content='article'><meta property='article:section' content='Post'><meta property='article:tag' content='中间件'><meta property='article:tag' content='注册中心'><meta property='article:tag' content='zookeeper'><meta property='article:published_time' content='2024-08-09T18:01:30+08:00'><meta property='article:modified_time' content='2024-09-04T16:07:21+00:00'><meta name=twitter:title content="Zookeeper源码分析-选举机制"><meta name=twitter:description content="部署 在单机上部署伪集群，需要根据不同的配置文件启动不同的进程。 #这是zoo1.cfg的内容 tickTime=2000 initLimit=10 syncLimit=5 dataDir=/opt/soft/zookeeper/data/1 clientPort=2181 #第一个端口号用于zk集群同步数据，第二"><link rel=alternate type=application/json href=https://qisiii.github.io/post/tech/distributed/zookeeper/election/index.json><link rel=alternate type=application/rss+xml href=https://qisiii.github.io/post/tech/distributed/zookeeper/election/index.xml><link rel="shortcut icon" href=/favicon.ico><script async src="https://www.googletagmanager.com/gtag/js?id=G-8NDCRP4S7S"></script><script>var dnt,doNotTrack=!1;if(!1&&(dnt=navigator.doNotTrack||window.doNotTrack||navigator.msDoNotTrack,doNotTrack=dnt=="1"||dnt=="yes"),!doNotTrack){window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","G-8NDCRP4S7S")}</script><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=manifest href=/site.webmanifest><span id=top></span></head><body class=article-page><script>(function(){const e="StackColorScheme";localStorage.getItem(e)||localStorage.setItem(e,"auto")})()</script><script>(function(){const t="StackColorScheme",e=localStorage.getItem(t),n=window.matchMedia("(prefers-color-scheme: dark)").matches===!0;e=="dark"||e==="auto"&&n?document.documentElement.dataset.scheme="dark":document.documentElement.dataset.scheme="light"})()</script><div class="container main-container flex on-phone--column extended"><aside class="sidebar left-sidebar sticky"><button class="hamburger hamburger--spin" type=button id=toggle-menu aria-label=切换菜单>
 <span class=hamburger-box><span class=hamburger-inner></span></span></button><header><figure class=site-avatar><a href=/><img src=/img/avatar_huf89847f5290877d03a6309f0caaa56f1_43584_300x0_resize_box_3.png width=300 height=300 class=site-logo loading=lazy alt=Avatar></a></figure><div class=site-meta><h1 class=site-name><a href=/>起司的博客</a></h1><h2 class=site-description></h2></div></header><ol class=menu-social><li><a href=https://github.com/qisiii target=_blank title=GitHub rel=me><svg class="icon icon-tabler icon-tabler-brand-github" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 19c-4.3 1.4-4.3-2.5-6-3m12 5v-3.5c0-1 .1-1.4-.5-2 2.8-.3 5.5-1.4 5.5-6a4.6 4.6.0 00-1.3-3.2 4.2 4.2.0 00-.1-3.2s-1.1-.3-3.5 1.3a12.3 12.3.0 00-6.2.0C6.5 2.8 5.4 3.1 5.4 3.1a4.2 4.2.0 00-.1 3.2A4.6 4.6.0 004 9.5c0 4.6 2.7 5.7 5.5 6-.6.6-.6 1.2-.5 2V21"/></svg></a></li><li><a href=/index.xml target=_blank title=rss rel=me><svg class="icon icon-tabler icon-tabler-rss" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="5" cy="19" r="1"/><path d="M4 4a16 16 0 0116 16"/><path d="M4 11a9 9 0 019 9"/></svg></a></li></ol><ol class=menu id=main-menu><li><a href=/><svg class="icon icon-tabler icon-tabler-home" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><polyline points="5 12 3 12 12 3 21 12 19 12"/><path d="M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/><path d="M9 21v-6a2 2 0 012-2h2a2 2 0 012 2v6"/></svg>
 <span>首页|Home</span></a></li><li><a href=/post/friends target=_blank><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-heart-handshake"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M19.5 12.572 12 20l-7.5-7.428A5 5 0 1112 6.006a5 5 0 117.5 6.572"/><path d="M12 6 8.707 9.293a1 1 0 000 1.414l.543.543c.69.69 1.81.69 2.5.0l1-1a3.182 3.182.0 014.5.0l2.25 2.25"/><path d="M12.5 15.5l2 2"/><path d="M15 13l2 2"/></svg>
 <span>友链|Friends</span></a></li><li><a href=/post/search target=_blank><svg class="icon icon-tabler icon-tabler-search" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="10" cy="10" r="7"/><line x1="21" y1="21" x2="15" y2="15"/></svg>
@@ -7,26 +7,10 @@
 <svg class="icon icon-tabler icon-tabler-toggle-right" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="16" cy="12" r="2"/><rect x="2" y="6" width="20" height="12" rx="6"/></svg>
 <span>暗色模式</span></li></ol></li></ol></aside><aside class="sidebar right-sidebar sticky"><section class="widget archives"><div class=widget-icon><svg class="icon icon-tabler icon-tabler-hash" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><line x1="5" y1="9" x2="19" y2="9"/><line x1="5" y1="15" x2="19" y2="15"/><line x1="11" y1="4" x2="7" y2="20"/><line x1="17" y1="4" x2="13" y2="20"/></svg></div><h2 class="widget-title section-title">目录</h2><div class=widget--toc><nav id=TableOfContents><ol><li><a href=#部署>部署</a></li><li><a href=#选举逻辑>选举逻辑：</a><ol><li><a href=#建立连接>建立连接</a></li><li><a href=#选举>选举</a><ol><li><a href=#选票pk逻辑>选票PK逻辑：</a></li><li><a href=#lookforleader流程图>lookForLeader流程图：</a></li><li><a href=#votetracker>VoteTracker</a></li></ol></li><li><a href=#readonlyzookeeperserver>ReadOnlyZookeeperServer</a></li></ol></li><li><a href=#参考文档>参考文档:</a></li></ol></nav></div></section></aside><main class="main full-width"><article class=main-article><header class=article-header><div class=article-details><header class=article-category><a href=/categories/tech/>技术人生</a></header><div class=article-title-wrapper><h2 class=article-title><a href=/post/tech/distributed/zookeeper/election/>Zookeeper源码分析-选举机制</a></h2></div><footer class=article-time><div><svg class="icon icon-tabler icon-tabler-calendar-time" width="56" height="56" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><path d="M11.795 21H5a2 2 0 01-2-2V7a2 2 0 012-2h12a2 2 0 012 2v4"/><circle cx="18" cy="18" r="4"/><path d="M15 3v4"/><path d="M7 3v4"/><path d="M3 11h16"/><path d="M18 16.496V18l1 1"/></svg>
 <time class=article-time--published>2024-08-09</time></div><div><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-hourglass-empty"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M6 20v-2a6 6 0 1112 0v2a1 1 0 01-1 1H7a1 1 0 01-1-1z"/><path d="M6 4v2a6 6 0 1012 0V4a1 1 0 00-1-1H7A1 1 0 006 4z"/></svg>
-<time class=article-time--reading>9分钟</time></div><span id=busuanzi_container_value_page_pv><i class="far fa-eye fa-fw"></i>
+<time class=article-time--reading>8分钟</time></div><span id=busuanzi_container_value_page_pv><i class="far fa-eye fa-fw"></i>
 <span id=busuanzi_value_page_pv></span>&nbsp;</span><svg class="icon icon-tabler icon-tabler-tag" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><path d="M11 3l9 9a1.5 1.5.0 010 2l-6 6a1.5 1.5.0 01-2 0L3 11V7a4 4 0 014-4h4"/><circle cx="9" cy="9" r="2"/></svg><div class=artile-time-reading><a href=https://qisiii.github.io/tags/%E4%B8%AD%E9%97%B4%E4%BB%B6>#中间件</a>
 <a href=https://qisiii.github.io/tags/%E6%B3%A8%E5%86%8C%E4%B8%AD%E5%BF%83>#注册中心</a>
-<a href=https://qisiii.github.io/tags/zookeeper>#zookeeper</a></div></footer></div></header><section class=article-content><h2 id=部署>部署</h2><p>在单机上部署伪集群，需要根据不同的配置文件启动不同的进程。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span><span class=lnt>16
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl><span class=c1>#这是zoo1.cfg的内容</span>
+<a href=https://qisiii.github.io/tags/zookeeper>#zookeeper</a></div></footer></div></header><section class=article-content><h2 id=部署>部署</h2><p>在单机上部署伪集群，需要根据不同的配置文件启动不同的进程。</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl><span class=c1>#这是zoo1.cfg的内容</span>
 </span></span><span class=line><span class=cl><span class=nv>tickTime</span><span class=o>=</span><span class=m>2000</span>
 </span></span><span class=line><span class=cl><span class=nv>initLimit</span><span class=o>=</span><span class=m>10</span>
 </span></span><span class=line><span class=cl><span class=nv>syncLimit</span><span class=o>=</span><span class=m>5</span>
@@ -42,43 +26,16 @@
 </span></span><span class=line><span class=cl><span class=c1>#zoo3.cfg需要修改两个地方</span>
 </span></span><span class=line><span class=cl><span class=nv>clientPort</span><span class=o>=</span><span class=m>2183</span>
 </span></span><span class=line><span class=cl><span class=nv>dataDir</span><span class=o>=</span>/opt/soft/zookeeper/data/3
-</span></span></code></pre></td></tr></table></div></div><p>在三个data目录下创建myid文件，内容只有单个数字代表当前zookeeper节点的myid,对应上面配置里server.id的id</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>touch 1/myid
+</span></span></code></pre></div><p>在三个data目录下创建myid文件，内容只有单个数字代表当前zookeeper节点的myid,对应上面配置里server.id的id</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>touch 1/myid
 </span></span><span class=line><span class=cl>echo 1 &gt;1/myid
 </span></span><span class=line><span class=cl>echo 2 &gt;2/myid
 </span></span><span class=line><span class=cl>echo 3 &gt;3/myid
-</span></span></code></pre></td></tr></table></div></div><p><img src=http://picgo.qisiii.asia/post/09-18-03-28-image.png loading=lazy></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span><span class=lnt>5
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl><span class=c1>#启动三个进程</span>
+</span></span></code></pre></div><p><img src=http://picgo.qisiii.asia/post/09-18-03-28-image.png loading=lazy></p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl><span class=c1>#启动三个进程</span>
 </span></span><span class=line><span class=cl>./apache-zookeeper-3.7.1-bin/bin/zkServer.sh start conf/zoo1.cfg
 </span></span><span class=line><span class=cl>./apache-zookeeper-3.7.1-bin/bin/zkServer.sh start conf/zoo2.cfg
 </span></span><span class=line><span class=cl>./apache-zookeeper-3.7.1-bin/bin/zkServer.sh start conf/zoo3.cfg
 </span></span><span class=line><span class=cl><span class=c1>#然后可以查看三个节点的状态</span>
-</span></span></code></pre></td></tr></table></div></div><p><img src=http://picgo.qisiii.asia/post/09-18-01-36-image.png loading=lazy></p><h2 id=选举逻辑>选举逻辑：</h2><p><img src=http://picgo.qisiii.asia/post/13-10-01-00-image.png loading=lazy></p><p>集群模式的核心类是QuorumPeer，其启动方法中核心的就只有startLeaderElection和super.start这两个方法的调用</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span><span class=lnt>16
-</span><span class=lnt>17
-</span><span class=lnt>18
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=kd>public</span><span class=w> </span><span class=kd>synchronized</span><span class=w> </span><span class=kt>void</span><span class=w> </span><span class=nf>start</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></code></pre></div><p><img src=http://picgo.qisiii.asia/post/09-18-01-36-image.png loading=lazy></p><h2 id=选举逻辑>选举逻辑：</h2><p><img src=http://picgo.qisiii.asia/post/13-10-01-00-image.png loading=lazy></p><p>集群模式的核心类是QuorumPeer，其启动方法中核心的就只有startLeaderElection和super.start这两个方法的调用</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=kd>public</span><span class=w> </span><span class=kd>synchronized</span><span class=w> </span><span class=kt>void</span><span class=w> </span><span class=nf>start</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>        </span><span class=k>if</span><span class=w> </span><span class=p>(</span><span class=o>!</span><span class=n>getView</span><span class=p>().</span><span class=na>containsKey</span><span class=p>(</span><span class=n>myid</span><span class=p>))</span><span class=w> </span><span class=p>{</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>            </span><span class=k>throw</span><span class=w> </span><span class=k>new</span><span class=w> </span><span class=n>RuntimeException</span><span class=p>(</span><span class=s>&#34;My id &#34;</span><span class=w> </span><span class=o>+</span><span class=w> </span><span class=n>myid</span><span class=w> </span><span class=o>+</span><span class=w> </span><span class=s>&#34; not in the peer list&#34;</span><span class=p>);</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>        </span><span class=p>}</span><span class=w>
@@ -96,31 +53,7 @@
 </span></span></span><span class=line><span class=cl><span class=w>        </span><span class=c1>//真正的选举逻辑在这里，QuorumPeer也是个线程，所以要看run的逻辑</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>        </span><span class=kd>super</span><span class=p>.</span><span class=na>start</span><span class=p>();</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
-</span></span></span></code></pre></td></tr></table></div></div><p>其中，QuorumCnxManager负责节点之间的通信，节点中两两之间都需要建立连接。</p><p>QuorumCnxManager通过给每个节点地址分配了一个ListenerHandler，来接受或者建立连接。ListenerHandler内的SendWorker和RecvWorker则是建立连接后进行真正进行发送和接受消息的类。</p><p>FastLeaderElection是专门负责选举工作的，其内部针对于通信有两个组件，分别是workerSender和workerReceiver，这两个类只是负责将选票信息封装为ByteBuffer，然后转发到queueSendMap，由QuorumCnxManager的SendWorker去进行发送。</p><h3 id=建立连接>建立连接</h3><p>首次发起建立连接的地方是在FastLeaderElection发消息前，如果判断没有建立好连接，就要建立连接</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span><span class=lnt>16
-</span><span class=lnt>17
-</span><span class=lnt>18
-</span><span class=lnt>19
-</span><span class=lnt>20
-</span><span class=lnt>21
-</span><span class=lnt>22
-</span><span class=lnt>23
-</span><span class=lnt>24
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=kd>public</span><span class=w> </span><span class=kt>void</span><span class=w> </span><span class=nf>toSend</span><span class=p>(</span><span class=n>Long</span><span class=w> </span><span class=n>sid</span><span class=p>,</span><span class=w> </span><span class=n>ByteBuffer</span><span class=w> </span><span class=n>b</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span></code></pre></div><p>其中，QuorumCnxManager负责节点之间的通信，节点中两两之间都需要建立连接。</p><p>QuorumCnxManager通过给每个节点地址分配了一个ListenerHandler，来接受或者建立连接。ListenerHandler内的SendWorker和RecvWorker则是建立连接后进行真正进行发送和接受消息的类。</p><p>FastLeaderElection是专门负责选举工作的，其内部针对于通信有两个组件，分别是workerSender和workerReceiver，这两个类只是负责将选票信息封装为ByteBuffer，然后转发到queueSendMap，由QuorumCnxManager的SendWorker去进行发送。</p><h3 id=建立连接>建立连接</h3><p>首次发起建立连接的地方是在FastLeaderElection发消息前，如果判断没有建立好连接，就要建立连接</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=kd>public</span><span class=w> </span><span class=kt>void</span><span class=w> </span><span class=nf>toSend</span><span class=p>(</span><span class=n>Long</span><span class=w> </span><span class=n>sid</span><span class=p>,</span><span class=w> </span><span class=n>ByteBuffer</span><span class=w> </span><span class=n>b</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>        </span><span class=k>if</span><span class=w> </span><span class=p>(</span><span class=k>this</span><span class=p>.</span><span class=na>mySid</span><span class=w> </span><span class=o>==</span><span class=w> </span><span class=n>sid</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>            </span><span class=n>b</span><span class=p>.</span><span class=na>position</span><span class=p>(</span><span class=n>0</span><span class=p>);</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>            </span><span class=c1>//发给自己的消息，直接添加到接受队列，不走网络请求了</span><span class=w>
@@ -144,46 +77,7 @@
 </span></span></span><span class=line><span class=cl><span class=w>            </span><span class=p>}</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>            </span><span class=k>return</span><span class=p>;</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>        </span><span class=p>}</span><span class=w>
-</span></span></span></code></pre></td></tr></table></div></div><p>建立的逻辑，就不细分析了；主要是通过QuorumConnectionReqThread类去实现的，且当建立成功后会在senderWorkerMap中存储对应的线程，对应上面代码判断存在线程直接返回。</p><p><img src=http://picgo.qisiii.asia/post/13-10-24-15-image.png loading=lazy></p><p>接受连接请求的地方就是在ListenerHandler中</p><p><img src=http://picgo.qisiii.asia/post/13-10-26-58-image.png loading=lazy></p><p>由于是每两个节点都要建立连接，且两个节点都可能发起连接，那么以哪个为主呢？zookeeper的设计是以myId大的为主，即只能myid大的发起连接，这样才会判定有效</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span><span class=lnt>16
-</span><span class=lnt>17
-</span><span class=lnt>18
-</span><span class=lnt>19
-</span><span class=lnt>20
-</span><span class=lnt>21
-</span><span class=lnt>22
-</span><span class=lnt>23
-</span><span class=lnt>24
-</span><span class=lnt>25
-</span><span class=lnt>26
-</span><span class=lnt>27
-</span><span class=lnt>28
-</span><span class=lnt>29
-</span><span class=lnt>30
-</span><span class=lnt>31
-</span><span class=lnt>32
-</span><span class=lnt>33
-</span><span class=lnt>34
-</span><span class=lnt>35
-</span><span class=lnt>36
-</span><span class=lnt>37
-</span><span class=lnt>38
-</span><span class=lnt>39
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=k>if</span><span class=w> </span><span class=p>(</span><span class=n>sid</span><span class=w> </span><span class=o>&lt;</span><span class=w> </span><span class=n>self</span><span class=p>.</span><span class=na>getMyId</span><span class=p>())</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span></code></pre></div><p>建立的逻辑，就不细分析了；主要是通过QuorumConnectionReqThread类去实现的，且当建立成功后会在senderWorkerMap中存储对应的线程，对应上面代码判断存在线程直接返回。</p><p><img src=http://picgo.qisiii.asia/post/13-10-24-15-image.png loading=lazy></p><p>接受连接请求的地方就是在ListenerHandler中</p><p><img src=http://picgo.qisiii.asia/post/13-10-26-58-image.png loading=lazy></p><p>由于是每两个节点都要建立连接，且两个节点都可能发起连接，那么以哪个为主呢？zookeeper的设计是以myId大的为主，即只能myid大的发起连接，这样才会判定有效</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=k>if</span><span class=w> </span><span class=p>(</span><span class=n>sid</span><span class=w> </span><span class=o>&lt;</span><span class=w> </span><span class=n>self</span><span class=p>.</span><span class=na>getMyId</span><span class=p>())</span><span class=w> </span><span class=p>{</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>            </span><span class=n>SendWorker</span><span class=w> </span><span class=n>sw</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>senderWorkerMap</span><span class=p>.</span><span class=na>get</span><span class=p>(</span><span class=n>sid</span><span class=p>);</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>            </span><span class=k>if</span><span class=w> </span><span class=p>(</span><span class=n>sw</span><span class=w> </span><span class=o>!=</span><span class=w> </span><span class=kc>null</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>                </span><span class=n>sw</span><span class=p>.</span><span class=na>finish</span><span class=p>();</span><span class=w>
@@ -222,87 +116,13 @@
 </span></span></span><span class=line><span class=cl><span class=w>            </span><span class=n>sw</span><span class=p>.</span><span class=na>start</span><span class=p>();</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>            </span><span class=n>rw</span><span class=p>.</span><span class=na>start</span><span class=p>();</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>        </span><span class=p>}</span><span class=w>
-</span></span></span></code></pre></td></tr></table></div></div><h3 id=选举>选举</h3><p>ELECTION 选举</p><p>Vote 是选票的意思，结构是（myid,LastZxid,currentEpoch）(节点id，最大事务id，当前周期)</p><p>Epoch 直译是纪元、时期，我理解是当前周期，类比于第15届领导中的这个15，选票需要表明这个是为哪期领导投票的</p><p>ServerState 节点状态</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span><span class=lnt>5
-</span><span class=lnt>6
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=kd>public</span><span class=w> </span><span class=kd>enum</span><span class=w> </span><span class=n>ServerState</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span></code></pre></div><h3 id=选举>选举</h3><p>ELECTION 选举</p><p>Vote 是选票的意思，结构是（myid,LastZxid,currentEpoch）(节点id，最大事务id，当前周期)</p><p>Epoch 直译是纪元、时期，我理解是当前周期，类比于第15届领导中的这个15，选票需要表明这个是为哪期领导投票的</p><p>ServerState 节点状态</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=kd>public</span><span class=w> </span><span class=kd>enum</span><span class=w> </span><span class=n>ServerState</span><span class=w> </span><span class=p>{</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>LOOKING</span><span class=p>,</span><span class=c1>//正在选举</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>FOLLOWING</span><span class=p>,</span><span class=c1>//节点处理跟从者状态，拥有投票的权利</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>LEADING</span><span class=p>,</span><span class=c1>//节点处于领导状态，拥有投票的权利</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>OBSERVING</span><span class=c1>//观察者,节点无投票权利</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
-</span></span></span></code></pre></td></tr></table></div></div><p>QuorumPeer本身就是一个线程，其真正的选举逻辑也在run方法中，去除掉杂七杂八的逻辑后，其核心逻辑如下：</p><p>默认是LOOKING状态，所以会进入到LOOKING的分支：根据readonlymode.enabled决定是否启动一个只读的服务器，然后进入选举，核心代码是<code>setCurrentVote(makeLEStrategy().lookForLeader());</code></p><p>当选举结果出来之后，每个节点会更改自身的状态，所以会进入到其他分支，处理不同的逻辑，以Leader为例，会创建一个LeaderZooKeeperServer来接受客户端请求，并做好一些转发工作等，这里先不展开讲。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span><span class=lnt>16
-</span><span class=lnt>17
-</span><span class=lnt>18
-</span><span class=lnt>19
-</span><span class=lnt>20
-</span><span class=lnt>21
-</span><span class=lnt>22
-</span><span class=lnt>23
-</span><span class=lnt>24
-</span><span class=lnt>25
-</span><span class=lnt>26
-</span><span class=lnt>27
-</span><span class=lnt>28
-</span><span class=lnt>29
-</span><span class=lnt>30
-</span><span class=lnt>31
-</span><span class=lnt>32
-</span><span class=lnt>33
-</span><span class=lnt>34
-</span><span class=lnt>35
-</span><span class=lnt>36
-</span><span class=lnt>37
-</span><span class=lnt>38
-</span><span class=lnt>39
-</span><span class=lnt>40
-</span><span class=lnt>41
-</span><span class=lnt>42
-</span><span class=lnt>43
-</span><span class=lnt>44
-</span><span class=lnt>45
-</span><span class=lnt>46
-</span><span class=lnt>47
-</span><span class=lnt>48
-</span><span class=lnt>49
-</span><span class=lnt>50
-</span><span class=lnt>51
-</span><span class=lnt>52
-</span><span class=lnt>53
-</span><span class=lnt>54
-</span><span class=lnt>55
-</span><span class=lnt>56
-</span><span class=lnt>57
-</span><span class=lnt>58
-</span><span class=lnt>59
-</span><span class=lnt>60
-</span><span class=lnt>61
-</span><span class=lnt>62
-</span><span class=lnt>63
-</span><span class=lnt>64
-</span><span class=lnt>65
-</span><span class=lnt>66
-</span><span class=lnt>67
-</span><span class=lnt>68
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=kd>public</span><span class=w> </span><span class=kt>void</span><span class=w> </span><span class=nf>run</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span></code></pre></div><p>QuorumPeer本身就是一个线程，其真正的选举逻辑也在run方法中，去除掉杂七杂八的逻辑后，其核心逻辑如下：</p><p>默认是LOOKING状态，所以会进入到LOOKING的分支：根据readonlymode.enabled决定是否启动一个只读的服务器，然后进入选举，核心代码是<code>setCurrentVote(makeLEStrategy().lookForLeader());</code></p><p>当选举结果出来之后，每个节点会更改自身的状态，所以会进入到其他分支，处理不同的逻辑，以Leader为例，会创建一个LeaderZooKeeperServer来接受客户端请求，并做好一些转发工作等，这里先不展开讲。</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=kd>public</span><span class=w> </span><span class=kt>void</span><span class=w> </span><span class=nf>run</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>            </span><span class=k>while</span><span class=w> </span><span class=p>(</span><span class=n>running</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>                </span><span class=k>switch</span><span class=w> </span><span class=p>(</span><span class=n>getPeerState</span><span class=p>())</span><span class=w> </span><span class=p>{</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>                </span><span class=k>case</span><span class=w> </span><span class=n>LOOKING</span><span class=p>:</span><span class=w>
@@ -370,18 +190,7 @@
 </span></span></span><span class=line><span class=cl><span class=w>                </span><span class=p>}</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>            </span><span class=p>}</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>        </span><span class=p>}</span><span class=w>
-</span></span></span></code></pre></td></tr></table></div></div><p>下面具体分析一下选举逻辑</p><p><code>makeLEStrategy().lookForLeader()</code>实际上是<code>FastLeaderElection.lookForLeader</code></p><h4 id=选票pk逻辑>选票PK逻辑：</h4><ol><li><p>周期大的为准</p></li><li><p>同周期的情况下，以事务Id大的为准</p></li><li><p>同周期同事务的情况下，以myid大的为准</p></li></ol><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=kd>protected</span><span class=w> </span><span class=kt>boolean</span><span class=w> </span><span class=nf>totalOrderPredicate</span><span class=p>(</span><span class=kt>long</span><span class=w> </span><span class=n>newId</span><span class=p>,</span><span class=w> </span><span class=kt>long</span><span class=w> </span><span class=n>newZxid</span><span class=p>,</span><span class=w> </span><span class=kt>long</span><span class=w> </span><span class=n>newEpoch</span><span class=p>,</span><span class=w> </span><span class=kt>long</span><span class=w> </span><span class=n>curId</span><span class=p>,</span><span class=w> </span><span class=kt>long</span><span class=w> </span><span class=n>curZxid</span><span class=p>,</span><span class=w> </span><span class=kt>long</span><span class=w> </span><span class=n>curEpoch</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span></code></pre></div><p>下面具体分析一下选举逻辑</p><p><code>makeLEStrategy().lookForLeader()</code>实际上是<code>FastLeaderElection.lookForLeader</code></p><h4 id=选票pk逻辑>选票PK逻辑：</h4><ol><li><p>周期大的为准</p></li><li><p>同周期的情况下，以事务Id大的为准</p></li><li><p>同周期同事务的情况下，以myid大的为准</p></li></ol><div class=highlight><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=kd>protected</span><span class=w> </span><span class=kt>boolean</span><span class=w> </span><span class=nf>totalOrderPredicate</span><span class=p>(</span><span class=kt>long</span><span class=w> </span><span class=n>newId</span><span class=p>,</span><span class=w> </span><span class=kt>long</span><span class=w> </span><span class=n>newZxid</span><span class=p>,</span><span class=w> </span><span class=kt>long</span><span class=w> </span><span class=n>newEpoch</span><span class=p>,</span><span class=w> </span><span class=kt>long</span><span class=w> </span><span class=n>curId</span><span class=p>,</span><span class=w> </span><span class=kt>long</span><span class=w> </span><span class=n>curZxid</span><span class=p>,</span><span class=w> </span><span class=kt>long</span><span class=w> </span><span class=n>curEpoch</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>        </span><span class=c1>//myid对应的权重为0，表示不算选票</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>        </span><span class=k>if</span><span class=w> </span><span class=p>(</span><span class=n>self</span><span class=p>.</span><span class=na>getQuorumVerifier</span><span class=p>().</span><span class=na>getWeight</span><span class=p>(</span><span class=n>newId</span><span class=p>)</span><span class=w> </span><span class=o>==</span><span class=w> </span><span class=n>0</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>            </span><span class=k>return</span><span class=w> </span><span class=kc>false</span><span class=p>;</span><span class=w>
@@ -392,110 +201,7 @@
 </span></span></span><span class=line><span class=cl><span class=w>                        </span><span class=o>||</span><span class=w> </span><span class=p>((</span><span class=n>newZxid</span><span class=w> </span><span class=o>==</span><span class=w> </span><span class=n>curZxid</span><span class=p>)</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>                            </span><span class=o>&amp;&amp;</span><span class=w> </span><span class=p>(</span><span class=n>newId</span><span class=w> </span><span class=o>&gt;</span><span class=w> </span><span class=n>curId</span><span class=p>)))));</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
-</span></span></span></code></pre></td></tr></table></div></div><h4 id=lookforleader流程图>lookForLeader流程图：</h4><p><img src=http://picgo.qisiii.asia/post/13-11-58-20-image.png loading=lazy></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>  1
-</span><span class=lnt>  2
-</span><span class=lnt>  3
-</span><span class=lnt>  4
-</span><span class=lnt>  5
-</span><span class=lnt>  6
-</span><span class=lnt>  7
-</span><span class=lnt>  8
-</span><span class=lnt>  9
-</span><span class=lnt> 10
-</span><span class=lnt> 11
-</span><span class=lnt> 12
-</span><span class=lnt> 13
-</span><span class=lnt> 14
-</span><span class=lnt> 15
-</span><span class=lnt> 16
-</span><span class=lnt> 17
-</span><span class=lnt> 18
-</span><span class=lnt> 19
-</span><span class=lnt> 20
-</span><span class=lnt> 21
-</span><span class=lnt> 22
-</span><span class=lnt> 23
-</span><span class=lnt> 24
-</span><span class=lnt> 25
-</span><span class=lnt> 26
-</span><span class=lnt> 27
-</span><span class=lnt> 28
-</span><span class=lnt> 29
-</span><span class=lnt> 30
-</span><span class=lnt> 31
-</span><span class=lnt> 32
-</span><span class=lnt> 33
-</span><span class=lnt> 34
-</span><span class=lnt> 35
-</span><span class=lnt> 36
-</span><span class=lnt> 37
-</span><span class=lnt> 38
-</span><span class=lnt> 39
-</span><span class=lnt> 40
-</span><span class=lnt> 41
-</span><span class=lnt> 42
-</span><span class=lnt> 43
-</span><span class=lnt> 44
-</span><span class=lnt> 45
-</span><span class=lnt> 46
-</span><span class=lnt> 47
-</span><span class=lnt> 48
-</span><span class=lnt> 49
-</span><span class=lnt> 50
-</span><span class=lnt> 51
-</span><span class=lnt> 52
-</span><span class=lnt> 53
-</span><span class=lnt> 54
-</span><span class=lnt> 55
-</span><span class=lnt> 56
-</span><span class=lnt> 57
-</span><span class=lnt> 58
-</span><span class=lnt> 59
-</span><span class=lnt> 60
-</span><span class=lnt> 61
-</span><span class=lnt> 62
-</span><span class=lnt> 63
-</span><span class=lnt> 64
-</span><span class=lnt> 65
-</span><span class=lnt> 66
-</span><span class=lnt> 67
-</span><span class=lnt> 68
-</span><span class=lnt> 69
-</span><span class=lnt> 70
-</span><span class=lnt> 71
-</span><span class=lnt> 72
-</span><span class=lnt> 73
-</span><span class=lnt> 74
-</span><span class=lnt> 75
-</span><span class=lnt> 76
-</span><span class=lnt> 77
-</span><span class=lnt> 78
-</span><span class=lnt> 79
-</span><span class=lnt> 80
-</span><span class=lnt> 81
-</span><span class=lnt> 82
-</span><span class=lnt> 83
-</span><span class=lnt> 84
-</span><span class=lnt> 85
-</span><span class=lnt> 86
-</span><span class=lnt> 87
-</span><span class=lnt> 88
-</span><span class=lnt> 89
-</span><span class=lnt> 90
-</span><span class=lnt> 91
-</span><span class=lnt> 92
-</span><span class=lnt> 93
-</span><span class=lnt> 94
-</span><span class=lnt> 95
-</span><span class=lnt> 96
-</span><span class=lnt> 97
-</span><span class=lnt> 98
-</span><span class=lnt> 99
-</span><span class=lnt>100
-</span><span class=lnt>101
-</span><span class=lnt>102
-</span><span class=lnt>103
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=kd>public</span><span class=w> </span><span class=n>Vote</span><span class=w> </span><span class=nf>lookForLeader</span><span class=p>()</span><span class=w> </span><span class=kd>throws</span><span class=w> </span><span class=n>InterruptedException</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span></code></pre></div><h4 id=lookforleader流程图>lookForLeader流程图：</h4><p><img src=http://picgo.qisiii.asia/post/13-11-58-20-image.png loading=lazy></p><div class=highlight><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=kd>public</span><span class=w> </span><span class=n>Vote</span><span class=w> </span><span class=nf>lookForLeader</span><span class=p>()</span><span class=w> </span><span class=kd>throws</span><span class=w> </span><span class=n>InterruptedException</span><span class=w> </span><span class=p>{</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>        </span><span class=k>try</span><span class=w> </span><span class=p>{</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>            </span><span class=c1>//选举期间每个节点的选票集合</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>            </span><span class=n>Map</span><span class=o>&lt;</span><span class=n>Long</span><span class=p>,</span><span class=w> </span><span class=n>Vote</span><span class=o>&gt;</span><span class=w> </span><span class=n>recvset</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=k>new</span><span class=w> </span><span class=n>HashMap</span><span class=o>&lt;&gt;</span><span class=p>();</span><span class=w>
@@ -598,36 +304,7 @@
 </span></span></span><span class=line><span class=cl><span class=w>                    </span><span class=k>case</span><span class=w> </span><span class=n>LEADING</span><span class=p>:</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>                        </span><span class=c1>//收到leader的消息，表明半数人已经同意了，直接更新自己的leader</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>                        </span><span class=n>Vote</span><span class=w> </span><span class=n>resultLN</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>receivedLeadingNotification</span><span class=p>(</span><span class=n>recvset</span><span class=p>,</span><span class=w> </span><span class=n>outofelection</span><span class=p>,</span><span class=w> </span><span class=n>voteSet</span><span class=p>,</span><span class=w> </span><span class=n>n</span><span class=p>);</span><span class=w>
-</span></span></span></code></pre></td></tr></table></div></div><h4 id=votetracker>VoteTracker</h4><p>该类是选票记录器，主要工作是在当前节点确定了自己的选票后，统计所有节点选票和自己选票相符的数量，可以理解为画正</p><p><img src=http://picgo.qisiii.asia/post/13-12-09-29-image.png loading=lazy></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span><span class=lnt>16
-</span><span class=lnt>17
-</span><span class=lnt>18
-</span><span class=lnt>19
-</span><span class=lnt>20
-</span><span class=lnt>21
-</span><span class=lnt>22
-</span><span class=lnt>23
-</span><span class=lnt>24
-</span><span class=lnt>25
-</span><span class=lnt>26
-</span><span class=lnt>27
-</span><span class=lnt>28
-</span><span class=lnt>29
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=kd>protected</span><span class=w> </span><span class=n>SyncedLearnerTracker</span><span class=w> </span><span class=nf>getVoteTracker</span><span class=p>(</span><span class=n>Map</span><span class=o>&lt;</span><span class=n>Long</span><span class=p>,</span><span class=w> </span><span class=n>Vote</span><span class=o>&gt;</span><span class=w> </span><span class=n>votes</span><span class=p>,</span><span class=w> </span><span class=n>Vote</span><span class=w> </span><span class=n>vote</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span></code></pre></div><h4 id=votetracker>VoteTracker</h4><p>该类是选票记录器，主要工作是在当前节点确定了自己的选票后，统计所有节点选票和自己选票相符的数量，可以理解为画正</p><p><img src=http://picgo.qisiii.asia/post/13-12-09-29-image.png loading=lazy></p><div class=highlight><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=kd>protected</span><span class=w> </span><span class=n>SyncedLearnerTracker</span><span class=w> </span><span class=nf>getVoteTracker</span><span class=p>(</span><span class=n>Map</span><span class=o>&lt;</span><span class=n>Long</span><span class=p>,</span><span class=w> </span><span class=n>Vote</span><span class=o>&gt;</span><span class=w> </span><span class=n>votes</span><span class=p>,</span><span class=w> </span><span class=n>Vote</span><span class=w> </span><span class=n>vote</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>        </span><span class=c1>//这里原则上其实只有1个的，但是假如LastSeenQuorumVerifier有值，就也要参考</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>SyncedLearnerTracker</span><span class=w> </span><span class=n>voteSet</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=k>new</span><span class=w> </span><span class=n>SyncedLearnerTracker</span><span class=p>();</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>voteSet</span><span class=p>.</span><span class=na>addQuorumVerifier</span><span class=p>(</span><span class=n>self</span><span class=p>.</span><span class=na>getQuorumVerifier</span><span class=p>());</span><span class=w>
@@ -656,25 +333,18 @@
 </span></span></span><span class=line><span class=cl><span class=w>        </span><span class=c1>//超过半数</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>        </span><span class=k>return</span><span class=w> </span><span class=p>(</span><span class=n>ackSet</span><span class=p>.</span><span class=na>size</span><span class=p>()</span><span class=w> </span><span class=o>&gt;</span><span class=w> </span><span class=n>half</span><span class=p>);</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
-</span></span></span></code></pre></td></tr></table></div></div><h3 id=readonlyzookeeperserver>ReadOnlyZookeeperServer</h3><p>当处于选举状态时，假如<code>readonlymode.enabled</code>为true，那么就创建一个只读的服务器，该服务器只提供查询，不能写入。</p><p>在<a class=link href=https://qisiii.github.io/post/tech/distributed/zookeeper/zookeeperservermain/>zookeeper学习-单机模式</a>中，我们知道zkserver是由三个processor处理的，其中SyncRequestProcessor是处理事务的，将事务写入日志里。而在只读模式下可以看到，不存在这个processor，所以只能查，不能写。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span><span class=lnt>5
-</span><span class=lnt>6
-</span><span class=lnt>7
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=kd>protected</span><span class=w> </span><span class=kt>void</span><span class=w> </span><span class=nf>setupRequestProcessors</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span></code></pre></div><h3 id=readonlyzookeeperserver>ReadOnlyZookeeperServer</h3><p>当处于选举状态时，假如<code>readonlymode.enabled</code>为true，那么就创建一个只读的服务器，该服务器只提供查询，不能写入。</p><p>在<a class=link href=https://qisiii.github.io/post/tech/distributed/zookeeper/zookeeperservermain/>zookeeper学习-单机模式</a>中，我们知道zkserver是由三个processor处理的，其中SyncRequestProcessor是处理事务的，将事务写入日志里。而在只读模式下可以看到，不存在这个processor，所以只能查，不能写。</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=kd>protected</span><span class=w> </span><span class=kt>void</span><span class=w> </span><span class=nf>setupRequestProcessors</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>RequestProcessor</span><span class=w> </span><span class=n>finalProcessor</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=k>new</span><span class=w> </span><span class=n>FinalRequestProcessor</span><span class=p>(</span><span class=k>this</span><span class=p>);</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>RequestProcessor</span><span class=w> </span><span class=n>prepProcessor</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=k>new</span><span class=w> </span><span class=n>PrepRequestProcessor</span><span class=p>(</span><span class=k>this</span><span class=p>,</span><span class=w> </span><span class=n>finalProcessor</span><span class=p>);</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>        </span><span class=p>((</span><span class=n>PrepRequestProcessor</span><span class=p>)</span><span class=w> </span><span class=n>prepProcessor</span><span class=p>).</span><span class=na>start</span><span class=p>();</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>firstProcessor</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=k>new</span><span class=w> </span><span class=n>ReadOnlyRequestProcessor</span><span class=p>(</span><span class=k>this</span><span class=p>,</span><span class=w> </span><span class=n>prepProcessor</span><span class=p>);</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>        </span><span class=p>((</span><span class=n>ReadOnlyRequestProcessor</span><span class=p>)</span><span class=w> </span><span class=n>firstProcessor</span><span class=p>).</span><span class=na>start</span><span class=p>();</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
-</span></span></span></code></pre></td></tr></table></div></div><p><img src=http://picgo.qisiii.asia/post/13-12-21-29-image.png loading=lazy></p><p>对于所有的写入命令，都直接抛异常</p><p><img src=http://picgo.qisiii.asia/post/13-12-23-24-image.png loading=lazy></p><p>当然了，这也只是选举期间的一个临时措施，在选举结束后会关闭该服务器，并创建对应节点状态的服务器。</p><h2 id=参考文档>参考文档:</h2><p><a class=link href=https://blog.csdn.net/y510662669/article/details/106624186 target=_blank rel=noopener>Zookeeper系列 - Leader选举_zk集群查看哪个节点是leader-CSDN博客</a></p><p><a class=link href=https://zookeeper.apache.org/doc/current/zookeeperStarted.html target=_blank rel=noopener>ZooKeeper: Because Coordinating Distributed Systems is a Zoo</a></p><p><a class=link href=https://cloud.tencent.com/developer/article/1610867 target=_blank rel=noopener>zookeeper（单机、伪集群、集群）部署-腾讯云开发者社区-腾讯云</a></p><p><a class=link href=https://www.cnblogs.com/umgsai/p/5835825.html target=_blank rel=noopener>Zookeeper的安装和使用 - 商商-77 - 博客园</a></p><p><a class=link href=https://juejin.cn/post/6989543523213115406#heading-22 target=_blank rel=noopener>【Zookeeper源码阅读】leader选举源码分析 - 掘金</a></p><p><a class=link href=https://juejin.cn/post/7112681401601769486 target=_blank rel=noopener>【图解源码】Zookeeper3.7源码剖析，Session的管理机制，Leader选举投票规则，集群数据同步流程 - 掘金</a></p></section><footer class=article-footer><section class=article-tags><a href=/tags/%E4%B8%AD%E9%97%B4%E4%BB%B6/>中间件</a>
+</span></span></span></code></pre></div><p><img src=http://picgo.qisiii.asia/post/13-12-21-29-image.png loading=lazy></p><p>对于所有的写入命令，都直接抛异常</p><p><img src=http://picgo.qisiii.asia/post/13-12-23-24-image.png loading=lazy></p><p>当然了，这也只是选举期间的一个临时措施，在选举结束后会关闭该服务器，并创建对应节点状态的服务器。</p><h2 id=参考文档>参考文档:</h2><p><a class=link href=https://blog.csdn.net/y510662669/article/details/106624186 target=_blank rel=noopener>Zookeeper系列 - Leader选举_zk集群查看哪个节点是leader-CSDN博客</a></p><p><a class=link href=https://zookeeper.apache.org/doc/current/zookeeperStarted.html target=_blank rel=noopener>ZooKeeper: Because Coordinating Distributed Systems is a Zoo</a></p><p><a class=link href=https://cloud.tencent.com/developer/article/1610867 target=_blank rel=noopener>zookeeper（单机、伪集群、集群）部署-腾讯云开发者社区-腾讯云</a></p><p><a class=link href=https://www.cnblogs.com/umgsai/p/5835825.html target=_blank rel=noopener>Zookeeper的安装和使用 - 商商-77 - 博客园</a></p><p><a class=link href=https://juejin.cn/post/6989543523213115406#heading-22 target=_blank rel=noopener>【Zookeeper源码阅读】leader选举源码分析 - 掘金</a></p><p><a class=link href=https://juejin.cn/post/7112681401601769486 target=_blank rel=noopener>【图解源码】Zookeeper3.7源码剖析，Session的管理机制，Leader选举投票规则，集群数据同步流程 - 掘金</a></p></section><footer class=article-footer><section class=article-tags><a href=/tags/%E4%B8%AD%E9%97%B4%E4%BB%B6/>中间件</a>
 <a href=/tags/%E6%B3%A8%E5%86%8C%E4%B8%AD%E5%BF%83/>注册中心</a>
 <a href=/tags/zookeeper/>Zookeeper</a></section><section class=article-copyright><svg class="icon icon-tabler icon-tabler-copyright" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="12" cy="12" r="9"/><path d="M14.5 9a3.5 4 0 100 6"/></svg>
 <span>Licensed under CC BY-NC-SA 4.0</span></section><section class=article-lastmod><svg class="icon icon-tabler icon-tabler-clock" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>
-<span>最后更新于 2024-09-03</span></section></footer></article><aside class=related-content--wrapper><h2 class=section-title>相关文章</h2><div class=related-content><div class="flex article-list--tile"><article><a href=/post/tech/distributed/zookeeper/zab/><div class=article-details><h2 class=article-title>Zookeeper源码分析-Zab协议</h2></div></a></article><article><a href=/post/tech/distributed/zookeeper/watch/><div class=article-details><h2 class=article-title>Zookeeper源码分析-watch机制</h2></div></a></article><article><a href=/post/tech/distributed/zookeeper/zookeeperservermain/><div class=article-details><h2 class=article-title>Zookeeper源码学习-单机部分通信组件</h2></div></a></article><article><a href=/post/tech/distributed/redis_cluster_deploy/><div class=article-details><h2 class=article-title>单服务器Redis集群部署记录</h2></div></a></article><article><a href=/post/tech/distributed/dubbo/dubbo_spi/><div class=article-details><h2 class=article-title>Dubbo的SPI增强</h2></div></a></article></div></div></aside><script src=//cdn.jsdelivr.net/npm/twikoo@1.6.21/dist/twikoo.all.min.js></script><div id=tcomment></div><style>.twikoo{background-color:var(--card-background);border-radius:var(--card-border-radius);box-shadow:var(--shadow-l1);padding:var(--card-padding)}:root[data-scheme=dark]{--twikoo-body-text-color-main:rgba(255, 255, 255, 0.9);--twikoo-body-text-color:rgba(255, 255, 255, 0.7)}.twikoo .el-input-group__prepend,.twikoo .tk-action-icon,.twikoo .tk-submit-action-icon,.twikoo .tk-time,.twikoo .tk-comments-no,.twikoo .tk-comments-count{color:var(--twikoo-body-text-color)}.twikoo .el-input__inner,.twikoo .el-textarea__inner,.twikoo .tk-preview-container,.twikoo .tk-content,.twikoo .tk-nick,.twikoo .tk-send{color:var(--twikoo-body-text-color-main)}.twikoo .el-button{color:var(--twikoo-body-text-color)!important}.twikoo .el-input__count{color:var(--twikoo-body-text-color)!important}.OwO .OwO-body{background-color:var(--body-background)!important;color:var(--body-text-color)!important}</style><script>twikoo.init({envId:"https://qisiii-twikoo.hf.space",el:"#tcomment"})</script><a href=#top aria-label="go to top" class=top-link id=top-link style=display:none><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-chevron-up"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M6 15l6-6 6 6"/></svg>
+<span>最后更新于 2024-09-04</span></section></footer></article><aside class=related-content--wrapper><h2 class=section-title>相关文章</h2><div class=related-content><div class="flex article-list--tile"><article><a href=/post/tech/distributed/zookeeper/zab/><div class=article-details><h2 class=article-title>Zookeeper源码分析-Zab协议</h2></div></a></article><article><a href=/post/tech/distributed/zookeeper/watch/><div class=article-details><h2 class=article-title>Zookeeper源码分析-watch机制</h2></div></a></article><article><a href=/post/tech/distributed/zookeeper/zookeeperservermain/><div class=article-details><h2 class=article-title>Zookeeper源码学习-单机部分通信组件</h2></div></a></article><article><a href=/post/tech/distributed/redis_cluster_deploy/><div class=article-details><h2 class=article-title>单服务器Redis集群部署记录</h2></div></a></article><article><a href=/post/tech/distributed/dubbo/dubbo_spi/><div class=article-details><h2 class=article-title>Dubbo的SPI增强</h2></div></a></article></div></div></aside><script src=//cdn.jsdelivr.net/npm/twikoo@1.6.21/dist/twikoo.all.min.js></script><div id=tcomment></div><style>.twikoo{background-color:var(--card-background);border-radius:var(--card-border-radius);box-shadow:var(--shadow-l1);padding:var(--card-padding)}:root[data-scheme=dark]{--twikoo-body-text-color-main:rgba(255, 255, 255, 0.9);--twikoo-body-text-color:rgba(255, 255, 255, 0.7)}.twikoo .el-input-group__prepend,.twikoo .tk-action-icon,.twikoo .tk-submit-action-icon,.twikoo .tk-time,.twikoo .tk-comments-no,.twikoo .tk-comments-count{color:var(--twikoo-body-text-color)}.twikoo .el-input__inner,.twikoo .el-textarea__inner,.twikoo .tk-preview-container,.twikoo .tk-content,.twikoo .tk-nick,.twikoo .tk-send{color:var(--twikoo-body-text-color-main)}.twikoo .el-button{color:var(--twikoo-body-text-color)!important}.twikoo .el-input__count{color:var(--twikoo-body-text-color)!important}.OwO .OwO-body{background-color:var(--body-background)!important;color:var(--body-text-color)!important}</style><script>twikoo.init({envId:"https://qisiii-twikoo.hf.space",el:"#tcomment"})</script><a href=#top aria-label="go to top" class=top-link id=top-link style=display:none><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-chevron-up"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M6 15l6-6 6 6"/></svg>
 </a><script src=https://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js></script><script type=text/javascript>$(window).scroll(function(){$(this).scrollTop()>300?$("#top-link").show():$("#top-link").hide()})</script><footer class=site-footer><section class=copyright>&copy;
 2022 -
 2024 起司</section><section class=powerby><a href=https://beian.miit.gov.cn/ target=_blank>京ICP备2023017017号-1</a><br>使用 <a href=https://gohugo.io/ target=_blank rel=noopener>Hugo</a> 构建<br>主题 <b><a href=https://github.com/CaiJimmy/hugo-theme-stack target=_blank rel=noopener data-version=3.26.0>Stack</a></b> 由 <a href=https://jimmycai.com target=_blank rel=noopener>Jimmy</a> 设计

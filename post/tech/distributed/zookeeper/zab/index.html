@@ -1,5 +1,5 @@
 <!doctype html><html lang=zh-cn dir=ltr><head><meta charset=utf-8><meta name=viewport content='width=device-width,initial-scale=1'><meta name=description content="基本概念 建议读一下20 共识算法：一次性说清楚 Paxos、Raft 等算法的区别，里面讲的还算易懂。 ZAB是zookeeper专门为了保持分布式"><title>Zookeeper源码分析-Zab协议</title>
-<link rel=canonical href=https://qisiii.github.io/post/tech/distributed/zookeeper/zab/><link rel=stylesheet href=/scss/style.min.7657e19dfcc00117e827b40bd92bcea286037ffa4a33e95fc533eaea79d078f9.css><meta property='og:title' content="Zookeeper源码分析-Zab协议"><meta property='og:description' content="基本概念 建议读一下20 共识算法：一次性说清楚 Paxos、Raft 等算法的区别，里面讲的还算易懂。 ZAB是zookeeper专门为了保持分布式"><meta property='og:url' content='https://qisiii.github.io/post/tech/distributed/zookeeper/zab/'><meta property='og:site_name' content='起司的博客'><meta property='og:type' content='article'><meta property='article:section' content='Post'><meta property='article:tag' content='中间件'><meta property='article:tag' content='注册中心'><meta property='article:tag' content='zookeeper'><meta property='article:published_time' content='2024-08-14T15:08:39+08:00'><meta property='article:modified_time' content='2024-09-03T18:42:30+00:00'><meta name=twitter:title content="Zookeeper源码分析-Zab协议"><meta name=twitter:description content="基本概念 建议读一下20 共识算法：一次性说清楚 Paxos、Raft 等算法的区别，里面讲的还算易懂。 ZAB是zookeeper专门为了保持分布式"><link rel=alternate type=application/json href=https://qisiii.github.io/post/tech/distributed/zookeeper/zab/index.json><link rel=alternate type=application/rss+xml href=https://qisiii.github.io/post/tech/distributed/zookeeper/zab/index.xml><link rel="shortcut icon" href=/favicon.ico><script async src="https://www.googletagmanager.com/gtag/js?id=G-8NDCRP4S7S"></script><script>var dnt,doNotTrack=!1;if(!1&&(dnt=navigator.doNotTrack||window.doNotTrack||navigator.msDoNotTrack,doNotTrack=dnt=="1"||dnt=="yes"),!doNotTrack){window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","G-8NDCRP4S7S")}</script><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=manifest href=/site.webmanifest><span id=top></span></head><body class=article-page><script>(function(){const e="StackColorScheme";localStorage.getItem(e)||localStorage.setItem(e,"auto")})()</script><script>(function(){const t="StackColorScheme",e=localStorage.getItem(t),n=window.matchMedia("(prefers-color-scheme: dark)").matches===!0;e=="dark"||e==="auto"&&n?document.documentElement.dataset.scheme="dark":document.documentElement.dataset.scheme="light"})()</script><div class="container main-container flex on-phone--column extended"><aside class="sidebar left-sidebar sticky"><button class="hamburger hamburger--spin" type=button id=toggle-menu aria-label=切换菜单>
+<link rel=canonical href=https://qisiii.github.io/post/tech/distributed/zookeeper/zab/><link rel=stylesheet href=/scss/style.min.7657e19dfcc00117e827b40bd92bcea286037ffa4a33e95fc533eaea79d078f9.css><meta property='og:title' content="Zookeeper源码分析-Zab协议"><meta property='og:description' content="基本概念 建议读一下20 共识算法：一次性说清楚 Paxos、Raft 等算法的区别，里面讲的还算易懂。 ZAB是zookeeper专门为了保持分布式"><meta property='og:url' content='https://qisiii.github.io/post/tech/distributed/zookeeper/zab/'><meta property='og:site_name' content='起司的博客'><meta property='og:type' content='article'><meta property='article:section' content='Post'><meta property='article:tag' content='中间件'><meta property='article:tag' content='注册中心'><meta property='article:tag' content='zookeeper'><meta property='article:published_time' content='2024-08-14T15:08:39+08:00'><meta property='article:modified_time' content='2024-09-04T16:07:21+00:00'><meta name=twitter:title content="Zookeeper源码分析-Zab协议"><meta name=twitter:description content="基本概念 建议读一下20 共识算法：一次性说清楚 Paxos、Raft 等算法的区别，里面讲的还算易懂。 ZAB是zookeeper专门为了保持分布式"><link rel=alternate type=application/json href=https://qisiii.github.io/post/tech/distributed/zookeeper/zab/index.json><link rel=alternate type=application/rss+xml href=https://qisiii.github.io/post/tech/distributed/zookeeper/zab/index.xml><link rel="shortcut icon" href=/favicon.ico><script async src="https://www.googletagmanager.com/gtag/js?id=G-8NDCRP4S7S"></script><script>var dnt,doNotTrack=!1;if(!1&&(dnt=navigator.doNotTrack||window.doNotTrack||navigator.msDoNotTrack,doNotTrack=dnt=="1"||dnt=="yes"),!doNotTrack){window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","G-8NDCRP4S7S")}</script><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=manifest href=/site.webmanifest><span id=top></span></head><body class=article-page><script>(function(){const e="StackColorScheme";localStorage.getItem(e)||localStorage.setItem(e,"auto")})()</script><script>(function(){const t="StackColorScheme",e=localStorage.getItem(t),n=window.matchMedia("(prefers-color-scheme: dark)").matches===!0;e=="dark"||e==="auto"&&n?document.documentElement.dataset.scheme="dark":document.documentElement.dataset.scheme="light"})()</script><div class="container main-container flex on-phone--column extended"><aside class="sidebar left-sidebar sticky"><button class="hamburger hamburger--spin" type=button id=toggle-menu aria-label=切换菜单>
 <span class=hamburger-box><span class=hamburger-inner></span></span></button><header><figure class=site-avatar><a href=/><img src=/img/avatar_huf89847f5290877d03a6309f0caaa56f1_43584_300x0_resize_box_3.png width=300 height=300 class=site-logo loading=lazy alt=Avatar></a></figure><div class=site-meta><h1 class=site-name><a href=/>起司的博客</a></h1><h2 class=site-description></h2></div></header><ol class=menu-social><li><a href=https://github.com/qisiii target=_blank title=GitHub rel=me><svg class="icon icon-tabler icon-tabler-brand-github" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 19c-4.3 1.4-4.3-2.5-6-3m12 5v-3.5c0-1 .1-1.4-.5-2 2.8-.3 5.5-1.4 5.5-6a4.6 4.6.0 00-1.3-3.2 4.2 4.2.0 00-.1-3.2s-1.1-.3-3.5 1.3a12.3 12.3.0 00-6.2.0C6.5 2.8 5.4 3.1 5.4 3.1a4.2 4.2.0 00-.1 3.2A4.6 4.6.0 004 9.5c0 4.6 2.7 5.7 5.5 6-.6.6-.6 1.2-.5 2V21"/></svg></a></li><li><a href=/index.xml target=_blank title=rss rel=me><svg class="icon icon-tabler icon-tabler-rss" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="5" cy="19" r="1"/><path d="M4 4a16 16 0 0116 16"/><path d="M4 11a9 9 0 019 9"/></svg></a></li></ol><ol class=menu id=main-menu><li><a href=/><svg class="icon icon-tabler icon-tabler-home" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><polyline points="5 12 3 12 12 3 21 12 19 12"/><path d="M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/><path d="M9 21v-6a2 2 0 012-2h2a2 2 0 012 2v6"/></svg>
 <span>首页|Home</span></a></li><li><a href=/post/friends target=_blank><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-heart-handshake"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M19.5 12.572 12 20l-7.5-7.428A5 5 0 1112 6.006a5 5 0 117.5 6.572"/><path d="M12 6 8.707 9.293a1 1 0 000 1.414l.543.543c.69.69 1.81.69 2.5.0l1-1a3.182 3.182.0 014.5.0l2.25 2.25"/><path d="M12.5 15.5l2 2"/><path d="M15 13l2 2"/></svg>
 <span>友链|Friends</span></a></li><li><a href=/post/search target=_blank><svg class="icon icon-tabler icon-tabler-search" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="10" cy="10" r="7"/><line x1="21" y1="21" x2="15" y2="15"/></svg>
@@ -7,25 +7,10 @@
 <svg class="icon icon-tabler icon-tabler-toggle-right" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="16" cy="12" r="2"/><rect x="2" y="6" width="20" height="12" rx="6"/></svg>
 <span>暗色模式</span></li></ol></li></ol></aside><aside class="sidebar right-sidebar sticky"><section class="widget archives"><div class=widget-icon><svg class="icon icon-tabler icon-tabler-hash" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><line x1="5" y1="9" x2="19" y2="9"/><line x1="5" y1="15" x2="19" y2="15"/><line x1="11" y1="4" x2="7" y2="20"/><line x1="17" y1="4" x2="13" y2="20"/></svg></div><h2 class="widget-title section-title">目录</h2><div class=widget--toc><nav id=TableOfContents><ol><li><a href=#基本概念>基本概念</a></li><li><a href=#整体设计>整体设计</a><ol><li><a href=#崩溃恢复>崩溃恢复</a><ol><li><a href=#election>ELECTION</a></li><li><a href=#discovery>DISCOVERY</a></li><li><a href=#synchronization>SYNCHRONIZATION</a></li><li><a href=#broadcast>BROADCAST</a></li></ol></li><li><a href=#几个阻塞态>几个阻塞态</a></li></ol></li><li><a href=#启动流程>启动流程</a><ol><li><a href=#leaderlead>Leader.lead()</a></li><li><a href=#learnhandlerrun>LearnHandler.run()</a></li><li><a href=#followerfollowleader>Follower.followLeader()</a></li></ol></li><li><a href=#消息处理流程>消息处理流程</a><ol><li><a href=#requestprocessor>RequestProcessor</a></li><li><a href=#流程图>流程图</a></li><li><a href=#commitprocessor>CommitProcessor</a></li></ol></li><li><a href=#参考文档>参考文档:</a></li></ol></nav></div></section></aside><main class="main full-width"><article class=main-article><header class=article-header><div class=article-details><header class=article-category><a href=/categories/tech/>技术人生</a></header><div class=article-title-wrapper><h2 class=article-title><a href=/post/tech/distributed/zookeeper/zab/>Zookeeper源码分析-Zab协议</a></h2></div><footer class=article-time><div><svg class="icon icon-tabler icon-tabler-calendar-time" width="56" height="56" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><path d="M11.795 21H5a2 2 0 01-2-2V7a2 2 0 012-2h12a2 2 0 012 2v4"/><circle cx="18" cy="18" r="4"/><path d="M15 3v4"/><path d="M7 3v4"/><path d="M3 11h16"/><path d="M18 16.496V18l1 1"/></svg>
 <time class=article-time--published>2024-08-14</time></div><div><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-hourglass-empty"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M6 20v-2a6 6 0 1112 0v2a1 1 0 01-1 1H7a1 1 0 01-1-1z"/><path d="M6 4v2a6 6 0 1012 0V4a1 1 0 00-1-1H7A1 1 0 006 4z"/></svg>
-<time class=article-time--reading>16分钟</time></div><span id=busuanzi_container_value_page_pv><i class="far fa-eye fa-fw"></i>
+<time class=article-time--reading>15分钟</time></div><span id=busuanzi_container_value_page_pv><i class="far fa-eye fa-fw"></i>
 <span id=busuanzi_value_page_pv></span>&nbsp;</span><svg class="icon icon-tabler icon-tabler-tag" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><path d="M11 3l9 9a1.5 1.5.0 010 2l-6 6a1.5 1.5.0 01-2 0L3 11V7a4 4 0 014-4h4"/><circle cx="9" cy="9" r="2"/></svg><div class=artile-time-reading><a href=https://qisiii.github.io/tags/%E4%B8%AD%E9%97%B4%E4%BB%B6>#中间件</a>
 <a href=https://qisiii.github.io/tags/%E6%B3%A8%E5%86%8C%E4%B8%AD%E5%BF%83>#注册中心</a>
-<a href=https://qisiii.github.io/tags/zookeeper>#zookeeper</a></div></footer></div></header><section class=article-content><h2 id=基本概念>基本概念</h2><p>建议读一下<a class=link href=https://learn.lianglianglee.com/%e4%b8%93%e6%a0%8f/24%e8%ae%b2%e5%90%83%e9%80%8f%e5%88%86%e5%b8%83%e5%bc%8f%e6%95%b0%e6%8d%ae%e5%ba%93-%e5%ae%8c/20%20%20%e5%85%b1%e8%af%86%e7%ae%97%e6%b3%95%ef%bc%9a%e4%b8%80%e6%ac%a1%e6%80%a7%e8%af%b4%e6%b8%85%e6%a5%9a%20Paxos%e3%80%81Raft%20%e7%ad%89%e7%ae%97%e6%b3%95%e7%9a%84%e5%8c%ba%e5%88%ab.md target=_blank rel=noopener>20 共识算法：一次性说清楚 Paxos、Raft 等算法的区别</a>，里面讲的还算易懂。</p><p>ZAB是zookeeper专门为了保持分布式共识而实现的算法，算法的基石还是Paxos的原理，或者说Mluti Paxos的原理。和Raft算法很像，都具有leader的概念，消息都是通过leader去统一管理，其他节点只需要从leader同步消息即可，并且都是超过半数提交事务就认为成功了。</p><p>如果对分布式算法完全陌生，建议了解一下Paxos，MlutiPaxos，Raft的基本概念。</p><p>在ZAB协议中，其设计主要包括两部分：原子广播和崩溃恢复。</p><p>广播的意思是指当节点收到消息后，要将消息广播给其他的节点。那什么叫做原子呢？原子的意思是在这次广播中，要么所有的节点都收到消息并进行广播；要么所有的节点都放弃该条消息不做广播。</p><p>但仅是广播并不能保证所有节点的数据完全一致，还需要保证消息必须有序的处理，每个节点必须处理完上一个消息，才能处理下一条消息。</p><p>这是原子广播的两个基本要求：原子和有序。</p><p>当leader挂掉的时候，新的leader必须尽快了解并统一整个集群当前的进度。因此，在<a class=link href=https://qisiii.github.io/post/tech/distributed/zookeeper/election/#选举逻辑>zk选举流程</a> 中，可以理解为什么必须选择最大事务ID作为leader，因为只有这样，才能在当前节点拥有最全的事务日志。当拥有了最全的事务后，从节点去进行同步到最新的进度。假如原来的leader又恢复了，那么就需要原来的leader丢弃超出现有leader的事务。这就是ZAB的另一部分&ndash;崩溃恢复。</p><h2 id=整体设计>整体设计</h2><p>所有的节点分为了Leader、Follower、Observer三种，其中Leader和Follower是有投票权的。Observer是一个只处理只读请求的节点，属于作为提交吞吐量的横向扩展机制。</p><p>之前的<a class=link href=https://qisiii.github.io/post/tech/distributed/zookeeper/election/>选举机制</a>中也提到过，当选举结束之后，每个节点会更新自己的状态，当进入下一次循环的时候，会走到各自的case下执行各自的逻辑。</p><p>虽然每个节点只有两行方法，但背后的逻辑还是蛮复杂的，make***方法是构建Zookeeper，可以理解为原子广播部分的逻辑。</p><p>而lead、followLeader和observeLeader则是启动部分，主要是崩溃恢复的逻辑。下面我们以leader和follower串一下这个流程。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=k>switch</span><span class=w> </span><span class=p>(</span><span class=n>state</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+<a href=https://qisiii.github.io/tags/zookeeper>#zookeeper</a></div></footer></div></header><section class=article-content><h2 id=基本概念>基本概念</h2><p>建议读一下<a class=link href=https://learn.lianglianglee.com/%e4%b8%93%e6%a0%8f/24%e8%ae%b2%e5%90%83%e9%80%8f%e5%88%86%e5%b8%83%e5%bc%8f%e6%95%b0%e6%8d%ae%e5%ba%93-%e5%ae%8c/20%20%20%e5%85%b1%e8%af%86%e7%ae%97%e6%b3%95%ef%bc%9a%e4%b8%80%e6%ac%a1%e6%80%a7%e8%af%b4%e6%b8%85%e6%a5%9a%20Paxos%e3%80%81Raft%20%e7%ad%89%e7%ae%97%e6%b3%95%e7%9a%84%e5%8c%ba%e5%88%ab.md target=_blank rel=noopener>20 共识算法：一次性说清楚 Paxos、Raft 等算法的区别</a>，里面讲的还算易懂。</p><p>ZAB是zookeeper专门为了保持分布式共识而实现的算法，算法的基石还是Paxos的原理，或者说Mluti Paxos的原理。和Raft算法很像，都具有leader的概念，消息都是通过leader去统一管理，其他节点只需要从leader同步消息即可，并且都是超过半数提交事务就认为成功了。</p><p>如果对分布式算法完全陌生，建议了解一下Paxos，MlutiPaxos，Raft的基本概念。</p><p>在ZAB协议中，其设计主要包括两部分：原子广播和崩溃恢复。</p><p>广播的意思是指当节点收到消息后，要将消息广播给其他的节点。那什么叫做原子呢？原子的意思是在这次广播中，要么所有的节点都收到消息并进行广播；要么所有的节点都放弃该条消息不做广播。</p><p>但仅是广播并不能保证所有节点的数据完全一致，还需要保证消息必须有序的处理，每个节点必须处理完上一个消息，才能处理下一条消息。</p><p>这是原子广播的两个基本要求：原子和有序。</p><p>当leader挂掉的时候，新的leader必须尽快了解并统一整个集群当前的进度。因此，在<a class=link href=https://qisiii.github.io/post/tech/distributed/zookeeper/election/#选举逻辑>zk选举流程</a> 中，可以理解为什么必须选择最大事务ID作为leader，因为只有这样，才能在当前节点拥有最全的事务日志。当拥有了最全的事务后，从节点去进行同步到最新的进度。假如原来的leader又恢复了，那么就需要原来的leader丢弃超出现有leader的事务。这就是ZAB的另一部分&ndash;崩溃恢复。</p><h2 id=整体设计>整体设计</h2><p>所有的节点分为了Leader、Follower、Observer三种，其中Leader和Follower是有投票权的。Observer是一个只处理只读请求的节点，属于作为提交吞吐量的横向扩展机制。</p><p>之前的<a class=link href=https://qisiii.github.io/post/tech/distributed/zookeeper/election/>选举机制</a>中也提到过，当选举结束之后，每个节点会更新自己的状态，当进入下一次循环的时候，会走到各自的case下执行各自的逻辑。</p><p>虽然每个节点只有两行方法，但背后的逻辑还是蛮复杂的，make***方法是构建Zookeeper，可以理解为原子广播部分的逻辑。</p><p>而lead、followLeader和observeLeader则是启动部分，主要是崩溃恢复的逻辑。下面我们以leader和follower串一下这个流程。</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=k>switch</span><span class=w> </span><span class=p>(</span><span class=n>state</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>case</span><span class=w> </span><span class=n>OBSERVING</span><span class=p>:</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>LOG</span><span class=p>.</span><span class=na>info</span><span class=p>(</span><span class=s>&#34;OBSERVING&#34;</span><span class=p>);</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>setObserver</span><span class=p>(</span><span class=n>makeObserver</span><span class=p>(</span><span class=n>logFactory</span><span class=p>));</span><span class=w>
@@ -40,62 +25,14 @@
 </span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>LOG</span><span class=p>.</span><span class=na>info</span><span class=p>(</span><span class=s>&#34;LEADING&#34;</span><span class=p>);</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>setLeader</span><span class=p>(</span><span class=n>makeLeader</span><span class=p>(</span><span class=n>logFactory</span><span class=p>));</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>leader</span><span class=p>.</span><span class=na>lead</span><span class=p>();</span><span class=w>
-</span></span></span></code></pre></td></tr></table></div></div><h3 id=崩溃恢复>崩溃恢复</h3><p>执行到<code>leader.lead()</code>时，leader首先要保证集群尽快统一集群的进度。为了更好的理解这部分，需要了解ZabState类。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span><span class=lnt>5
-</span><span class=lnt>6
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=w>    </span><span class=kd>public</span><span class=w> </span><span class=kd>enum</span><span class=w> </span><span class=n>ZabState</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span></code></pre></div><h3 id=崩溃恢复>崩溃恢复</h3><p>执行到<code>leader.lead()</code>时，leader首先要保证集群尽快统一集群的进度。为了更好的理解这部分，需要了解ZabState类。</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=w>    </span><span class=kd>public</span><span class=w> </span><span class=kd>enum</span><span class=w> </span><span class=n>ZabState</span><span class=w> </span><span class=p>{</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>ELECTION</span><span class=p>,</span><span class=c1>//选举状态，处于选举时的状态，到调用leader.lead为止</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>DISCOVERY</span><span class=p>,</span><span class=c1>//发现状态，本质上是leader和其他节点建立连接，统一当前的周期epoch和事务ID，并得到大多数节点的认可</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>SYNCHRONIZATION</span><span class=p>,</span><span class=c1>//同步状态，follow节点根据leader确定的事务ID，多退少补</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>BROADCAST</span><span class=c1>//大多数节点的事务已经统一，可以接受来自客户端或者从节点的消息并广播了</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
-</span></span></span></code></pre></td></tr></table></div></div><p><img src=http://picgo.qisiii.asia/post/w39dhfwj7v37x15wz_psyqmc0000gn/T/b197a61a9731dc04514369d0323425ba.jpg loading=lazy></p><h4 id=election>ELECTION</h4><p>整个选举过程都是属于ELECTION状态，具体分析可以看<a class=link href=https://qisiii.github.io/post/tech/distributed/zookeeper/election/>选举机制</a></p><h4 id=discovery>DISCOVERY</h4><ol><li><p>在这个过程中，leader和其他的节点需要建立通信；注意，这个和之前选举时建立的连接不同，选举时所建立的连接仅是为了选举工作。而这个连接，才是负责真正的通信。</p></li><li><p>建立连接之后，每个节点（不论是leader还是follower）要根据自己的事务id计算新的周期，zxid本身是64位的数值，低32位用来自增，高32位用来表示周期，因此需要将自己的高32+1来作为新的周期。</p></li><li><p>当leader获取到最新的周期后，要通知所有节点，当大多数节点都成功应答之后，当前集群的周期就算定下来了。</p></li></ol><p>PS：有点像是皇帝的年号，在当上皇帝后，要告知天下当前是洪武、嘉靖还是崇祯之类的。</p><p>建立连接是由LearnerCnxAcceptor类为每个地址都创建了一个LearnerCnxAcceptorHandler来接受连接，并用LearnerHandler来处理socket请求</p><p>LearnerHandler是非常重要的一个类，其维护者leader和普通节点的通信和数据同步，几个步骤的流转也都是Learner回应了ACK，LearnerHandler收到之后才能往下推进的。</p><h4 id=synchronization>SYNCHRONIZATION</h4><p>当所有节点就epoch和zxId协商一致之后，Learner节点就可以开始根据Leader的事务情况进行同步了。</p><p>关于数据的同步分为三种类型：</p><p>DIFF:差距很小，在这种情况下，leader以request的形式发给Learner就可以了
-SNAP:差距过大，需要将日志文件直接发给learner<br>TRUNC: Learner的事务id比leader的还要大，因此Learner要截断事务</p><p>当超过半数节点表示数据已经跟上最新进度之后，leader就会启动服务器，并表示ack的这些节点可以接受客户端工作了，自此进入BROADCAST状态。</p><h4 id=broadcast>BROADCAST</h4><p>在这个状态下，更核心的其实应该是那些不同类型节点的zkServer处理逻辑，或者说那些RequestProcessor的处理逻辑。而处于Leader、LearnerHandler、Follower者三个类中的逻辑，就只有维护好通信，做好心跳之类的框架工作。</p><h3 id=几个阻塞态>几个阻塞态</h3><p>在Leader.lead和LearnerHandler中，在zabState流转过程中会调用几个阻塞的方法来等待大部分节点的ACK</p><p><strong>getEpochToPropose</strong> 获取不同节点的周期提案</p><p><strong>waitForEpochAck</strong> Leader计算完最大的周期，通知其他节点，等待节点对于周期提案的答复</p><p><strong>waitForNewLeaderAck</strong> 在已经确定周期的情况下，等待其他节点同步完数据之后，给Leader答复</p><p>这三个方法的逻辑是大似相同的，都是由Leader或者LearnerHandler来进行调用，下面以getEpochToPropose为例讲一下逻辑</p><p>当Leader调用时，传进来的lastAcceptedEpoch是Leader记录的最后的周期或者半数Learner已经商量好的周期。</p><p>当LearnerHandler调用时，是在Leader收到FollowInfo之后，这个时候已经获取到各个Follower的周期信息，因此每个LearnerHandler负责将自己Follower的周期传进来，以计算最大的周期，每个节点投票后，通过connectingFollowers.wait进行阻塞</p><p>当半数之上的节点参与投票之后，就定下来当前周期，唤醒所有wait的线程，并将waitingForNewEpoch设置为false，那些还没参与投票的就不用投票了</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span><span class=lnt>16
-</span><span class=lnt>17
-</span><span class=lnt>18
-</span><span class=lnt>19
-</span><span class=lnt>20
-</span><span class=lnt>21
-</span><span class=lnt>22
-</span><span class=lnt>23
-</span><span class=lnt>24
-</span><span class=lnt>25
-</span><span class=lnt>26
-</span><span class=lnt>27
-</span><span class=lnt>28
-</span><span class=lnt>29
-</span><span class=lnt>30
-</span><span class=lnt>31
-</span><span class=lnt>32
-</span><span class=lnt>33
-</span><span class=lnt>34
-</span><span class=lnt>35
-</span><span class=lnt>36
-</span><span class=lnt>37
-</span><span class=lnt>38
-</span><span class=lnt>39
-</span><span class=lnt>40
-</span><span class=lnt>41
-</span><span class=lnt>42
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=kd>public</span><span class=w> </span><span class=kt>long</span><span class=w> </span><span class=nf>getEpochToPropose</span><span class=p>(</span><span class=kt>long</span><span class=w> </span><span class=n>sid</span><span class=p>,</span><span class=w> </span><span class=kt>long</span><span class=w> </span><span class=n>lastAcceptedEpoch</span><span class=p>)</span><span class=w> </span><span class=kd>throws</span><span class=w> </span><span class=n>InterruptedException</span><span class=p>,</span><span class=w> </span><span class=n>IOException</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span></code></pre></div><p><img src=http://picgo.qisiii.asia/post/w39dhfwj7v37x15wz_psyqmc0000gn/T/b197a61a9731dc04514369d0323425ba.jpg loading=lazy></p><h4 id=election>ELECTION</h4><p>整个选举过程都是属于ELECTION状态，具体分析可以看<a class=link href=https://qisiii.github.io/post/tech/distributed/zookeeper/election/>选举机制</a></p><h4 id=discovery>DISCOVERY</h4><ol><li><p>在这个过程中，leader和其他的节点需要建立通信；注意，这个和之前选举时建立的连接不同，选举时所建立的连接仅是为了选举工作。而这个连接，才是负责真正的通信。</p></li><li><p>建立连接之后，每个节点（不论是leader还是follower）要根据自己的事务id计算新的周期，zxid本身是64位的数值，低32位用来自增，高32位用来表示周期，因此需要将自己的高32+1来作为新的周期。</p></li><li><p>当leader获取到最新的周期后，要通知所有节点，当大多数节点都成功应答之后，当前集群的周期就算定下来了。</p></li></ol><p>PS：有点像是皇帝的年号，在当上皇帝后，要告知天下当前是洪武、嘉靖还是崇祯之类的。</p><p>建立连接是由LearnerCnxAcceptor类为每个地址都创建了一个LearnerCnxAcceptorHandler来接受连接，并用LearnerHandler来处理socket请求</p><p>LearnerHandler是非常重要的一个类，其维护者leader和普通节点的通信和数据同步，几个步骤的流转也都是Learner回应了ACK，LearnerHandler收到之后才能往下推进的。</p><h4 id=synchronization>SYNCHRONIZATION</h4><p>当所有节点就epoch和zxId协商一致之后，Learner节点就可以开始根据Leader的事务情况进行同步了。</p><p>关于数据的同步分为三种类型：</p><p>DIFF:差距很小，在这种情况下，leader以request的形式发给Learner就可以了
+SNAP:差距过大，需要将日志文件直接发给learner<br>TRUNC: Learner的事务id比leader的还要大，因此Learner要截断事务</p><p>当超过半数节点表示数据已经跟上最新进度之后，leader就会启动服务器，并表示ack的这些节点可以接受客户端工作了，自此进入BROADCAST状态。</p><h4 id=broadcast>BROADCAST</h4><p>在这个状态下，更核心的其实应该是那些不同类型节点的zkServer处理逻辑，或者说那些RequestProcessor的处理逻辑。而处于Leader、LearnerHandler、Follower者三个类中的逻辑，就只有维护好通信，做好心跳之类的框架工作。</p><h3 id=几个阻塞态>几个阻塞态</h3><p>在Leader.lead和LearnerHandler中，在zabState流转过程中会调用几个阻塞的方法来等待大部分节点的ACK</p><p><strong>getEpochToPropose</strong> 获取不同节点的周期提案</p><p><strong>waitForEpochAck</strong> Leader计算完最大的周期，通知其他节点，等待节点对于周期提案的答复</p><p><strong>waitForNewLeaderAck</strong> 在已经确定周期的情况下，等待其他节点同步完数据之后，给Leader答复</p><p>这三个方法的逻辑是大似相同的，都是由Leader或者LearnerHandler来进行调用，下面以getEpochToPropose为例讲一下逻辑</p><p>当Leader调用时，传进来的lastAcceptedEpoch是Leader记录的最后的周期或者半数Learner已经商量好的周期。</p><p>当LearnerHandler调用时，是在Leader收到FollowInfo之后，这个时候已经获取到各个Follower的周期信息，因此每个LearnerHandler负责将自己Follower的周期传进来，以计算最大的周期，每个节点投票后，通过connectingFollowers.wait进行阻塞</p><p>当半数之上的节点参与投票之后，就定下来当前周期，唤醒所有wait的线程，并将waitingForNewEpoch设置为false，那些还没参与投票的就不用投票了</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=kd>public</span><span class=w> </span><span class=kt>long</span><span class=w> </span><span class=nf>getEpochToPropose</span><span class=p>(</span><span class=kt>long</span><span class=w> </span><span class=n>sid</span><span class=p>,</span><span class=w> </span><span class=kt>long</span><span class=w> </span><span class=n>lastAcceptedEpoch</span><span class=p>)</span><span class=w> </span><span class=kd>throws</span><span class=w> </span><span class=n>InterruptedException</span><span class=p>,</span><span class=w> </span><span class=n>IOException</span><span class=w> </span><span class=p>{</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>        </span><span class=kd>synchronized</span><span class=w> </span><span class=p>(</span><span class=n>connectingFollowers</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>            </span><span class=k>if</span><span class=w> </span><span class=p>(</span><span class=o>!</span><span class=n>waitingForNewEpoch</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>                </span><span class=k>return</span><span class=w> </span><span class=n>epoch</span><span class=p>;</span><span class=w>
@@ -137,161 +74,7 @@ SNAP:差距过大，需要将日志文件直接发给learner<br>TRUNC: Learner�
 </span></span></span><span class=line><span class=cl><span class=w>            </span><span class=k>return</span><span class=w> </span><span class=n>epoch</span><span class=p>;</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>        </span><span class=p>}</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
-</span></span></span></code></pre></td></tr></table></div></div><h2 id=启动流程>启动流程</h2><p><img src=http://picgo.qisiii.asia/post/w39dhfwj7v37x15wz_psyqmc0000gn/T/b197a61a9731dc04514369d0323425ba.jpg loading=lazy></p><p>参考上图走一下代码</p><h3 id=leaderlead>Leader.lead()</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>  1
-</span><span class=lnt>  2
-</span><span class=lnt>  3
-</span><span class=lnt>  4
-</span><span class=lnt>  5
-</span><span class=lnt>  6
-</span><span class=lnt>  7
-</span><span class=lnt>  8
-</span><span class=lnt>  9
-</span><span class=lnt> 10
-</span><span class=lnt> 11
-</span><span class=lnt> 12
-</span><span class=lnt> 13
-</span><span class=lnt> 14
-</span><span class=lnt> 15
-</span><span class=lnt> 16
-</span><span class=lnt> 17
-</span><span class=lnt> 18
-</span><span class=lnt> 19
-</span><span class=lnt> 20
-</span><span class=lnt> 21
-</span><span class=lnt> 22
-</span><span class=lnt> 23
-</span><span class=lnt> 24
-</span><span class=lnt> 25
-</span><span class=lnt> 26
-</span><span class=lnt> 27
-</span><span class=lnt> 28
-</span><span class=lnt> 29
-</span><span class=lnt> 30
-</span><span class=lnt> 31
-</span><span class=lnt> 32
-</span><span class=lnt> 33
-</span><span class=lnt> 34
-</span><span class=lnt> 35
-</span><span class=lnt> 36
-</span><span class=lnt> 37
-</span><span class=lnt> 38
-</span><span class=lnt> 39
-</span><span class=lnt> 40
-</span><span class=lnt> 41
-</span><span class=lnt> 42
-</span><span class=lnt> 43
-</span><span class=lnt> 44
-</span><span class=lnt> 45
-</span><span class=lnt> 46
-</span><span class=lnt> 47
-</span><span class=lnt> 48
-</span><span class=lnt> 49
-</span><span class=lnt> 50
-</span><span class=lnt> 51
-</span><span class=lnt> 52
-</span><span class=lnt> 53
-</span><span class=lnt> 54
-</span><span class=lnt> 55
-</span><span class=lnt> 56
-</span><span class=lnt> 57
-</span><span class=lnt> 58
-</span><span class=lnt> 59
-</span><span class=lnt> 60
-</span><span class=lnt> 61
-</span><span class=lnt> 62
-</span><span class=lnt> 63
-</span><span class=lnt> 64
-</span><span class=lnt> 65
-</span><span class=lnt> 66
-</span><span class=lnt> 67
-</span><span class=lnt> 68
-</span><span class=lnt> 69
-</span><span class=lnt> 70
-</span><span class=lnt> 71
-</span><span class=lnt> 72
-</span><span class=lnt> 73
-</span><span class=lnt> 74
-</span><span class=lnt> 75
-</span><span class=lnt> 76
-</span><span class=lnt> 77
-</span><span class=lnt> 78
-</span><span class=lnt> 79
-</span><span class=lnt> 80
-</span><span class=lnt> 81
-</span><span class=lnt> 82
-</span><span class=lnt> 83
-</span><span class=lnt> 84
-</span><span class=lnt> 85
-</span><span class=lnt> 86
-</span><span class=lnt> 87
-</span><span class=lnt> 88
-</span><span class=lnt> 89
-</span><span class=lnt> 90
-</span><span class=lnt> 91
-</span><span class=lnt> 92
-</span><span class=lnt> 93
-</span><span class=lnt> 94
-</span><span class=lnt> 95
-</span><span class=lnt> 96
-</span><span class=lnt> 97
-</span><span class=lnt> 98
-</span><span class=lnt> 99
-</span><span class=lnt>100
-</span><span class=lnt>101
-</span><span class=lnt>102
-</span><span class=lnt>103
-</span><span class=lnt>104
-</span><span class=lnt>105
-</span><span class=lnt>106
-</span><span class=lnt>107
-</span><span class=lnt>108
-</span><span class=lnt>109
-</span><span class=lnt>110
-</span><span class=lnt>111
-</span><span class=lnt>112
-</span><span class=lnt>113
-</span><span class=lnt>114
-</span><span class=lnt>115
-</span><span class=lnt>116
-</span><span class=lnt>117
-</span><span class=lnt>118
-</span><span class=lnt>119
-</span><span class=lnt>120
-</span><span class=lnt>121
-</span><span class=lnt>122
-</span><span class=lnt>123
-</span><span class=lnt>124
-</span><span class=lnt>125
-</span><span class=lnt>126
-</span><span class=lnt>127
-</span><span class=lnt>128
-</span><span class=lnt>129
-</span><span class=lnt>130
-</span><span class=lnt>131
-</span><span class=lnt>132
-</span><span class=lnt>133
-</span><span class=lnt>134
-</span><span class=lnt>135
-</span><span class=lnt>136
-</span><span class=lnt>137
-</span><span class=lnt>138
-</span><span class=lnt>139
-</span><span class=lnt>140
-</span><span class=lnt>141
-</span><span class=lnt>142
-</span><span class=lnt>143
-</span><span class=lnt>144
-</span><span class=lnt>145
-</span><span class=lnt>146
-</span><span class=lnt>147
-</span><span class=lnt>148
-</span><span class=lnt>149
-</span><span class=lnt>150
-</span><span class=lnt>151
-</span><span class=lnt>152
-</span><span class=lnt>153
-</span><span class=lnt>154
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=kt>void</span><span class=w> </span><span class=nf>lead</span><span class=p>()</span><span class=w> </span><span class=kd>throws</span><span class=w> </span><span class=n>IOException</span><span class=p>,</span><span class=w> </span><span class=n>InterruptedException</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span></code></pre></div><h2 id=启动流程>启动流程</h2><p><img src=http://picgo.qisiii.asia/post/w39dhfwj7v37x15wz_psyqmc0000gn/T/b197a61a9731dc04514369d0323425ba.jpg loading=lazy></p><p>参考上图走一下代码</p><h3 id=leaderlead>Leader.lead()</h3><div class=highlight><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=kt>void</span><span class=w> </span><span class=nf>lead</span><span class=p>()</span><span class=w> </span><span class=kd>throws</span><span class=w> </span><span class=n>IOException</span><span class=p>,</span><span class=w> </span><span class=n>InterruptedException</span><span class=w> </span><span class=p>{</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>//zab状态是服务发现</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>self</span><span class=p>.</span><span class=na>setZabState</span><span class=p>(</span><span class=n>QuorumPeer</span><span class=p>.</span><span class=na>ZabState</span><span class=p>.</span><span class=na>DISCOVERY</span><span class=p>);</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>self</span><span class=p>.</span><span class=na>tick</span><span class=p>.</span><span class=na>set</span><span class=p>(</span><span class=n>0</span><span class=p>);</span><span class=w>
@@ -445,128 +228,7 @@ SNAP:差距过大，需要将日志文件直接发给learner<br>TRUNC: Learner�
 </span></span></span><span class=line><span class=cl><span class=w>        </span><span class=c1>// leader goes in looking state</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
-</span></span></span></code></pre></td></tr></table></div></div><h3 id=learnhandlerrun>LearnHandler.run()</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>  1
-</span><span class=lnt>  2
-</span><span class=lnt>  3
-</span><span class=lnt>  4
-</span><span class=lnt>  5
-</span><span class=lnt>  6
-</span><span class=lnt>  7
-</span><span class=lnt>  8
-</span><span class=lnt>  9
-</span><span class=lnt> 10
-</span><span class=lnt> 11
-</span><span class=lnt> 12
-</span><span class=lnt> 13
-</span><span class=lnt> 14
-</span><span class=lnt> 15
-</span><span class=lnt> 16
-</span><span class=lnt> 17
-</span><span class=lnt> 18
-</span><span class=lnt> 19
-</span><span class=lnt> 20
-</span><span class=lnt> 21
-</span><span class=lnt> 22
-</span><span class=lnt> 23
-</span><span class=lnt> 24
-</span><span class=lnt> 25
-</span><span class=lnt> 26
-</span><span class=lnt> 27
-</span><span class=lnt> 28
-</span><span class=lnt> 29
-</span><span class=lnt> 30
-</span><span class=lnt> 31
-</span><span class=lnt> 32
-</span><span class=lnt> 33
-</span><span class=lnt> 34
-</span><span class=lnt> 35
-</span><span class=lnt> 36
-</span><span class=lnt> 37
-</span><span class=lnt> 38
-</span><span class=lnt> 39
-</span><span class=lnt> 40
-</span><span class=lnt> 41
-</span><span class=lnt> 42
-</span><span class=lnt> 43
-</span><span class=lnt> 44
-</span><span class=lnt> 45
-</span><span class=lnt> 46
-</span><span class=lnt> 47
-</span><span class=lnt> 48
-</span><span class=lnt> 49
-</span><span class=lnt> 50
-</span><span class=lnt> 51
-</span><span class=lnt> 52
-</span><span class=lnt> 53
-</span><span class=lnt> 54
-</span><span class=lnt> 55
-</span><span class=lnt> 56
-</span><span class=lnt> 57
-</span><span class=lnt> 58
-</span><span class=lnt> 59
-</span><span class=lnt> 60
-</span><span class=lnt> 61
-</span><span class=lnt> 62
-</span><span class=lnt> 63
-</span><span class=lnt> 64
-</span><span class=lnt> 65
-</span><span class=lnt> 66
-</span><span class=lnt> 67
-</span><span class=lnt> 68
-</span><span class=lnt> 69
-</span><span class=lnt> 70
-</span><span class=lnt> 71
-</span><span class=lnt> 72
-</span><span class=lnt> 73
-</span><span class=lnt> 74
-</span><span class=lnt> 75
-</span><span class=lnt> 76
-</span><span class=lnt> 77
-</span><span class=lnt> 78
-</span><span class=lnt> 79
-</span><span class=lnt> 80
-</span><span class=lnt> 81
-</span><span class=lnt> 82
-</span><span class=lnt> 83
-</span><span class=lnt> 84
-</span><span class=lnt> 85
-</span><span class=lnt> 86
-</span><span class=lnt> 87
-</span><span class=lnt> 88
-</span><span class=lnt> 89
-</span><span class=lnt> 90
-</span><span class=lnt> 91
-</span><span class=lnt> 92
-</span><span class=lnt> 93
-</span><span class=lnt> 94
-</span><span class=lnt> 95
-</span><span class=lnt> 96
-</span><span class=lnt> 97
-</span><span class=lnt> 98
-</span><span class=lnt> 99
-</span><span class=lnt>100
-</span><span class=lnt>101
-</span><span class=lnt>102
-</span><span class=lnt>103
-</span><span class=lnt>104
-</span><span class=lnt>105
-</span><span class=lnt>106
-</span><span class=lnt>107
-</span><span class=lnt>108
-</span><span class=lnt>109
-</span><span class=lnt>110
-</span><span class=lnt>111
-</span><span class=lnt>112
-</span><span class=lnt>113
-</span><span class=lnt>114
-</span><span class=lnt>115
-</span><span class=lnt>116
-</span><span class=lnt>117
-</span><span class=lnt>118
-</span><span class=lnt>119
-</span><span class=lnt>120
-</span><span class=lnt>121
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=k>try</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span></code></pre></div><h3 id=learnhandlerrun>LearnHandler.run()</h3><div class=highlight><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=k>try</span><span class=w> </span><span class=p>{</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>//ia是socket的输入，oa是socket的输出</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>ia</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>BinaryInputArchive</span><span class=p>.</span><span class=na>getArchive</span><span class=p>(</span><span class=n>bufferedInput</span><span class=p>);</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>bufferedOutput</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=k>new</span><span class=w> </span><span class=n>BufferedOutputStream</span><span class=p>(</span><span class=n>sock</span><span class=p>.</span><span class=na>getOutputStream</span><span class=p>());</span><span class=w>
@@ -687,49 +349,7 @@ SNAP:差距过大，需要将日志文件直接发给learner<br>TRUNC: Learner�
 </span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>自己看吧</span><span class=err>，</span><span class=w> </span><span class=n>没啥特殊的</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
-</span></span></span></code></pre></td></tr></table></div></div><h3 id=followerfollowleader>Follower.followLeader()</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span><span class=lnt>16
-</span><span class=lnt>17
-</span><span class=lnt>18
-</span><span class=lnt>19
-</span><span class=lnt>20
-</span><span class=lnt>21
-</span><span class=lnt>22
-</span><span class=lnt>23
-</span><span class=lnt>24
-</span><span class=lnt>25
-</span><span class=lnt>26
-</span><span class=lnt>27
-</span><span class=lnt>28
-</span><span class=lnt>29
-</span><span class=lnt>30
-</span><span class=lnt>31
-</span><span class=lnt>32
-</span><span class=lnt>33
-</span><span class=lnt>34
-</span><span class=lnt>35
-</span><span class=lnt>36
-</span><span class=lnt>37
-</span><span class=lnt>38
-</span><span class=lnt>39
-</span><span class=lnt>40
-</span><span class=lnt>41
-</span><span class=lnt>42
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=n>self</span><span class=p>.</span><span class=na>setZabState</span><span class=p>(</span><span class=n>QuorumPeer</span><span class=p>.</span><span class=na>ZabState</span><span class=p>.</span><span class=na>DISCOVERY</span><span class=p>);</span><span class=w>
+</span></span></span></code></pre></div><h3 id=followerfollowleader>Follower.followLeader()</h3><div class=highlight><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=n>self</span><span class=p>.</span><span class=na>setZabState</span><span class=p>(</span><span class=n>QuorumPeer</span><span class=p>.</span><span class=na>ZabState</span><span class=p>.</span><span class=na>DISCOVERY</span><span class=p>);</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w></span><span class=n>QuorumServer</span><span class=w> </span><span class=n>leaderServer</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>findLeader</span><span class=p>();</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w></span><span class=k>try</span><span class=w> </span><span class=p>{</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>//建立连接</span><span class=w>
@@ -771,142 +391,7 @@ SNAP:差距过大，需要将日志文件直接发给learner<br>TRUNC: Learner�
 </span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>readPacket</span><span class=p>(</span><span class=n>qp</span><span class=p>);</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>processPacket</span><span class=p>(</span><span class=n>qp</span><span class=p>);</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
-</span></span></span></code></pre></td></tr></table></div></div><h2 id=消息处理流程>消息处理流程</h2><h3 id=requestprocessor>RequestProcessor</h3><p><img src=http://picgo.qisiii.asia/post/w39dhfwj7v37x15wz_psyqmc0000gn/T/3774ce7d18ce5323c3569e357f595f5e.jpg loading=lazy></p><p>相比于单机版来说，集群的Processor显得有些多，但是像是PrepRequestProcessor、SyncRequestProcessor和FinnalProcessor都是复用，逻辑和<a class=link href=https://qisiii.github.io/post/tech/distributed/zookeeper/zookeeperservermain/#requestprocessor>zookeeper源码-单机版</a>一样，这里就不赘述了。</p><p>LeaderRequestProcessor只是做了一个checkUpgradeSession，处理本地会话创建临时节点的情况。</p><p>PropsoalRequestProcessor 的工作就是将请求以提案的方法发给各个节点，并且本地落库</p><p>CommitProcessor 用于处理本地事务和总事务的匹配处理，这个类的代码是我觉得最难理解的</p><p>ToBeAppliedRequestProcessor 好像只是一个队列排序，没感知到实际作用</p><p>AckRequestProcessor 用于判断提案是否通过，通过的话给其他节点发送commit消息，并修改leader的LastZxid</p><p>FollowerRequestProcessor 的作用是 判断是否需要是只读请求，只读的话自己交给下一个Processor处理，如果是写事务的话则需要像Leader发request</p><p>SendAckRequestProcessor 是在收到leader的提案执行了SyncRequestProcessor（本地落库）之后调用的，用于回复Leader提案ACK</p><h3 id=流程图>流程图</h3><p><img src=http://picgo.qisiii.asia/post/w39dhfwj7v37x15wz_psyqmc0000gn/T/b7b2d782e6fa9516db5cee91e018310b.jpg loading=lazy></p><h3 id=commitprocessor>CommitProcessor</h3><p>通信流程中其他部分的代码都比较好理解，只有CommitProcessor的run方法，我个人看了好几遍才懂，所以这里贴一下代码分析。</p><p>CommitProcessor持有四个队列：</p><p><strong>queuedRequests 存储所有请求，无论读写，这个队列的作用主要是规定了顺序。</strong></p><p><strong>pendingRequests 表示正在等待处理的请求，是queuedRequests以sessionId分组后的结果，实际存储的请求可能比queuedRequests少，因为queuedRequests中有部分读请求是可以立即处理的。</strong></p><p><strong>queuedWriteRequests 只存储事务请求</strong></p><p><strong>committedRequests 表示已经提交的事务请求，在调用Commit之后才会添加进来。</strong></p><p>这个类的执行逻辑是：</p><ol><li><p>在processRequest中将所有请求添加到queuedRequests，事务请求添加到queuedRequests中</p></li><li><p>当queuedRequests或者committedRequests任意不为空的时候，执行run里的循环逻辑</p></li><li><p>如果是queuedRequests不为空，顺序出队；</p><p>如果出队的是事务请求，添加到pendingRequests中</p><p>如果出队的是只读请求，且正在处理的请求中不包含这个只读请求的SessionId，立即交由下一个Processor处理</p><p>如果出队的是只读请求，但是这个session之前有写请求，那么这个只读请求也得添加到pendingRequests中，强制串行化</p></li><li><p>等待commitIsWaiting为真，即存在已经提交的事务请求不为空</p><p>这里要理解一下，目前还为返回结果的请求只有两种，一种是未提交的事务请求，一种是阻塞在事务请求后的同session只读请求，因此想要处理这两种中的任意一个，都需要等待队首的事务提交</p></li><li><p>当commitIsWaiting为真之后，下面其实有两段逻辑：while循环是处理事务请求的，for循环是处理阻塞的只读请求的</p></li><li><p>从committedRequests取出已提交的请求，并从queuedWriteRequests中匹配，组装完整的request交给下一个Processor处理；并将当前请求的SessionId添加到queuesToDrain，表示里面阻塞的只读请求可以开始处理了</p></li><li><p>遍历可以处理的session，从pendingRequests中取出只读请求并进行处理，当遇到事务请求时停止</p></li></ol><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>  1
-</span><span class=lnt>  2
-</span><span class=lnt>  3
-</span><span class=lnt>  4
-</span><span class=lnt>  5
-</span><span class=lnt>  6
-</span><span class=lnt>  7
-</span><span class=lnt>  8
-</span><span class=lnt>  9
-</span><span class=lnt> 10
-</span><span class=lnt> 11
-</span><span class=lnt> 12
-</span><span class=lnt> 13
-</span><span class=lnt> 14
-</span><span class=lnt> 15
-</span><span class=lnt> 16
-</span><span class=lnt> 17
-</span><span class=lnt> 18
-</span><span class=lnt> 19
-</span><span class=lnt> 20
-</span><span class=lnt> 21
-</span><span class=lnt> 22
-</span><span class=lnt> 23
-</span><span class=lnt> 24
-</span><span class=lnt> 25
-</span><span class=lnt> 26
-</span><span class=lnt> 27
-</span><span class=lnt> 28
-</span><span class=lnt> 29
-</span><span class=lnt> 30
-</span><span class=lnt> 31
-</span><span class=lnt> 32
-</span><span class=lnt> 33
-</span><span class=lnt> 34
-</span><span class=lnt> 35
-</span><span class=lnt> 36
-</span><span class=lnt> 37
-</span><span class=lnt> 38
-</span><span class=lnt> 39
-</span><span class=lnt> 40
-</span><span class=lnt> 41
-</span><span class=lnt> 42
-</span><span class=lnt> 43
-</span><span class=lnt> 44
-</span><span class=lnt> 45
-</span><span class=lnt> 46
-</span><span class=lnt> 47
-</span><span class=lnt> 48
-</span><span class=lnt> 49
-</span><span class=lnt> 50
-</span><span class=lnt> 51
-</span><span class=lnt> 52
-</span><span class=lnt> 53
-</span><span class=lnt> 54
-</span><span class=lnt> 55
-</span><span class=lnt> 56
-</span><span class=lnt> 57
-</span><span class=lnt> 58
-</span><span class=lnt> 59
-</span><span class=lnt> 60
-</span><span class=lnt> 61
-</span><span class=lnt> 62
-</span><span class=lnt> 63
-</span><span class=lnt> 64
-</span><span class=lnt> 65
-</span><span class=lnt> 66
-</span><span class=lnt> 67
-</span><span class=lnt> 68
-</span><span class=lnt> 69
-</span><span class=lnt> 70
-</span><span class=lnt> 71
-</span><span class=lnt> 72
-</span><span class=lnt> 73
-</span><span class=lnt> 74
-</span><span class=lnt> 75
-</span><span class=lnt> 76
-</span><span class=lnt> 77
-</span><span class=lnt> 78
-</span><span class=lnt> 79
-</span><span class=lnt> 80
-</span><span class=lnt> 81
-</span><span class=lnt> 82
-</span><span class=lnt> 83
-</span><span class=lnt> 84
-</span><span class=lnt> 85
-</span><span class=lnt> 86
-</span><span class=lnt> 87
-</span><span class=lnt> 88
-</span><span class=lnt> 89
-</span><span class=lnt> 90
-</span><span class=lnt> 91
-</span><span class=lnt> 92
-</span><span class=lnt> 93
-</span><span class=lnt> 94
-</span><span class=lnt> 95
-</span><span class=lnt> 96
-</span><span class=lnt> 97
-</span><span class=lnt> 98
-</span><span class=lnt> 99
-</span><span class=lnt>100
-</span><span class=lnt>101
-</span><span class=lnt>102
-</span><span class=lnt>103
-</span><span class=lnt>104
-</span><span class=lnt>105
-</span><span class=lnt>106
-</span><span class=lnt>107
-</span><span class=lnt>108
-</span><span class=lnt>109
-</span><span class=lnt>110
-</span><span class=lnt>111
-</span><span class=lnt>112
-</span><span class=lnt>113
-</span><span class=lnt>114
-</span><span class=lnt>115
-</span><span class=lnt>116
-</span><span class=lnt>117
-</span><span class=lnt>118
-</span><span class=lnt>119
-</span><span class=lnt>120
-</span><span class=lnt>121
-</span><span class=lnt>122
-</span><span class=lnt>123
-</span><span class=lnt>124
-</span><span class=lnt>125
-</span><span class=lnt>126
-</span><span class=lnt>127
-</span><span class=lnt>128
-</span><span class=lnt>129
-</span><span class=lnt>130
-</span><span class=lnt>131
-</span><span class=lnt>132
-</span><span class=lnt>133
-</span><span class=lnt>134
-</span><span class=lnt>135
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=kd>public</span><span class=w> </span><span class=kt>void</span><span class=w> </span><span class=nf>run</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span></code></pre></div><h2 id=消息处理流程>消息处理流程</h2><h3 id=requestprocessor>RequestProcessor</h3><p><img src=http://picgo.qisiii.asia/post/w39dhfwj7v37x15wz_psyqmc0000gn/T/3774ce7d18ce5323c3569e357f595f5e.jpg loading=lazy></p><p>相比于单机版来说，集群的Processor显得有些多，但是像是PrepRequestProcessor、SyncRequestProcessor和FinnalProcessor都是复用，逻辑和<a class=link href=https://qisiii.github.io/post/tech/distributed/zookeeper/zookeeperservermain/#requestprocessor>zookeeper源码-单机版</a>一样，这里就不赘述了。</p><p>LeaderRequestProcessor只是做了一个checkUpgradeSession，处理本地会话创建临时节点的情况。</p><p>PropsoalRequestProcessor 的工作就是将请求以提案的方法发给各个节点，并且本地落库</p><p>CommitProcessor 用于处理本地事务和总事务的匹配处理，这个类的代码是我觉得最难理解的</p><p>ToBeAppliedRequestProcessor 好像只是一个队列排序，没感知到实际作用</p><p>AckRequestProcessor 用于判断提案是否通过，通过的话给其他节点发送commit消息，并修改leader的LastZxid</p><p>FollowerRequestProcessor 的作用是 判断是否需要是只读请求，只读的话自己交给下一个Processor处理，如果是写事务的话则需要像Leader发request</p><p>SendAckRequestProcessor 是在收到leader的提案执行了SyncRequestProcessor（本地落库）之后调用的，用于回复Leader提案ACK</p><h3 id=流程图>流程图</h3><p><img src=http://picgo.qisiii.asia/post/w39dhfwj7v37x15wz_psyqmc0000gn/T/b7b2d782e6fa9516db5cee91e018310b.jpg loading=lazy></p><h3 id=commitprocessor>CommitProcessor</h3><p>通信流程中其他部分的代码都比较好理解，只有CommitProcessor的run方法，我个人看了好几遍才懂，所以这里贴一下代码分析。</p><p>CommitProcessor持有四个队列：</p><p><strong>queuedRequests 存储所有请求，无论读写，这个队列的作用主要是规定了顺序。</strong></p><p><strong>pendingRequests 表示正在等待处理的请求，是queuedRequests以sessionId分组后的结果，实际存储的请求可能比queuedRequests少，因为queuedRequests中有部分读请求是可以立即处理的。</strong></p><p><strong>queuedWriteRequests 只存储事务请求</strong></p><p><strong>committedRequests 表示已经提交的事务请求，在调用Commit之后才会添加进来。</strong></p><p>这个类的执行逻辑是：</p><ol><li><p>在processRequest中将所有请求添加到queuedRequests，事务请求添加到queuedRequests中</p></li><li><p>当queuedRequests或者committedRequests任意不为空的时候，执行run里的循环逻辑</p></li><li><p>如果是queuedRequests不为空，顺序出队；</p><p>如果出队的是事务请求，添加到pendingRequests中</p><p>如果出队的是只读请求，且正在处理的请求中不包含这个只读请求的SessionId，立即交由下一个Processor处理</p><p>如果出队的是只读请求，但是这个session之前有写请求，那么这个只读请求也得添加到pendingRequests中，强制串行化</p></li><li><p>等待commitIsWaiting为真，即存在已经提交的事务请求不为空</p><p>这里要理解一下，目前还为返回结果的请求只有两种，一种是未提交的事务请求，一种是阻塞在事务请求后的同session只读请求，因此想要处理这两种中的任意一个，都需要等待队首的事务提交</p></li><li><p>当commitIsWaiting为真之后，下面其实有两段逻辑：while循环是处理事务请求的，for循环是处理阻塞的只读请求的</p></li><li><p>从committedRequests取出已提交的请求，并从queuedWriteRequests中匹配，组装完整的request交给下一个Processor处理；并将当前请求的SessionId添加到queuesToDrain，表示里面阻塞的只读请求可以开始处理了</p></li><li><p>遍历可以处理的session，从pendingRequests中取出只读请求并进行处理，当遇到事务请求时停止</p></li></ol><div class=highlight><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=kd>public</span><span class=w> </span><span class=kt>void</span><span class=w> </span><span class=nf>run</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kt>int</span><span class=w> </span><span class=n>requestsToProcess</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>0</span><span class=p>;</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kt>boolean</span><span class=w> </span><span class=n>commitIsWaiting</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=kc>false</span><span class=p>;</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>do</span><span class=w> </span><span class=p>{</span><span class=w>
@@ -1041,11 +526,11 @@ SNAP:差距过大，需要将日志文件直接发给learner<br>TRUNC: Learner�
 </span></span></span><span class=line><span class=cl><span class=w>        </span><span class=k>while</span><span class=w> </span><span class=p>(</span><span class=o>!</span><span class=n>stoppedMainLoop</span><span class=p>);</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
-</span></span></span></code></pre></td></tr></table></div></div><h2 id=参考文档>参考文档:</h2><p><a class=link href=https://www.cnblogs.com/crazymakercircle/p/14339702.html#autoid-h2-5-5-4 target=_blank rel=noopener>Zab协议 (史上最全) - 疯狂创客圈 - 博客园</a></p><p><a class=link href=https://juejin.cn/post/7112681401601769486#heading-23 target=_blank rel=noopener>【图解源码】Zookeeper3.7源码剖析，Session的管理机制，Leader选举投票规则，集群数据同步流程 - 掘金</a></p><p><a class=link href=https://blog.csdn.net/Lanna_w/article/details/132414570 target=_blank rel=noopener>《Zookeeper》源码分析（十九）之 LearnerHandler-CSDN博客</a></p><p><a class=link href=https://learn.lianglianglee.com/%e4%b8%93%e6%a0%8f/24%e8%ae%b2%e5%90%83%e9%80%8f%e5%88%86%e5%b8%83%e5%bc%8f%e6%95%b0%e6%8d%ae%e5%ba%93-%e5%ae%8c/20%20%20%e5%85%b1%e8%af%86%e7%ae%97%e6%b3%95%ef%bc%9a%e4%b8%80%e6%ac%a1%e6%80%a7%e8%af%b4%e6%b8%85%e6%a5%9a%20Paxos%e3%80%81Raft%20%e7%ad%89%e7%ae%97%e6%b3%95%e7%9a%84%e5%8c%ba%e5%88%ab.md target=_blank rel=noopener>20 共识算法：一次性说清楚 Paxos、Raft 等算法的区别</a></p></section><footer class=article-footer><section class=article-tags><a href=/tags/%E4%B8%AD%E9%97%B4%E4%BB%B6/>中间件</a>
+</span></span></span></code></pre></div><h2 id=参考文档>参考文档:</h2><p><a class=link href=https://www.cnblogs.com/crazymakercircle/p/14339702.html#autoid-h2-5-5-4 target=_blank rel=noopener>Zab协议 (史上最全) - 疯狂创客圈 - 博客园</a></p><p><a class=link href=https://juejin.cn/post/7112681401601769486#heading-23 target=_blank rel=noopener>【图解源码】Zookeeper3.7源码剖析，Session的管理机制，Leader选举投票规则，集群数据同步流程 - 掘金</a></p><p><a class=link href=https://blog.csdn.net/Lanna_w/article/details/132414570 target=_blank rel=noopener>《Zookeeper》源码分析（十九）之 LearnerHandler-CSDN博客</a></p><p><a class=link href=https://learn.lianglianglee.com/%e4%b8%93%e6%a0%8f/24%e8%ae%b2%e5%90%83%e9%80%8f%e5%88%86%e5%b8%83%e5%bc%8f%e6%95%b0%e6%8d%ae%e5%ba%93-%e5%ae%8c/20%20%20%e5%85%b1%e8%af%86%e7%ae%97%e6%b3%95%ef%bc%9a%e4%b8%80%e6%ac%a1%e6%80%a7%e8%af%b4%e6%b8%85%e6%a5%9a%20Paxos%e3%80%81Raft%20%e7%ad%89%e7%ae%97%e6%b3%95%e7%9a%84%e5%8c%ba%e5%88%ab.md target=_blank rel=noopener>20 共识算法：一次性说清楚 Paxos、Raft 等算法的区别</a></p></section><footer class=article-footer><section class=article-tags><a href=/tags/%E4%B8%AD%E9%97%B4%E4%BB%B6/>中间件</a>
 <a href=/tags/%E6%B3%A8%E5%86%8C%E4%B8%AD%E5%BF%83/>注册中心</a>
 <a href=/tags/zookeeper/>Zookeeper</a></section><section class=article-copyright><svg class="icon icon-tabler icon-tabler-copyright" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="12" cy="12" r="9"/><path d="M14.5 9a3.5 4 0 100 6"/></svg>
 <span>Licensed under CC BY-NC-SA 4.0</span></section><section class=article-lastmod><svg class="icon icon-tabler icon-tabler-clock" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>
-<span>最后更新于 2024-09-03</span></section></footer></article><aside class=related-content--wrapper><h2 class=section-title>相关文章</h2><div class=related-content><div class="flex article-list--tile"><article><a href=/post/tech/distributed/zookeeper/election/><div class=article-details><h2 class=article-title>Zookeeper源码分析-选举机制</h2></div></a></article><article><a href=/post/tech/distributed/zookeeper/watch/><div class=article-details><h2 class=article-title>Zookeeper源码分析-watch机制</h2></div></a></article><article><a href=/post/tech/distributed/zookeeper/zookeeperservermain/><div class=article-details><h2 class=article-title>Zookeeper源码学习-单机部分通信组件</h2></div></a></article><article><a href=/post/tech/distributed/redis_cluster_deploy/><div class=article-details><h2 class=article-title>单服务器Redis集群部署记录</h2></div></a></article><article><a href=/post/tech/distributed/dubbo/dubbo_spi/><div class=article-details><h2 class=article-title>Dubbo的SPI增强</h2></div></a></article></div></div></aside><script src=//cdn.jsdelivr.net/npm/twikoo@1.6.21/dist/twikoo.all.min.js></script><div id=tcomment></div><style>.twikoo{background-color:var(--card-background);border-radius:var(--card-border-radius);box-shadow:var(--shadow-l1);padding:var(--card-padding)}:root[data-scheme=dark]{--twikoo-body-text-color-main:rgba(255, 255, 255, 0.9);--twikoo-body-text-color:rgba(255, 255, 255, 0.7)}.twikoo .el-input-group__prepend,.twikoo .tk-action-icon,.twikoo .tk-submit-action-icon,.twikoo .tk-time,.twikoo .tk-comments-no,.twikoo .tk-comments-count{color:var(--twikoo-body-text-color)}.twikoo .el-input__inner,.twikoo .el-textarea__inner,.twikoo .tk-preview-container,.twikoo .tk-content,.twikoo .tk-nick,.twikoo .tk-send{color:var(--twikoo-body-text-color-main)}.twikoo .el-button{color:var(--twikoo-body-text-color)!important}.twikoo .el-input__count{color:var(--twikoo-body-text-color)!important}.OwO .OwO-body{background-color:var(--body-background)!important;color:var(--body-text-color)!important}</style><script>twikoo.init({envId:"https://qisiii-twikoo.hf.space",el:"#tcomment"})</script><a href=#top aria-label="go to top" class=top-link id=top-link style=display:none><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-chevron-up"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M6 15l6-6 6 6"/></svg>
+<span>最后更新于 2024-09-04</span></section></footer></article><aside class=related-content--wrapper><h2 class=section-title>相关文章</h2><div class=related-content><div class="flex article-list--tile"><article><a href=/post/tech/distributed/zookeeper/election/><div class=article-details><h2 class=article-title>Zookeeper源码分析-选举机制</h2></div></a></article><article><a href=/post/tech/distributed/zookeeper/watch/><div class=article-details><h2 class=article-title>Zookeeper源码分析-watch机制</h2></div></a></article><article><a href=/post/tech/distributed/zookeeper/zookeeperservermain/><div class=article-details><h2 class=article-title>Zookeeper源码学习-单机部分通信组件</h2></div></a></article><article><a href=/post/tech/distributed/redis_cluster_deploy/><div class=article-details><h2 class=article-title>单服务器Redis集群部署记录</h2></div></a></article><article><a href=/post/tech/distributed/dubbo/dubbo_spi/><div class=article-details><h2 class=article-title>Dubbo的SPI增强</h2></div></a></article></div></div></aside><script src=//cdn.jsdelivr.net/npm/twikoo@1.6.21/dist/twikoo.all.min.js></script><div id=tcomment></div><style>.twikoo{background-color:var(--card-background);border-radius:var(--card-border-radius);box-shadow:var(--shadow-l1);padding:var(--card-padding)}:root[data-scheme=dark]{--twikoo-body-text-color-main:rgba(255, 255, 255, 0.9);--twikoo-body-text-color:rgba(255, 255, 255, 0.7)}.twikoo .el-input-group__prepend,.twikoo .tk-action-icon,.twikoo .tk-submit-action-icon,.twikoo .tk-time,.twikoo .tk-comments-no,.twikoo .tk-comments-count{color:var(--twikoo-body-text-color)}.twikoo .el-input__inner,.twikoo .el-textarea__inner,.twikoo .tk-preview-container,.twikoo .tk-content,.twikoo .tk-nick,.twikoo .tk-send{color:var(--twikoo-body-text-color-main)}.twikoo .el-button{color:var(--twikoo-body-text-color)!important}.twikoo .el-input__count{color:var(--twikoo-body-text-color)!important}.OwO .OwO-body{background-color:var(--body-background)!important;color:var(--body-text-color)!important}</style><script>twikoo.init({envId:"https://qisiii-twikoo.hf.space",el:"#tcomment"})</script><a href=#top aria-label="go to top" class=top-link id=top-link style=display:none><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-chevron-up"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M6 15l6-6 6 6"/></svg>
 </a><script src=https://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js></script><script type=text/javascript>$(window).scroll(function(){$(this).scrollTop()>300?$("#top-link").show():$("#top-link").hide()})</script><footer class=site-footer><section class=copyright>&copy;
 2022 -
 2024 起司</section><section class=powerby><a href=https://beian.miit.gov.cn/ target=_blank>京ICP备2023017017号-1</a><br>使用 <a href=https://gohugo.io/ target=_blank rel=noopener>Hugo</a> 构建<br>主题 <b><a href=https://github.com/CaiJimmy/hugo-theme-stack target=_blank rel=noopener data-version=3.26.0>Stack</a></b> 由 <a href=https://jimmycai.com target=_blank rel=noopener>Jimmy</a> 设计

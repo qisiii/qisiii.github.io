@@ -1,47 +1,7 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>起司的博客</title><link>https://qisiii.github.io/post/tech/distributed/</link><description>Recent content on 起司的博客</description><generator>Hugo -- gohugo.io</generator><language>zh-cn</language><copyright>起司</copyright><atom:link href="https://qisiii.github.io/post/tech/distributed/index.xml" rel="self" type="application/rss+xml"/><item><title>单服务器Redis集群部署记录</title><link>https://qisiii.github.io/post/tech/distributed/redis_cluster_deploy/</link><pubDate>Tue, 30 Jul 2024 23:27:58 +0800</pubDate><guid>https://qisiii.github.io/post/tech/distributed/redis_cluster_deploy/</guid><description>&lt;h2 id="部署">部署
 &lt;/h2>&lt;p>参考&lt;a class="link" href="https://redis.com.cn/topics/cluster-tutorial.html" target="_blank" rel="noopener"
 >Redis 集群教程&lt;/a>使用单云服务器启动多个节点来当做redis集群，这里使用7000-7005这6个节点，三主三从&lt;/p>
-&lt;div class="highlight">&lt;div class="chroma">
-&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
-&lt;/span>&lt;span class="lnt"> 2
-&lt;/span>&lt;span class="lnt"> 3
-&lt;/span>&lt;span class="lnt"> 4
-&lt;/span>&lt;span class="lnt"> 5
-&lt;/span>&lt;span class="lnt"> 6
-&lt;/span>&lt;span class="lnt"> 7
-&lt;/span>&lt;span class="lnt"> 8
-&lt;/span>&lt;span class="lnt"> 9
-&lt;/span>&lt;span class="lnt">10
-&lt;/span>&lt;span class="lnt">11
-&lt;/span>&lt;span class="lnt">12
-&lt;/span>&lt;span class="lnt">13
-&lt;/span>&lt;span class="lnt">14
-&lt;/span>&lt;span class="lnt">15
-&lt;/span>&lt;span class="lnt">16
-&lt;/span>&lt;span class="lnt">17
-&lt;/span>&lt;span class="lnt">18
-&lt;/span>&lt;span class="lnt">19
-&lt;/span>&lt;span class="lnt">20
-&lt;/span>&lt;span class="lnt">21
-&lt;/span>&lt;span class="lnt">22
-&lt;/span>&lt;span class="lnt">23
-&lt;/span>&lt;span class="lnt">24
-&lt;/span>&lt;span class="lnt">25
-&lt;/span>&lt;span class="lnt">26
-&lt;/span>&lt;span class="lnt">27
-&lt;/span>&lt;span class="lnt">28
-&lt;/span>&lt;span class="lnt">29
-&lt;/span>&lt;span class="lnt">30
-&lt;/span>&lt;span class="lnt">31
-&lt;/span>&lt;span class="lnt">32
-&lt;/span>&lt;span class="lnt">33
-&lt;/span>&lt;span class="lnt">34
-&lt;/span>&lt;span class="lnt">35
-&lt;/span>&lt;span class="lnt">36
-&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
-&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code class="language-shell" data-lang="shell">&lt;span class="line">&lt;span class="cl">&lt;span class="c1">#准备好文件夹&lt;/span>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-shell" data-lang="shell">&lt;span class="line">&lt;span class="cl">&lt;span class="c1">#准备好文件夹&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">mkdir redis-cluster
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nb">cd&lt;/span> redis-cluster
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">mkdir &lt;span class="m">7000&lt;/span> &lt;span class="m">7001&lt;/span> &lt;span class="m">7002&lt;/span> &lt;span class="m">7003&lt;/span> &lt;span class="m">7004&lt;/span> &lt;span class="m">7005&lt;/span>
@@ -77,9 +37,7 @@
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">...
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">或者在redis-cluster目录直接启动所有
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">nohup ./redis-stable/src/redis-server 7000/redis.conf &amp;gt;&amp;gt; ./7000/nohup.out &lt;span class="p">&amp;amp;;&lt;/span>nohup ./redis-stable/src/redis-server 7001/redis.conf &amp;gt;&amp;gt; ./7001/nohup.out &lt;span class="p">&amp;amp;;&lt;/span>nohup ./redis-stable/src/redis-server 7002/redis.conf &amp;gt;&amp;gt; ./7002/nohup.out &lt;span class="p">&amp;amp;;&lt;/span>nohup ./redis-stable/src/redis-server 7003/redis.conf &amp;gt;&amp;gt; ./7003/nohup.out &lt;span class="p">&amp;amp;;&lt;/span>nohup ./redis-stable/src/redis-server 7004/redis.conf &amp;gt;&amp;gt; ./7004/nohup.out &lt;span class="p">&amp;amp;;&lt;/span>nohup ./redis-stable/src/redis-server 7005/redis.conf &amp;gt;&amp;gt; ./7005/nohup.out &lt;span class="p">&amp;amp;&lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
-&lt;/div>
-&lt;/div>&lt;p>全部启动完之后，可以通过&lt;code>ps -ef | grep redis&lt;/code>来确认正常启动，且是cluster模式&lt;/p>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>全部启动完之后，可以通过&lt;code>ps -ef | grep redis&lt;/code>来确认正常启动，且是cluster模式&lt;/p>
 &lt;p>&lt;img src="http://picgo.qisiii.asia/post/30-23-48-11-image.png"
 loading="lazy"
 >&lt;/p>
@@ -87,58 +45,27 @@ loading="lazy"
 &lt;p>&lt;code>redis-stable/src/redis-cli --cluster create 公网ip:7000 公网ip:7001 公网ip:7002 公网ip:7003 公网ip:7004 公网ip:7005 --cluster-公网ip --cluster-replicas 1&lt;/code>&lt;/p>
 &lt;p>当看到&lt;code> [OK] All 16384 slots covered&lt;/code>表明启动成功&lt;/p>
 &lt;h3 id="设置密码">设置密码
-&lt;/h3>&lt;div class="highlight">&lt;div class="chroma">
-&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
-&lt;/span>&lt;span class="lnt">2
-&lt;/span>&lt;span class="lnt">3
-&lt;/span>&lt;span class="lnt">4
-&lt;/span>&lt;span class="lnt">5
-&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
-&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">依次访问每个节点，并进行设置
+&lt;/h3>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">依次访问每个节点，并进行设置
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">redis-cli -c -p 端口
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">config set requirepass 密码
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">config set masterauth 密码
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">config rewrite
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
-&lt;/div>
-&lt;/div>&lt;p>设置完之后去看conf文件会发现改变了以下三行&lt;/p>
-&lt;div class="highlight">&lt;div class="chroma">
-&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
-&lt;/span>&lt;span class="lnt">2
-&lt;/span>&lt;span class="lnt">3
-&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
-&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code class="language-gdscript3" data-lang="gdscript3">&lt;span class="line">&lt;span class="cl">&lt;span class="n">user&lt;/span> &lt;span class="n">default&lt;/span> &lt;span class="n">on&lt;/span> &lt;span class="n">sanitize&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="n">payload&lt;/span> &lt;span class="c1">#94eef65a0de53368e43fe0f363193bebcc0fb13784a3b23defa1e8616f0af ~* &amp;amp;* +@all&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>设置完之后去看conf文件会发现改变了以下三行&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-gdscript3" data-lang="gdscript3">&lt;span class="line">&lt;span class="cl">&lt;span class="n">user&lt;/span> &lt;span class="n">default&lt;/span> &lt;span class="n">on&lt;/span> &lt;span class="n">sanitize&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="n">payload&lt;/span> &lt;span class="c1">#94eef65a0de53368e43fe0f363193bebcc0fb13784a3b23defa1e8616f0af ~* &amp;amp;* +@all&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">requirepass&lt;/span> &lt;span class="s2">&amp;#34;密码&amp;#34;&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">masterauth&lt;/span> &lt;span class="s2">&amp;#34;密码&amp;#34;&lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
-&lt;/div>
-&lt;/div>&lt;h3 id="关闭重启删除">关闭&amp;amp;重启&amp;amp;删除
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="关闭重启删除">关闭&amp;amp;重启&amp;amp;删除
 &lt;/h3>&lt;h4 id="关闭集群">关闭集群
 &lt;/h4>&lt;p>依次连接每个节点&lt;code>redis-cli -c -p [端口]&lt;/code>并输入shutdown命令或者直接用kill -15 掉对应的pid&lt;/p>
 &lt;p>鉴于我们启动的节点较多，可以通过&lt;code>ps -ef | grep redis | cut -c 9-15 | xargs kill -15&lt;/code> 批量删除&lt;/p>
 &lt;h4 id="重启集群">重启集群
 &lt;/h4>&lt;p>重新启动节点，会自动加入到集群里&lt;/p>
-&lt;div class="highlight">&lt;div class="chroma">
-&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
-&lt;/span>&lt;span class="lnt">2
-&lt;/span>&lt;span class="lnt">3
-&lt;/span>&lt;span class="lnt">4
-&lt;/span>&lt;span class="lnt">5
-&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
-&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">#启动6个redis实例
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">#启动6个redis实例
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">cd 7000
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">nohup ../redis-stable/src/redis-server ./redis.conf &amp;amp;
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">cd 7001
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">nohup ../redis-stable/src/redis-server ./redis.conf &amp;amp;
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
-&lt;/div>
-&lt;/div>&lt;h3 id="删除集群">删除集群
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="删除集群">删除集群
 &lt;/h3>&lt;p>删除集群需要先关闭集群的所有节点，然后删除每个节点的集群自动生成的文件，可以通过命令批量删除&lt;code>rm -rf 700*/nodes.conf 700*/dump.rdb 700*/appendonlydir&lt;/code>&lt;/p>
 &lt;p>&lt;img src="http://picgo.qisiii.asia/post/31-09-14-53-image.png"
 loading="lazy"
@@ -166,34 +93,7 @@ loading="lazy"
 >&lt;/p>
 &lt;h3 id="spring连接">Spring连接
 &lt;/h3>&lt;p>引入依赖，设置配置文件，成功启动后会打印出world；&lt;/p>
-&lt;div class="highlight">&lt;div class="chroma">
-&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
-&lt;/span>&lt;span class="lnt"> 2
-&lt;/span>&lt;span class="lnt"> 3
-&lt;/span>&lt;span class="lnt"> 4
-&lt;/span>&lt;span class="lnt"> 5
-&lt;/span>&lt;span class="lnt"> 6
-&lt;/span>&lt;span class="lnt"> 7
-&lt;/span>&lt;span class="lnt"> 8
-&lt;/span>&lt;span class="lnt"> 9
-&lt;/span>&lt;span class="lnt">10
-&lt;/span>&lt;span class="lnt">11
-&lt;/span>&lt;span class="lnt">12
-&lt;/span>&lt;span class="lnt">13
-&lt;/span>&lt;span class="lnt">14
-&lt;/span>&lt;span class="lnt">15
-&lt;/span>&lt;span class="lnt">16
-&lt;/span>&lt;span class="lnt">17
-&lt;/span>&lt;span class="lnt">18
-&lt;/span>&lt;span class="lnt">19
-&lt;/span>&lt;span class="lnt">20
-&lt;/span>&lt;span class="lnt">21
-&lt;/span>&lt;span class="lnt">22
-&lt;/span>&lt;span class="lnt">23
-&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
-&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl"> #pom.xml
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl"> #pom.xml
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &amp;lt;dependency&amp;gt;
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &amp;lt;groupId&amp;gt;org.springframework.boot&amp;lt;/groupId&amp;gt;
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &amp;lt;artifactId&amp;gt;spring-boot-starter-data-redis&amp;lt;/artifactId&amp;gt;
@@ -216,9 +116,7 @@ loading="lazy"
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> System.out.println(value);
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> }
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">}
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
-&lt;/div>
-&lt;/div>&lt;h2 id="注意事项">注意事项：
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="注意事项">注意事项：
 &lt;/h2>&lt;ol>
 &lt;li>
 &lt;p>&lt;code>redis-cli --cluster create&lt;/code>命令里公网ip如果是127.0.0.1或者内网ip的话，可以正常启动集群，也可以通过redis-cli 命令连接。但是无法通过spring来启动，且无法通过redis的客户端redisinsight进行连接。&lt;/p>
@@ -233,22 +131,7 @@ loading="lazy"
 &lt;/li>
 &lt;li>
 &lt;p>配置&lt;code>protected-mode no&lt;/code>其实是远程连通redis的一种方案，在不设置且没有密码的情况下会报下面这个错误，正如NOTE中所述，选择其中任一一种就可以了。&lt;/p>
-&lt;div class="highlight">&lt;div class="chroma">
-&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
-&lt;/span>&lt;span class="lnt"> 2
-&lt;/span>&lt;span class="lnt"> 3
-&lt;/span>&lt;span class="lnt"> 4
-&lt;/span>&lt;span class="lnt"> 5
-&lt;/span>&lt;span class="lnt"> 6
-&lt;/span>&lt;span class="lnt"> 7
-&lt;/span>&lt;span class="lnt"> 8
-&lt;/span>&lt;span class="lnt"> 9
-&lt;/span>&lt;span class="lnt">10
-&lt;/span>&lt;span class="lnt">11
-&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
-&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">-DENIED Redis is running in protected mode because protected mode is enabled, no bind address was specified, no authentication password is requested to clients. In this mode connections are only accepted from the loopback interface. If you want to connect from external computers to Redis you may adopt one of the following solutions:
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">-DENIED Redis is running in protected mode because protected mode is enabled, no bind address was specified, no authentication password is requested to clients. In this mode connections are only accepted from the loopback interface. If you want to connect from external computers to Redis you may adopt one of the following solutions:
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">1) Just disable protected mode sending the command &amp;#39;CONFIG SET protected-mode no&amp;#39; from the loopback interface by connecting to Redis from the same host the server is running, however MAKE SURE Redis is not publicly accessible from internet if you do so. Use CONFIG REWRITE to make this change permanent.
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
@@ -259,9 +142,7 @@ loading="lazy"
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">4) Setup a bind address or an authentication password.
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">NOTE: You only need to do one of the above things in order for the server to start accepting connections from the outside.
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
-&lt;/div>
-&lt;/div>&lt;/li>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/li>
 &lt;/ol>
 &lt;h1 id="参考文档">参考文档:
 &lt;/h1>&lt;p>&lt;a class="link" href="https://redis.com.cn/topics/cluster-tutorial.html" target="_blank" rel="noopener"

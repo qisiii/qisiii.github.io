@@ -1,5 +1,5 @@
 <!doctype html><html lang=zh-cn dir=ltr><head><meta charset=utf-8><meta name=viewport content='width=device-width,initial-scale=1'><meta name=description content="Lock和Condition接口 Lock是java中显示使用锁的方案，相比于synchronized，要更加灵活； synchronized在"><title>JavaLock类源码分析</title>
-<link rel=canonical href=https://qisiii.github.io/post/tech/lang/javalock/><link rel=stylesheet href=/scss/style.min.7657e19dfcc00117e827b40bd92bcea286037ffa4a33e95fc533eaea79d078f9.css><meta property='og:title' content="JavaLock类源码分析"><meta property='og:description' content="Lock和Condition接口 Lock是java中显示使用锁的方案，相比于synchronized，要更加灵活； synchronized在"><meta property='og:url' content='https://qisiii.github.io/post/tech/lang/javalock/'><meta property='og:site_name' content='起司的博客'><meta property='og:type' content='article'><meta property='article:section' content='Post'><meta property='article:tag' content='java'><meta property='article:tag' content='lock'><meta property='article:published_time' content='2022-02-14T00:00:00+00:00'><meta property='article:modified_time' content='2024-09-03T18:42:30+00:00'><meta name=twitter:title content="JavaLock类源码分析"><meta name=twitter:description content="Lock和Condition接口 Lock是java中显示使用锁的方案，相比于synchronized，要更加灵活； synchronized在"><link rel=alternate type=application/json href=https://qisiii.github.io/post/tech/lang/javalock/index.json><link rel=alternate type=application/rss+xml href=https://qisiii.github.io/post/tech/lang/javalock/index.xml><link rel="shortcut icon" href=/favicon.ico><script async src="https://www.googletagmanager.com/gtag/js?id=G-8NDCRP4S7S"></script><script>var dnt,doNotTrack=!1;if(!1&&(dnt=navigator.doNotTrack||window.doNotTrack||navigator.msDoNotTrack,doNotTrack=dnt=="1"||dnt=="yes"),!doNotTrack){window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","G-8NDCRP4S7S")}</script><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=manifest href=/site.webmanifest><span id=top></span></head><body class=article-page><script>(function(){const e="StackColorScheme";localStorage.getItem(e)||localStorage.setItem(e,"auto")})()</script><script>(function(){const t="StackColorScheme",e=localStorage.getItem(t),n=window.matchMedia("(prefers-color-scheme: dark)").matches===!0;e=="dark"||e==="auto"&&n?document.documentElement.dataset.scheme="dark":document.documentElement.dataset.scheme="light"})()</script><div class="container main-container flex on-phone--column extended"><aside class="sidebar left-sidebar sticky"><button class="hamburger hamburger--spin" type=button id=toggle-menu aria-label=切换菜单>
+<link rel=canonical href=https://qisiii.github.io/post/tech/lang/javalock/><link rel=stylesheet href=/scss/style.min.7657e19dfcc00117e827b40bd92bcea286037ffa4a33e95fc533eaea79d078f9.css><meta property='og:title' content="JavaLock类源码分析"><meta property='og:description' content="Lock和Condition接口 Lock是java中显示使用锁的方案，相比于synchronized，要更加灵活； synchronized在"><meta property='og:url' content='https://qisiii.github.io/post/tech/lang/javalock/'><meta property='og:site_name' content='起司的博客'><meta property='og:type' content='article'><meta property='article:section' content='Post'><meta property='article:tag' content='java'><meta property='article:tag' content='lock'><meta property='article:published_time' content='2022-02-14T00:00:00+00:00'><meta property='article:modified_time' content='2024-09-04T16:07:21+00:00'><meta name=twitter:title content="JavaLock类源码分析"><meta name=twitter:description content="Lock和Condition接口 Lock是java中显示使用锁的方案，相比于synchronized，要更加灵活； synchronized在"><link rel=alternate type=application/json href=https://qisiii.github.io/post/tech/lang/javalock/index.json><link rel=alternate type=application/rss+xml href=https://qisiii.github.io/post/tech/lang/javalock/index.xml><link rel="shortcut icon" href=/favicon.ico><script async src="https://www.googletagmanager.com/gtag/js?id=G-8NDCRP4S7S"></script><script>var dnt,doNotTrack=!1;if(!1&&(dnt=navigator.doNotTrack||window.doNotTrack||navigator.msDoNotTrack,doNotTrack=dnt=="1"||dnt=="yes"),!doNotTrack){window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","G-8NDCRP4S7S")}</script><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=manifest href=/site.webmanifest><span id=top></span></head><body class=article-page><script>(function(){const e="StackColorScheme";localStorage.getItem(e)||localStorage.setItem(e,"auto")})()</script><script>(function(){const t="StackColorScheme",e=localStorage.getItem(t),n=window.matchMedia("(prefers-color-scheme: dark)").matches===!0;e=="dark"||e==="auto"&&n?document.documentElement.dataset.scheme="dark":document.documentElement.dataset.scheme="light"})()</script><div class="container main-container flex on-phone--column extended"><aside class="sidebar left-sidebar sticky"><button class="hamburger hamburger--spin" type=button id=toggle-menu aria-label=切换菜单>
 <span class=hamburger-box><span class=hamburger-inner></span></span></button><header><figure class=site-avatar><a href=/><img src=/img/avatar_huf89847f5290877d03a6309f0caaa56f1_43584_300x0_resize_box_3.png width=300 height=300 class=site-logo loading=lazy alt=Avatar></a></figure><div class=site-meta><h1 class=site-name><a href=/>起司的博客</a></h1><h2 class=site-description></h2></div></header><ol class=menu-social><li><a href=https://github.com/qisiii target=_blank title=GitHub rel=me><svg class="icon icon-tabler icon-tabler-brand-github" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 19c-4.3 1.4-4.3-2.5-6-3m12 5v-3.5c0-1 .1-1.4-.5-2 2.8-.3 5.5-1.4 5.5-6a4.6 4.6.0 00-1.3-3.2 4.2 4.2.0 00-.1-3.2s-1.1-.3-3.5 1.3a12.3 12.3.0 00-6.2.0C6.5 2.8 5.4 3.1 5.4 3.1a4.2 4.2.0 00-.1 3.2A4.6 4.6.0 004 9.5c0 4.6 2.7 5.7 5.5 6-.6.6-.6 1.2-.5 2V21"/></svg></a></li><li><a href=/index.xml target=_blank title=rss rel=me><svg class="icon icon-tabler icon-tabler-rss" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="5" cy="19" r="1"/><path d="M4 4a16 16 0 0116 16"/><path d="M4 11a9 9 0 019 9"/></svg></a></li></ol><ol class=menu id=main-menu><li><a href=/><svg class="icon icon-tabler icon-tabler-home" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><polyline points="5 12 3 12 12 3 21 12 19 12"/><path d="M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/><path d="M9 21v-6a2 2 0 012-2h2a2 2 0 012 2v6"/></svg>
 <span>首页|Home</span></a></li><li><a href=/post/friends target=_blank><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-heart-handshake"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M19.5 12.572 12 20l-7.5-7.428A5 5 0 1112 6.006a5 5 0 117.5 6.572"/><path d="M12 6 8.707 9.293a1 1 0 000 1.414l.543.543c.69.69 1.81.69 2.5.0l1-1a3.182 3.182.0 014.5.0l2.25 2.25"/><path d="M12.5 15.5l2 2"/><path d="M15 13l2 2"/></svg>
 <span>友链|Friends</span></a></li><li><a href=/post/search target=_blank><svg class="icon icon-tabler icon-tabler-search" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="10" cy="10" r="7"/><line x1="21" y1="21" x2="15" y2="15"/></svg>
@@ -7,83 +7,16 @@
 <svg class="icon icon-tabler icon-tabler-toggle-right" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="16" cy="12" r="2"/><rect x="2" y="6" width="20" height="12" rx="6"/></svg>
 <span>暗色模式</span></li></ol></li></ol></aside><aside class="sidebar right-sidebar sticky"><section class="widget archives"><div class=widget-icon><svg class="icon icon-tabler icon-tabler-hash" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><line x1="5" y1="9" x2="19" y2="9"/><line x1="5" y1="15" x2="19" y2="15"/><line x1="11" y1="4" x2="7" y2="20"/><line x1="17" y1="4" x2="13" y2="20"/></svg></div><h2 class="widget-title section-title">目录</h2><div class=widget--toc><nav id=TableOfContents><ol><li><a href=#lock和condition接口>Lock和Condition接口</a></li><li><a href=#aqs>AQS</a><ol><li><a href=#clh>CLH</a></li><li><a href=#同步队列>同步队列</a></li><li><a href=#条件队列>条件队列</a></li><li><a href=#共享锁>共享锁</a></li></ol></li><li><a href=#reentrantlock>ReentrantLock</a></li><li><a href=#reentrantreadwritelock>ReentrantReadWriteLock</a></li><li><a href=#参考文档>参考文档:</a></li></ol></nav></div></section></aside><main class="main full-width"><article class=main-article><header class=article-header><div class=article-details><header class=article-category><a href=/categories/tech/>技术人生</a></header><div class=article-title-wrapper><h2 class=article-title><a href=/post/tech/lang/javalock/>JavaLock类源码分析</a></h2></div><footer class=article-time><div><svg class="icon icon-tabler icon-tabler-calendar-time" width="56" height="56" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><path d="M11.795 21H5a2 2 0 01-2-2V7a2 2 0 012-2h12a2 2 0 012 2v4"/><circle cx="18" cy="18" r="4"/><path d="M15 3v4"/><path d="M7 3v4"/><path d="M3 11h16"/><path d="M18 16.496V18l1 1"/></svg>
 <time class=article-time--published>2022-02-14</time></div><div><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-hourglass-empty"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M6 20v-2a6 6 0 1112 0v2a1 1 0 01-1 1H7a1 1 0 01-1-1z"/><path d="M6 4v2a6 6 0 1012 0V4a1 1 0 00-1-1H7A1 1 0 006 4z"/></svg>
-<time class=article-time--reading>13分钟</time></div><span id=busuanzi_container_value_page_pv><i class="far fa-eye fa-fw"></i>
+<time class=article-time--reading>12分钟</time></div><span id=busuanzi_container_value_page_pv><i class="far fa-eye fa-fw"></i>
 <span id=busuanzi_value_page_pv></span>&nbsp;</span><svg class="icon icon-tabler icon-tabler-tag" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><path d="M11 3l9 9a1.5 1.5.0 010 2l-6 6a1.5 1.5.0 01-2 0L3 11V7a4 4 0 014-4h4"/><circle cx="9" cy="9" r="2"/></svg><div class=artile-time-reading><a href=https://qisiii.github.io/tags/java>#java</a>
-<a href=https://qisiii.github.io/tags/lock>#lock</a></div></footer></div></header><section class=article-content><h2 id=lock和condition接口>Lock和Condition接口</h2><p>Lock是java中显示使用锁的方案，相比于synchronized，要更加灵活；</p><p>synchronized在可重入的情况下，加锁和解锁是相反的顺序，但是Lock可以以任意的顺序解锁；</p><p>而且synchronized必须限定在同一范围内使用，lock则可以在不同的范围；</p><p>另外，synchronized仅限于对同一资源的独占的处理，而lock的实现机制则可以存在共享锁的存在，如ReentrantReadWriteLock。</p><p>通常的使用如下面的代码一般，使用lock和unlock方法</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span><span class=lnt>5
-</span><span class=lnt>6
-</span><span class=lnt>7
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-Java data-lang=Java><span class=line><span class=cl><span class=w> </span><span class=n>Lock</span><span class=w> </span><span class=n>l</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=p>...;</span><span class=w>
+<a href=https://qisiii.github.io/tags/lock>#lock</a></div></footer></div></header><section class=article-content><h2 id=lock和condition接口>Lock和Condition接口</h2><p>Lock是java中显示使用锁的方案，相比于synchronized，要更加灵活；</p><p>synchronized在可重入的情况下，加锁和解锁是相反的顺序，但是Lock可以以任意的顺序解锁；</p><p>而且synchronized必须限定在同一范围内使用，lock则可以在不同的范围；</p><p>另外，synchronized仅限于对同一资源的独占的处理，而lock的实现机制则可以存在共享锁的存在，如ReentrantReadWriteLock。</p><p>通常的使用如下面的代码一般，使用lock和unlock方法</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-Java data-lang=Java><span class=line><span class=cl><span class=w> </span><span class=n>Lock</span><span class=w> </span><span class=n>l</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=p>...;</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w> </span><span class=n>l</span><span class=p>.</span><span class=na>lock</span><span class=p>();</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w> </span><span class=k>try</span><span class=w> </span><span class=p>{</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>   </span><span class=c1>// access the resource protected by this lock</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w> </span><span class=p>}</span><span class=w> </span><span class=k>finally</span><span class=w> </span><span class=p>{</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>   </span><span class=n>l</span><span class=p>.</span><span class=na>unlock</span><span class=p>();</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w> </span><span class=p>}</span><span class=w>
-</span></span></span></code></pre></td></tr></table></div></div><p>Condition则是一种线程间通信的方案，是对于Object的wait和notify的替代。Condition实例由Lock.newCondition产生，而且Condition的使用一般都在lock和unlock中间；</p><p>相比于Object的wait和notify来说，condition可以更精确的控制某个线程的唤醒，只需要将condition.await置在需要挂起的线程，那么当任意线程执行condition.signal的时候，则可以精确唤醒该线程；</p><p>LockSupport提供了两个方法park和unpark，等同于阻塞和唤醒，但是原理是park是消耗一个凭证，unpark是提供一个凭证；所以也可以先unpark，那么下次调用park就不会阻塞</p><h2 id=aqs>AQS</h2><p>AbstractQueuedSynchronizer其本质是两个队列。</p><p>一个是同步队列，双向链表，用于存储等待获取锁的线程，状态和线程封装在NODE类中；</p><p>一个是条件队列，单向链表，用于存储await的线程节点，通过nextWaiter连接链表；</p><h3 id=clh>CLH</h3><p>CLH算法是一个自旋锁的算法，是对于普通的cas的优化。<em>(Craig, Landin, and Hagersten)</em></p><p>对于普通的cas来说，如果存在多个线程，那么每个线程都要在循环里尝试cas，这样会给cpu带来比较大的复合；另外有可能导致饥饿，即某个线程一直在等待，无法获取到锁。</p><p>CLH持有一个尾结点，添加节点通过prev链接，节点有一个状态默认是true表示正在获取锁或者已经持有锁，线程通过判断前一个节点的状态什么时候变成false或者没有节点才可以获取锁</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span><span class=lnt>16
-</span><span class=lnt>17
-</span><span class=lnt>18
-</span><span class=lnt>19
-</span><span class=lnt>20
-</span><span class=lnt>21
-</span><span class=lnt>22
-</span><span class=lnt>23
-</span><span class=lnt>24
-</span><span class=lnt>25
-</span><span class=lnt>26
-</span><span class=lnt>27
-</span><span class=lnt>28
-</span><span class=lnt>29
-</span><span class=lnt>30
-</span><span class=lnt>31
-</span><span class=lnt>32
-</span><span class=lnt>33
-</span><span class=lnt>34
-</span><span class=lnt>35
-</span><span class=lnt>36
-</span><span class=lnt>37
-</span><span class=lnt>38
-</span><span class=lnt>39
-</span><span class=lnt>40
-</span><span class=lnt>41
-</span><span class=lnt>42
-</span><span class=lnt>43
-</span><span class=lnt>44
-</span><span class=lnt>45
-</span><span class=lnt>46
-</span><span class=lnt>47
-</span><span class=lnt>48
-</span><span class=lnt>49
-</span><span class=lnt>50
-</span><span class=lnt>51
-</span><span class=lnt>52
-</span><span class=lnt>53
-</span><span class=lnt>54
-</span><span class=lnt>55
-</span><span class=lnt>56
-</span><span class=lnt>57
-</span><span class=lnt>58
-</span><span class=lnt>59
-</span><span class=lnt>60
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-Java data-lang=Java><span class=line><span class=cl><span class=kd>public</span><span class=w> </span><span class=kd>class</span> <span class=nc>CLH</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span></code></pre></div><p>Condition则是一种线程间通信的方案，是对于Object的wait和notify的替代。Condition实例由Lock.newCondition产生，而且Condition的使用一般都在lock和unlock中间；</p><p>相比于Object的wait和notify来说，condition可以更精确的控制某个线程的唤醒，只需要将condition.await置在需要挂起的线程，那么当任意线程执行condition.signal的时候，则可以精确唤醒该线程；</p><p>LockSupport提供了两个方法park和unpark，等同于阻塞和唤醒，但是原理是park是消耗一个凭证，unpark是提供一个凭证；所以也可以先unpark，那么下次调用park就不会阻塞</p><h2 id=aqs>AQS</h2><p>AbstractQueuedSynchronizer其本质是两个队列。</p><p>一个是同步队列，双向链表，用于存储等待获取锁的线程，状态和线程封装在NODE类中；</p><p>一个是条件队列，单向链表，用于存储await的线程节点，通过nextWaiter连接链表；</p><h3 id=clh>CLH</h3><p>CLH算法是一个自旋锁的算法，是对于普通的cas的优化。<em>(Craig, Landin, and Hagersten)</em></p><p>对于普通的cas来说，如果存在多个线程，那么每个线程都要在循环里尝试cas，这样会给cpu带来比较大的复合；另外有可能导致饥饿，即某个线程一直在等待，无法获取到锁。</p><p>CLH持有一个尾结点，添加节点通过prev链接，节点有一个状态默认是true表示正在获取锁或者已经持有锁，线程通过判断前一个节点的状态什么时候变成false或者没有节点才可以获取锁</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-Java data-lang=Java><span class=line><span class=cl><span class=kd>public</span><span class=w> </span><span class=kd>class</span> <span class=nc>CLH</span><span class=w> </span><span class=p>{</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>AtomicReference</span><span class=o>&lt;</span><span class=n>Node</span><span class=o>&gt;</span><span class=w> </span><span class=n>tail</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=k>new</span><span class=w> </span><span class=n>AtomicReference</span><span class=o>&lt;&gt;</span><span class=p>();</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>ThreadLocal</span><span class=o>&lt;</span><span class=n>Node</span><span class=o>&gt;</span><span class=w> </span><span class=n>cur</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=k>new</span><span class=w> </span><span class=n>ThreadLocal</span><span class=o>&lt;&gt;</span><span class=p>();</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>
@@ -143,24 +76,7 @@
 </span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>executorService</span><span class=p>.</span><span class=na>shutdown</span><span class=p>();</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
-</span></span></span></code></pre></td></tr></table></div></div><h3 id=同步队列>同步队列</h3><p>在了解同步队列运行机制前，先看一下NODE类</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span><span class=lnt>16
-</span><span class=lnt>17
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-Java data-lang=Java><span class=line><span class=cl><span class=kd>static</span><span class=w> </span><span class=kd>final</span><span class=w> </span><span class=kd>class</span> <span class=nc>Node</span><span class=w> </span><span class=p>{</span><span class=w>    
+</span></span></span></code></pre></div><h3 id=同步队列>同步队列</h3><p>在了解同步队列运行机制前，先看一下NODE类</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-Java data-lang=Java><span class=line><span class=cl><span class=kd>static</span><span class=w> </span><span class=kd>final</span><span class=w> </span><span class=kd>class</span> <span class=nc>Node</span><span class=w> </span><span class=p>{</span><span class=w>    
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>//用于区分节点是共享还是独占</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>static</span><span class=w> </span><span class=kd>final</span><span class=w> </span><span class=n>Node</span><span class=w> </span><span class=n>SHARED</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=k>new</span><span class=w> </span><span class=n>Node</span><span class=p>();</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>static</span><span class=w> </span><span class=kd>final</span><span class=w> </span><span class=n>Node</span><span class=w> </span><span class=n>EXCLUSIVE</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=kc>null</span><span class=p>;</span><span class=w>    
@@ -177,85 +93,7 @@
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>volatile</span><span class=w> </span><span class=n>Node</span><span class=w> </span><span class=n>next</span><span class=p>;</span><span class=w>    </span><span class=c1>//当前工作线程</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>volatile</span><span class=w> </span><span class=n>Thread</span><span class=w> </span><span class=n>thread</span><span class=p>;</span><span class=w>    </span><span class=c1>//用于标识当前节点在条件队列的位置</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>Node</span><span class=w> </span><span class=n>nextWaiter</span><span class=p>;</span><span class=w>
-</span></span></span></code></pre></td></tr></table></div></div><p>然后通过下图，我们了解一下aqs的机制</p><ol><li><p>没有任何线程获取锁，这个时候不存在节点，头即是尾</p></li><li><p>Thread1和Thread2通过尝试获取锁，假设Thread1获取锁成功，那么Thread2则会执行addWaiter方法，在这个方法中，初始化了head节点，通过将Thread2构造的节点作为head.next，并且作为tail；然后会执行acquireQueued方法，在这里会将Thread2.prev也就是head的waitStatus置为signal(-1)，然后会挂起当前线程；</p></li><li><p>Thread3和Thread4尝试获取锁，假设Thread4获取成功，那么Thread4会追加到Thread2，并临时作为tail；而Thread3由于在addWaiter方法中compareAndSetTail失败，所以会通过enq方法追加到Thread4后面，并作为Tail；同理，Thread2和Thread4的waitStatus都会被后一个节点设置为signal；</p></li><li><p>这一步则是释放锁，当释放锁的时候，会判断如果head节点的waitStatus如果不等于0，然后就唤醒下一个可用的节点&mdash;-Thread2，因为在acquireQueued方法开始继续执行，然后尝试获取锁，获取成功的话，就将自己设置为了head；</p></li></ol><p><img src=http://picgo.qisiii.asia/post/11-09-08-14-image.png loading=lazy></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span><span class=lnt>16
-</span><span class=lnt>17
-</span><span class=lnt>18
-</span><span class=lnt>19
-</span><span class=lnt>20
-</span><span class=lnt>21
-</span><span class=lnt>22
-</span><span class=lnt>23
-</span><span class=lnt>24
-</span><span class=lnt>25
-</span><span class=lnt>26
-</span><span class=lnt>27
-</span><span class=lnt>28
-</span><span class=lnt>29
-</span><span class=lnt>30
-</span><span class=lnt>31
-</span><span class=lnt>32
-</span><span class=lnt>33
-</span><span class=lnt>34
-</span><span class=lnt>35
-</span><span class=lnt>36
-</span><span class=lnt>37
-</span><span class=lnt>38
-</span><span class=lnt>39
-</span><span class=lnt>40
-</span><span class=lnt>41
-</span><span class=lnt>42
-</span><span class=lnt>43
-</span><span class=lnt>44
-</span><span class=lnt>45
-</span><span class=lnt>46
-</span><span class=lnt>47
-</span><span class=lnt>48
-</span><span class=lnt>49
-</span><span class=lnt>50
-</span><span class=lnt>51
-</span><span class=lnt>52
-</span><span class=lnt>53
-</span><span class=lnt>54
-</span><span class=lnt>55
-</span><span class=lnt>56
-</span><span class=lnt>57
-</span><span class=lnt>58
-</span><span class=lnt>59
-</span><span class=lnt>60
-</span><span class=lnt>61
-</span><span class=lnt>62
-</span><span class=lnt>63
-</span><span class=lnt>64
-</span><span class=lnt>65
-</span><span class=lnt>66
-</span><span class=lnt>67
-</span><span class=lnt>68
-</span><span class=lnt>69
-</span><span class=lnt>70
-</span><span class=lnt>71
-</span><span class=lnt>72
-</span><span class=lnt>73
-</span><span class=lnt>74
-</span><span class=lnt>75
-</span><span class=lnt>76
-</span><span class=lnt>77
-</span><span class=lnt>78
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-Java data-lang=Java><span class=line><span class=cl><span class=kd>public</span><span class=w> </span><span class=kd>final</span><span class=w> </span><span class=kt>void</span><span class=w> </span><span class=nf>acquire</span><span class=p>(</span><span class=kt>int</span><span class=w> </span><span class=n>arg</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span></code></pre></div><p>然后通过下图，我们了解一下aqs的机制</p><ol><li><p>没有任何线程获取锁，这个时候不存在节点，头即是尾</p></li><li><p>Thread1和Thread2通过尝试获取锁，假设Thread1获取锁成功，那么Thread2则会执行addWaiter方法，在这个方法中，初始化了head节点，通过将Thread2构造的节点作为head.next，并且作为tail；然后会执行acquireQueued方法，在这里会将Thread2.prev也就是head的waitStatus置为signal(-1)，然后会挂起当前线程；</p></li><li><p>Thread3和Thread4尝试获取锁，假设Thread4获取成功，那么Thread4会追加到Thread2，并临时作为tail；而Thread3由于在addWaiter方法中compareAndSetTail失败，所以会通过enq方法追加到Thread4后面，并作为Tail；同理，Thread2和Thread4的waitStatus都会被后一个节点设置为signal；</p></li><li><p>这一步则是释放锁，当释放锁的时候，会判断如果head节点的waitStatus如果不等于0，然后就唤醒下一个可用的节点&mdash;-Thread2，因为在acquireQueued方法开始继续执行，然后尝试获取锁，获取成功的话，就将自己设置为了head；</p></li></ol><p><img src=http://picgo.qisiii.asia/post/11-09-08-14-image.png loading=lazy></p><div class=highlight><pre tabindex=0 class=chroma><code class=language-Java data-lang=Java><span class=line><span class=cl><span class=kd>public</span><span class=w> </span><span class=kd>final</span><span class=w> </span><span class=kt>void</span><span class=w> </span><span class=nf>acquire</span><span class=p>(</span><span class=kt>int</span><span class=w> </span><span class=n>arg</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>//tryAcquire是个钩子方法，由具体的实现类实现</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>if</span><span class=w> </span><span class=p>(</span><span class=o>!</span><span class=n>tryAcquire</span><span class=p>(</span><span class=n>arg</span><span class=p>)</span><span class=w> </span><span class=o>&amp;&amp;</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>//addWaiter则是构建了一个node并且添加到队列尾部；</span><span class=w>
@@ -333,102 +171,14 @@
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>return</span><span class=w> </span><span class=kc>false</span><span class=p>;</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
-</span></span></span></code></pre></td></tr></table></div></div><h3 id=条件队列>条件队列</h3><p>条件队列是condition相关的队列，先来看一下aqs中的ConditionObject对象</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span><span class=lnt>5
-</span><span class=lnt>6
-</span><span class=lnt>7
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-Java data-lang=Java><span class=line><span class=cl><span class=kd>public</span><span class=w> </span><span class=kd>class</span> <span class=nc>ConditionObject</span><span class=w> </span><span class=kd>implements</span><span class=w> </span><span class=n>Condition</span><span class=p>,</span><span class=w> </span><span class=n>java</span><span class=p>.</span><span class=na>io</span><span class=p>.</span><span class=na>Serializable</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span></code></pre></div><h3 id=条件队列>条件队列</h3><p>条件队列是condition相关的队列，先来看一下aqs中的ConditionObject对象</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-Java data-lang=Java><span class=line><span class=cl><span class=kd>public</span><span class=w> </span><span class=kd>class</span> <span class=nc>ConditionObject</span><span class=w> </span><span class=kd>implements</span><span class=w> </span><span class=n>Condition</span><span class=p>,</span><span class=w> </span><span class=n>java</span><span class=p>.</span><span class=na>io</span><span class=p>.</span><span class=na>Serializable</span><span class=w> </span><span class=p>{</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>private</span><span class=w> </span><span class=kd>static</span><span class=w> </span><span class=kd>final</span><span class=w> </span><span class=kt>long</span><span class=w> </span><span class=n>serialVersionUID</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>1173984872572414699L</span><span class=p>;</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=cm>/** First node of condition queue. */</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>private</span><span class=w> </span><span class=kd>transient</span><span class=w> </span><span class=n>Node</span><span class=w> </span><span class=n>firstWaiter</span><span class=p>;</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=cm>/** Last node of condition queue. */</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>private</span><span class=w> </span><span class=kd>transient</span><span class=w> </span><span class=n>Node</span><span class=w> </span><span class=n>lastWaiter</span><span class=p>;</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
-</span></span></span></code></pre></td></tr></table></div></div><p>可以看出ConditionObject只持有首尾，而串联起来Node的则是Node的nextWaiter字段，所以这是个单链表</p><p><img src=http://picgo.qisiii.asia/post/11-09-09-00-image.png loading=lazy>这是上面同步队列最后一步时的状态</p><ol><li><p>Thread2调用await，会构建一个Thread2的condition节点（waitStatus为condition）作为firstWaiter，同时会释放Thread2已经持有的锁，唤醒Thread2.next（Thread4），因此同步队列里Thread4会变为头结点；</p></li><li><p>Thread4调用await，同Thread2一样，会新构建一个condition节点，然后→Thread2.nextWaiter指向Thread4，此时Thread4就是lastWaiter，同步队列也就只剩Thread3了</p></li><li><p>Thread2调用signal，将条件队列最靠前的可用的节点移出条件队列，重新追加到同步队列中去，将本来的tail节点状态置为signal</p></li></ol><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span><span class=lnt>16
-</span><span class=lnt>17
-</span><span class=lnt>18
-</span><span class=lnt>19
-</span><span class=lnt>20
-</span><span class=lnt>21
-</span><span class=lnt>22
-</span><span class=lnt>23
-</span><span class=lnt>24
-</span><span class=lnt>25
-</span><span class=lnt>26
-</span><span class=lnt>27
-</span><span class=lnt>28
-</span><span class=lnt>29
-</span><span class=lnt>30
-</span><span class=lnt>31
-</span><span class=lnt>32
-</span><span class=lnt>33
-</span><span class=lnt>34
-</span><span class=lnt>35
-</span><span class=lnt>36
-</span><span class=lnt>37
-</span><span class=lnt>38
-</span><span class=lnt>39
-</span><span class=lnt>40
-</span><span class=lnt>41
-</span><span class=lnt>42
-</span><span class=lnt>43
-</span><span class=lnt>44
-</span><span class=lnt>45
-</span><span class=lnt>46
-</span><span class=lnt>47
-</span><span class=lnt>48
-</span><span class=lnt>49
-</span><span class=lnt>50
-</span><span class=lnt>51
-</span><span class=lnt>52
-</span><span class=lnt>53
-</span><span class=lnt>54
-</span><span class=lnt>55
-</span><span class=lnt>56
-</span><span class=lnt>57
-</span><span class=lnt>58
-</span><span class=lnt>59
-</span><span class=lnt>60
-</span><span class=lnt>61
-</span><span class=lnt>62
-</span><span class=lnt>63
-</span><span class=lnt>64
-</span><span class=lnt>65
-</span><span class=lnt>66
-</span><span class=lnt>67
-</span><span class=lnt>68
-</span><span class=lnt>69
-</span><span class=lnt>70
-</span><span class=lnt>71
-</span><span class=lnt>72
-</span><span class=lnt>73
-</span><span class=lnt>74
-</span><span class=lnt>75
-</span><span class=lnt>76
-</span><span class=lnt>77
-</span><span class=lnt>78
-</span><span class=lnt>79
-</span><span class=lnt>80
-</span><span class=lnt>81
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-Java data-lang=Java><span class=line><span class=cl><span class=c1>//阻塞</span><span class=w>
+</span></span></span></code></pre></div><p>可以看出ConditionObject只持有首尾，而串联起来Node的则是Node的nextWaiter字段，所以这是个单链表</p><p><img src=http://picgo.qisiii.asia/post/11-09-09-00-image.png loading=lazy>这是上面同步队列最后一步时的状态</p><ol><li><p>Thread2调用await，会构建一个Thread2的condition节点（waitStatus为condition）作为firstWaiter，同时会释放Thread2已经持有的锁，唤醒Thread2.next（Thread4），因此同步队列里Thread4会变为头结点；</p></li><li><p>Thread4调用await，同Thread2一样，会新构建一个condition节点，然后→Thread2.nextWaiter指向Thread4，此时Thread4就是lastWaiter，同步队列也就只剩Thread3了</p></li><li><p>Thread2调用signal，将条件队列最靠前的可用的节点移出条件队列，重新追加到同步队列中去，将本来的tail节点状态置为signal</p></li></ol><div class=highlight><pre tabindex=0 class=chroma><code class=language-Java data-lang=Java><span class=line><span class=cl><span class=c1>//阻塞</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w></span><span class=kd>public</span><span class=w> </span><span class=kd>final</span><span class=w> </span><span class=kt>void</span><span class=w> </span><span class=nf>await</span><span class=p>()</span><span class=w> </span><span class=kd>throws</span><span class=w> </span><span class=n>InterruptedException</span><span class=w> </span><span class=p>{</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>if</span><span class=w> </span><span class=p>(</span><span class=n>Thread</span><span class=p>.</span><span class=na>interrupted</span><span class=p>())</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>        </span><span class=k>throw</span><span class=w> </span><span class=k>new</span><span class=w> </span><span class=n>InterruptedException</span><span class=p>();</span><span class=w>
@@ -509,82 +259,7 @@
 </span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>first</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>next</span><span class=p>;</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w> </span><span class=k>while</span><span class=w> </span><span class=p>(</span><span class=n>first</span><span class=w> </span><span class=o>!=</span><span class=w> </span><span class=kc>null</span><span class=p>);</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
-</span></span></span></code></pre></td></tr></table></div></div><h3 id=共享锁>共享锁</h3><p>主要是有个传递机制，其他没啥太大的区别，一旦有锁释放了，那么后面的就会改为传递</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span><span class=lnt>16
-</span><span class=lnt>17
-</span><span class=lnt>18
-</span><span class=lnt>19
-</span><span class=lnt>20
-</span><span class=lnt>21
-</span><span class=lnt>22
-</span><span class=lnt>23
-</span><span class=lnt>24
-</span><span class=lnt>25
-</span><span class=lnt>26
-</span><span class=lnt>27
-</span><span class=lnt>28
-</span><span class=lnt>29
-</span><span class=lnt>30
-</span><span class=lnt>31
-</span><span class=lnt>32
-</span><span class=lnt>33
-</span><span class=lnt>34
-</span><span class=lnt>35
-</span><span class=lnt>36
-</span><span class=lnt>37
-</span><span class=lnt>38
-</span><span class=lnt>39
-</span><span class=lnt>40
-</span><span class=lnt>41
-</span><span class=lnt>42
-</span><span class=lnt>43
-</span><span class=lnt>44
-</span><span class=lnt>45
-</span><span class=lnt>46
-</span><span class=lnt>47
-</span><span class=lnt>48
-</span><span class=lnt>49
-</span><span class=lnt>50
-</span><span class=lnt>51
-</span><span class=lnt>52
-</span><span class=lnt>53
-</span><span class=lnt>54
-</span><span class=lnt>55
-</span><span class=lnt>56
-</span><span class=lnt>57
-</span><span class=lnt>58
-</span><span class=lnt>59
-</span><span class=lnt>60
-</span><span class=lnt>61
-</span><span class=lnt>62
-</span><span class=lnt>63
-</span><span class=lnt>64
-</span><span class=lnt>65
-</span><span class=lnt>66
-</span><span class=lnt>67
-</span><span class=lnt>68
-</span><span class=lnt>69
-</span><span class=lnt>70
-</span><span class=lnt>71
-</span><span class=lnt>72
-</span><span class=lnt>73
-</span><span class=lnt>74
-</span><span class=lnt>75
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-Java data-lang=Java><span class=line><span class=cl><span class=kd>private</span><span class=w> </span><span class=kt>void</span><span class=w> </span><span class=nf>doAcquireShared</span><span class=p>(</span><span class=kt>int</span><span class=w> </span><span class=n>arg</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span></code></pre></div><h3 id=共享锁>共享锁</h3><p>主要是有个传递机制，其他没啥太大的区别，一旦有锁释放了，那么后面的就会改为传递</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-Java data-lang=Java><span class=line><span class=cl><span class=kd>private</span><span class=w> </span><span class=kt>void</span><span class=w> </span><span class=nf>doAcquireShared</span><span class=p>(</span><span class=kt>int</span><span class=w> </span><span class=n>arg</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>//追加节点到同步队列</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>final</span><span class=w> </span><span class=n>Node</span><span class=w> </span><span class=n>node</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>addWaiter</span><span class=p>(</span><span class=n>Node</span><span class=p>.</span><span class=na>SHARED</span><span class=p>);</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kt>boolean</span><span class=w> </span><span class=n>failed</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=kc>true</span><span class=p>;</span><span class=w>
@@ -659,64 +334,7 @@
 </span></span></span><span class=line><span class=cl><span class=w>            </span><span class=k>break</span><span class=p>;</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
-</span></span></span></code></pre></td></tr></table></div></div><h2 id=reentrantlock>ReentrantLock</h2><p>本质是AQS，不过实现了公平锁和非公平锁，默认是非公平锁。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span><span class=lnt>16
-</span><span class=lnt>17
-</span><span class=lnt>18
-</span><span class=lnt>19
-</span><span class=lnt>20
-</span><span class=lnt>21
-</span><span class=lnt>22
-</span><span class=lnt>23
-</span><span class=lnt>24
-</span><span class=lnt>25
-</span><span class=lnt>26
-</span><span class=lnt>27
-</span><span class=lnt>28
-</span><span class=lnt>29
-</span><span class=lnt>30
-</span><span class=lnt>31
-</span><span class=lnt>32
-</span><span class=lnt>33
-</span><span class=lnt>34
-</span><span class=lnt>35
-</span><span class=lnt>36
-</span><span class=lnt>37
-</span><span class=lnt>38
-</span><span class=lnt>39
-</span><span class=lnt>40
-</span><span class=lnt>41
-</span><span class=lnt>42
-</span><span class=lnt>43
-</span><span class=lnt>44
-</span><span class=lnt>45
-</span><span class=lnt>46
-</span><span class=lnt>47
-</span><span class=lnt>48
-</span><span class=lnt>49
-</span><span class=lnt>50
-</span><span class=lnt>51
-</span><span class=lnt>52
-</span><span class=lnt>53
-</span><span class=lnt>54
-</span><span class=lnt>55
-</span><span class=lnt>56
-</span><span class=lnt>57
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-Java data-lang=Java><span class=line><span class=cl><span class=c1>//默认非公平</span><span class=w>
+</span></span></span></code></pre></div><h2 id=reentrantlock>ReentrantLock</h2><p>本质是AQS，不过实现了公平锁和非公平锁，默认是非公平锁。</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-Java data-lang=Java><span class=line><span class=cl><span class=c1>//默认非公平</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w></span><span class=kd>public</span><span class=w> </span><span class=nf>ReentrantLock</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>sync</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=k>new</span><span class=w> </span><span class=n>NonfairSync</span><span class=p>();</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
@@ -773,18 +391,7 @@
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>return</span><span class=w> </span><span class=kc>false</span><span class=p>;</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
-</span></span></span></code></pre></td></tr></table></div></div><h2 id=reentrantreadwritelock>ReentrantReadWriteLock</h2><p>读写锁的设计是将int分为高低16位，高16为读锁，低16位为写锁。</p><p>如果是</p><p>00000000 0000010 00000000 00000010</p><p>说明当前线程获得两次读锁，两次写锁</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-Java data-lang=Java><span class=line><span class=cl><span class=kd>static</span><span class=w> </span><span class=kd>final</span><span class=w> </span><span class=kt>int</span><span class=w> </span><span class=n>SHARED_SHIFT</span><span class=w>   </span><span class=o>=</span><span class=w> </span><span class=n>16</span><span class=p>;</span><span class=w>
+</span></span></span></code></pre></div><h2 id=reentrantreadwritelock>ReentrantReadWriteLock</h2><p>读写锁的设计是将int分为高低16位，高16为读锁，低16位为写锁。</p><p>如果是</p><p>00000000 0000010 00000000 00000010</p><p>说明当前线程获得两次读锁，两次写锁</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-Java data-lang=Java><span class=line><span class=cl><span class=kd>static</span><span class=w> </span><span class=kd>final</span><span class=w> </span><span class=kt>int</span><span class=w> </span><span class=n>SHARED_SHIFT</span><span class=w>   </span><span class=o>=</span><span class=w> </span><span class=n>16</span><span class=p>;</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>//65536,其实就是高位1</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w></span><span class=kd>static</span><span class=w> </span><span class=kd>final</span><span class=w> </span><span class=kt>int</span><span class=w> </span><span class=n>SHARED_UNIT</span><span class=w>    </span><span class=o>=</span><span class=w> </span><span class=p>(</span><span class=n>1</span><span class=w> </span><span class=o>&lt;&lt;</span><span class=w> </span><span class=n>SHARED_SHIFT</span><span class=p>);</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>//65535 0（16）1（16）</span><span class=w>
@@ -795,150 +402,7 @@
 </span></span></span><span class=line><span class=cl><span class=w></span><span class=kd>static</span><span class=w> </span><span class=kt>int</span><span class=w> </span><span class=nf>sharedCount</span><span class=p>(</span><span class=kt>int</span><span class=w> </span><span class=n>c</span><span class=p>)</span><span class=w>    </span><span class=p>{</span><span class=w> </span><span class=k>return</span><span class=w> </span><span class=n>c</span><span class=w> </span><span class=o>&gt;&gt;&gt;</span><span class=w> </span><span class=n>SHARED_SHIFT</span><span class=p>;</span><span class=w> </span><span class=p>}</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w></span><span class=cm>/** 与上0000000000000000 1111111111111111，即只要低16位  */</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w></span><span class=kd>static</span><span class=w> </span><span class=kt>int</span><span class=w> </span><span class=nf>exclusiveCount</span><span class=p>(</span><span class=kt>int</span><span class=w> </span><span class=n>c</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w> </span><span class=k>return</span><span class=w> </span><span class=n>c</span><span class=w> </span><span class=o>&amp;</span><span class=w> </span><span class=n>EXCLUSIVE_MASK</span><span class=p>;</span><span class=w> </span><span class=p>}</span><span class=w>
-</span></span></span></code></pre></td></tr></table></div></div><p>相比于ReentrantLock多了两个内部类</p><p>ReadLock和WriteLock</p><p>//当前线程持有写锁，其他线程都不能持有写锁，但是当前线程还可以持有读锁</p><p>//当前线程持有读锁，其他线程也可以获取读锁</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>  1
-</span><span class=lnt>  2
-</span><span class=lnt>  3
-</span><span class=lnt>  4
-</span><span class=lnt>  5
-</span><span class=lnt>  6
-</span><span class=lnt>  7
-</span><span class=lnt>  8
-</span><span class=lnt>  9
-</span><span class=lnt> 10
-</span><span class=lnt> 11
-</span><span class=lnt> 12
-</span><span class=lnt> 13
-</span><span class=lnt> 14
-</span><span class=lnt> 15
-</span><span class=lnt> 16
-</span><span class=lnt> 17
-</span><span class=lnt> 18
-</span><span class=lnt> 19
-</span><span class=lnt> 20
-</span><span class=lnt> 21
-</span><span class=lnt> 22
-</span><span class=lnt> 23
-</span><span class=lnt> 24
-</span><span class=lnt> 25
-</span><span class=lnt> 26
-</span><span class=lnt> 27
-</span><span class=lnt> 28
-</span><span class=lnt> 29
-</span><span class=lnt> 30
-</span><span class=lnt> 31
-</span><span class=lnt> 32
-</span><span class=lnt> 33
-</span><span class=lnt> 34
-</span><span class=lnt> 35
-</span><span class=lnt> 36
-</span><span class=lnt> 37
-</span><span class=lnt> 38
-</span><span class=lnt> 39
-</span><span class=lnt> 40
-</span><span class=lnt> 41
-</span><span class=lnt> 42
-</span><span class=lnt> 43
-</span><span class=lnt> 44
-</span><span class=lnt> 45
-</span><span class=lnt> 46
-</span><span class=lnt> 47
-</span><span class=lnt> 48
-</span><span class=lnt> 49
-</span><span class=lnt> 50
-</span><span class=lnt> 51
-</span><span class=lnt> 52
-</span><span class=lnt> 53
-</span><span class=lnt> 54
-</span><span class=lnt> 55
-</span><span class=lnt> 56
-</span><span class=lnt> 57
-</span><span class=lnt> 58
-</span><span class=lnt> 59
-</span><span class=lnt> 60
-</span><span class=lnt> 61
-</span><span class=lnt> 62
-</span><span class=lnt> 63
-</span><span class=lnt> 64
-</span><span class=lnt> 65
-</span><span class=lnt> 66
-</span><span class=lnt> 67
-</span><span class=lnt> 68
-</span><span class=lnt> 69
-</span><span class=lnt> 70
-</span><span class=lnt> 71
-</span><span class=lnt> 72
-</span><span class=lnt> 73
-</span><span class=lnt> 74
-</span><span class=lnt> 75
-</span><span class=lnt> 76
-</span><span class=lnt> 77
-</span><span class=lnt> 78
-</span><span class=lnt> 79
-</span><span class=lnt> 80
-</span><span class=lnt> 81
-</span><span class=lnt> 82
-</span><span class=lnt> 83
-</span><span class=lnt> 84
-</span><span class=lnt> 85
-</span><span class=lnt> 86
-</span><span class=lnt> 87
-</span><span class=lnt> 88
-</span><span class=lnt> 89
-</span><span class=lnt> 90
-</span><span class=lnt> 91
-</span><span class=lnt> 92
-</span><span class=lnt> 93
-</span><span class=lnt> 94
-</span><span class=lnt> 95
-</span><span class=lnt> 96
-</span><span class=lnt> 97
-</span><span class=lnt> 98
-</span><span class=lnt> 99
-</span><span class=lnt>100
-</span><span class=lnt>101
-</span><span class=lnt>102
-</span><span class=lnt>103
-</span><span class=lnt>104
-</span><span class=lnt>105
-</span><span class=lnt>106
-</span><span class=lnt>107
-</span><span class=lnt>108
-</span><span class=lnt>109
-</span><span class=lnt>110
-</span><span class=lnt>111
-</span><span class=lnt>112
-</span><span class=lnt>113
-</span><span class=lnt>114
-</span><span class=lnt>115
-</span><span class=lnt>116
-</span><span class=lnt>117
-</span><span class=lnt>118
-</span><span class=lnt>119
-</span><span class=lnt>120
-</span><span class=lnt>121
-</span><span class=lnt>122
-</span><span class=lnt>123
-</span><span class=lnt>124
-</span><span class=lnt>125
-</span><span class=lnt>126
-</span><span class=lnt>127
-</span><span class=lnt>128
-</span><span class=lnt>129
-</span><span class=lnt>130
-</span><span class=lnt>131
-</span><span class=lnt>132
-</span><span class=lnt>133
-</span><span class=lnt>134
-</span><span class=lnt>135
-</span><span class=lnt>136
-</span><span class=lnt>137
-</span><span class=lnt>138
-</span><span class=lnt>139
-</span><span class=lnt>140
-</span><span class=lnt>141
-</span><span class=lnt>142
-</span><span class=lnt>143
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-TypeScript data-lang=TypeScript><span class=line><span class=cl><span class=c1>//写锁仍然是独占
+</span></span></span></code></pre></div><p>相比于ReentrantLock多了两个内部类</p><p>ReadLock和WriteLock</p><p>//当前线程持有写锁，其他线程都不能持有写锁，但是当前线程还可以持有读锁</p><p>//当前线程持有读锁，其他线程也可以获取读锁</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-TypeScript data-lang=TypeScript><span class=line><span class=cl><span class=c1>//写锁仍然是独占
 </span></span></span><span class=line><span class=cl><span class=c1></span><span class=kr>public</span> <span class=k>void</span> <span class=nx>lock() {</span>
 </span></span><span class=line><span class=cl>    <span class=nx>sync</span><span class=p>.</span><span class=nx>acquire</span><span class=p>(</span><span class=mi>1</span><span class=p>);</span>
 </span></span><span class=line><span class=cl><span class=p>}</span>
@@ -1081,10 +545,10 @@
 </span></span></span><span class=line><span class=cl><span class=c1></span>            <span class=k>return</span> <span class=nx>nextc</span> <span class=o>==</span> <span class=mi>0</span><span class=p>;</span>
 </span></span><span class=line><span class=cl>    <span class=p>}</span>
 </span></span><span class=line><span class=cl><span class=p>}</span>
-</span></span></code></pre></td></tr></table></div></div><h2 id=参考文档>参考文档:</h2><p><a class=link href=https://blog.csdn.net/anlian523/article/details/106448512 target=_blank rel=noopener>AQS深入理解 shouldParkAfterFailedAcquire源码分析 状态为0或PROPAGATE的情况分析-CSDN博客</a></p><p><a class=link href=https://zhuanlan.zhihu.com/p/197840259 target=_blank rel=noopener>AQS基础——多图详解CLH锁的原理与实现</a></p><p><a class=link href=https://zhuanlan.zhihu.com/p/398582011 target=_blank rel=noopener>Java AQS 核心数据结构-CLH 锁</a></p><p><a class=link href=https://blog.csdn.net/anlian523/article/details/106319294 target=_blank rel=noopener>AQS深入理解 setHeadAndPropagate源码分析 JDK8-CSDN博客</a></p></section><footer class=article-footer><section class=article-tags><a href=/tags/java/>Java</a>
+</span></span></code></pre></div><h2 id=参考文档>参考文档:</h2><p><a class=link href=https://blog.csdn.net/anlian523/article/details/106448512 target=_blank rel=noopener>AQS深入理解 shouldParkAfterFailedAcquire源码分析 状态为0或PROPAGATE的情况分析-CSDN博客</a></p><p><a class=link href=https://zhuanlan.zhihu.com/p/197840259 target=_blank rel=noopener>AQS基础——多图详解CLH锁的原理与实现</a></p><p><a class=link href=https://zhuanlan.zhihu.com/p/398582011 target=_blank rel=noopener>Java AQS 核心数据结构-CLH 锁</a></p><p><a class=link href=https://blog.csdn.net/anlian523/article/details/106319294 target=_blank rel=noopener>AQS深入理解 setHeadAndPropagate源码分析 JDK8-CSDN博客</a></p></section><footer class=article-footer><section class=article-tags><a href=/tags/java/>Java</a>
 <a href=/tags/lock/>Lock</a></section><section class=article-copyright><svg class="icon icon-tabler icon-tabler-copyright" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="12" cy="12" r="9"/><path d="M14.5 9a3.5 4 0 100 6"/></svg>
 <span>Licensed under CC BY-NC-SA 4.0</span></section><section class=article-lastmod><svg class="icon icon-tabler icon-tabler-clock" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>
-<span>最后更新于 2024-09-03</span></section></footer></article><aside class=related-content--wrapper><h2 class=section-title>相关文章</h2><div class=related-content><div class="flex article-list--tile"><article><a href=/post/tech/lang/jstack/><div class=article-details><h2 class=article-title>Jstack使用</h2></div></a></article><article><a href=/post/tech/lang/java_security/><div class=article-details><h2 class=article-title>Java安全机制之一——SecurityManager和AccessController</h2></div></a></article><article><a href=/post/tech/lang/javaagent/><div class=article-details><h2 class=article-title>JavaAgent技术</h2></div></a></article><article><a href=/post/tech/distributed/zookeeper/zab/><div class=article-details><h2 class=article-title>Zookeeper源码分析-Zab协议</h2></div></a></article><article><a href=/post/tech/distributed/zookeeper/election/><div class=article-details><h2 class=article-title>Zookeeper源码分析-选举机制</h2></div></a></article></div></div></aside><script src=//cdn.jsdelivr.net/npm/twikoo@1.6.21/dist/twikoo.all.min.js></script><div id=tcomment></div><style>.twikoo{background-color:var(--card-background);border-radius:var(--card-border-radius);box-shadow:var(--shadow-l1);padding:var(--card-padding)}:root[data-scheme=dark]{--twikoo-body-text-color-main:rgba(255, 255, 255, 0.9);--twikoo-body-text-color:rgba(255, 255, 255, 0.7)}.twikoo .el-input-group__prepend,.twikoo .tk-action-icon,.twikoo .tk-submit-action-icon,.twikoo .tk-time,.twikoo .tk-comments-no,.twikoo .tk-comments-count{color:var(--twikoo-body-text-color)}.twikoo .el-input__inner,.twikoo .el-textarea__inner,.twikoo .tk-preview-container,.twikoo .tk-content,.twikoo .tk-nick,.twikoo .tk-send{color:var(--twikoo-body-text-color-main)}.twikoo .el-button{color:var(--twikoo-body-text-color)!important}.twikoo .el-input__count{color:var(--twikoo-body-text-color)!important}.OwO .OwO-body{background-color:var(--body-background)!important;color:var(--body-text-color)!important}</style><script>twikoo.init({envId:"https://qisiii-twikoo.hf.space",el:"#tcomment"})</script><a href=#top aria-label="go to top" class=top-link id=top-link style=display:none><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-chevron-up"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M6 15l6-6 6 6"/></svg>
+<span>最后更新于 2024-09-04</span></section></footer></article><aside class=related-content--wrapper><h2 class=section-title>相关文章</h2><div class=related-content><div class="flex article-list--tile"><article><a href=/post/tech/lang/jstack/><div class=article-details><h2 class=article-title>Jstack使用</h2></div></a></article><article><a href=/post/tech/lang/java_security/><div class=article-details><h2 class=article-title>Java安全机制之一——SecurityManager和AccessController</h2></div></a></article><article><a href=/post/tech/lang/javaagent/><div class=article-details><h2 class=article-title>JavaAgent技术</h2></div></a></article><article><a href=/post/tech/distributed/zookeeper/zab/><div class=article-details><h2 class=article-title>Zookeeper源码分析-Zab协议</h2></div></a></article><article><a href=/post/tech/distributed/zookeeper/election/><div class=article-details><h2 class=article-title>Zookeeper源码分析-选举机制</h2></div></a></article></div></div></aside><script src=//cdn.jsdelivr.net/npm/twikoo@1.6.21/dist/twikoo.all.min.js></script><div id=tcomment></div><style>.twikoo{background-color:var(--card-background);border-radius:var(--card-border-radius);box-shadow:var(--shadow-l1);padding:var(--card-padding)}:root[data-scheme=dark]{--twikoo-body-text-color-main:rgba(255, 255, 255, 0.9);--twikoo-body-text-color:rgba(255, 255, 255, 0.7)}.twikoo .el-input-group__prepend,.twikoo .tk-action-icon,.twikoo .tk-submit-action-icon,.twikoo .tk-time,.twikoo .tk-comments-no,.twikoo .tk-comments-count{color:var(--twikoo-body-text-color)}.twikoo .el-input__inner,.twikoo .el-textarea__inner,.twikoo .tk-preview-container,.twikoo .tk-content,.twikoo .tk-nick,.twikoo .tk-send{color:var(--twikoo-body-text-color-main)}.twikoo .el-button{color:var(--twikoo-body-text-color)!important}.twikoo .el-input__count{color:var(--twikoo-body-text-color)!important}.OwO .OwO-body{background-color:var(--body-background)!important;color:var(--body-text-color)!important}</style><script>twikoo.init({envId:"https://qisiii-twikoo.hf.space",el:"#tcomment"})</script><a href=#top aria-label="go to top" class=top-link id=top-link style=display:none><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-chevron-up"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M6 15l6-6 6 6"/></svg>
 </a><script src=https://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js></script><script type=text/javascript>$(window).scroll(function(){$(this).scrollTop()>300?$("#top-link").show():$("#top-link").hide()})</script><footer class=site-footer><section class=copyright>&copy;
 2022 -
 2024 起司</section><section class=powerby><a href=https://beian.miit.gov.cn/ target=_blank>京ICP备2023017017号-1</a><br>使用 <a href=https://gohugo.io/ target=_blank rel=noopener>Hugo</a> 构建<br>主题 <b><a href=https://github.com/CaiJimmy/hugo-theme-stack target=_blank rel=noopener data-version=3.26.0>Stack</a></b> 由 <a href=https://jimmycai.com target=_blank rel=noopener>Jimmy</a> 设计

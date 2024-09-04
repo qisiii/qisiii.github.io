@@ -92,37 +92,17 @@ loading="lazy"
 &lt;h2 id="表锁">表锁
 &lt;/h2>&lt;h3 id="表锁-1">表锁
 &lt;/h3>&lt;h4 id="上锁和解锁">上锁和解锁
-&lt;/h4>&lt;div class="highlight">&lt;div class="chroma">
-&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
-&lt;/span>&lt;span class="lnt">2
-&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
-&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code class="language-Bash" data-lang="Bash">&lt;span class="line">&lt;span class="cl">lock tables 表名 &lt;span class="o">[&lt;/span>as alisa&lt;span class="o">]&lt;/span> 锁类型&lt;span class="p">;&lt;/span>
+&lt;/h4>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-Bash" data-lang="Bash">&lt;span class="line">&lt;span class="cl">lock tables 表名 &lt;span class="o">[&lt;/span>as alisa&lt;span class="o">]&lt;/span> 锁类型&lt;span class="p">;&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">unlock tables &lt;span class="p">;&lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
-&lt;/div>
-&lt;/div>&lt;p>表锁的命令就是上述两行，且表锁也分读写锁，表级读写的兼容冲突和读写锁一致。&lt;/p>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>表锁的命令就是上述两行，且表锁也分读写锁，表级读写的兼容冲突和读写锁一致。&lt;/p>
 &lt;p>通过lock tables 命令加锁的session，在释放锁之前，能且只能执行lock tables 命令后面指定的表，命令类型和锁类型保持一致；比如 lock tables A read,那么后面就只能读A表，而不能执行读B表，或者写A表；如下面的例子一样；另外如果使用了别名，那么需要确保查询语句涉及的别名和lock table的别名完全一致；&lt;/p>
-&lt;div class="highlight">&lt;div class="chroma">
-&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
-&lt;/span>&lt;span class="lnt">2
-&lt;/span>&lt;span class="lnt">3
-&lt;/span>&lt;span class="lnt">4
-&lt;/span>&lt;span class="lnt">5
-&lt;/span>&lt;span class="lnt">6
-&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
-&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code class="language-SQL" data-lang="SQL">&lt;span class="line">&lt;span class="cl">&lt;span class="k">lock&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">tables&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">simple&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">read&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-SQL" data-lang="SQL">&lt;span class="line">&lt;span class="cl">&lt;span class="k">lock&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">tables&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">simple&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">read&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">select&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">from&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">simple&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">select&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">from&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">batch_insert&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="o">//&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="n">HY000&lt;/span>&lt;span class="p">][&lt;/span>&lt;span class="mi">1100&lt;/span>&lt;span class="p">]&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">Table&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;batch_insert&amp;#39;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">was&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">not&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">locked&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">with&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">LOCK&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">TABLES&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">update&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">simple&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">set&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">name&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="mi">3&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">where&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">id&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="mi">2&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">Table&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;simple&amp;#39;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">was&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">locked&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">with&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">a&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">READ&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">lock&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">and&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">can&lt;/span>&lt;span class="s1">&amp;#39;t be updated
-&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
-&lt;/div>
-&lt;/div>&lt;p>Unlock tables 会显式的释放所有该session之前加的所有表；另一个作用是释放&lt;u>&lt;code>&lt;a href="https://dev.mysql.com/doc/refman/8.0/en/flush.html#flush-tables-with-read-lock">FLUSH TABLES WITH READ LOCK&lt;/a>&lt;/code>&lt;/u>&lt;u>命令所加的全局读锁；&lt;/u>&lt;/p>
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Unlock tables 会显式的释放所有该session之前加的所有表；另一个作用是释放&lt;u>&lt;code>&lt;a href="https://dev.mysql.com/doc/refman/8.0/en/flush.html#flush-tables-with-read-lock">FLUSH TABLES WITH READ LOCK&lt;/a>&lt;/code>&lt;/u>&lt;u>命令所加的全局读锁；&lt;/u>&lt;/p>
 &lt;blockquote>
 &lt;p>Another use for &lt;u>&lt;code>&lt;a href="https://dev.mysql.com/doc/refman/8.0/en/lock-tables.html">UNLOCK TABLES&lt;/a>&lt;/code>&lt;/u> is to release the global read lock acquired with the &lt;u>&lt;code>&lt;a href="https://dev.mysql.com/doc/refman/8.0/en/flush.html#flush-tables-with-read-lock">FLUSH TABLES WITH READ LOCK&lt;/a>&lt;/code>&lt;/u> statement, which enables you to lock all tables in all databases. See &lt;a class="link" href="https://dev.mysql.com/doc/refman/8.0/en/flush.html" target="_blank" rel="noopener"
 >Section 13.7.8.3, “FLUSH Statement”&lt;/a>.&lt;/p>
@@ -130,15 +110,8 @@ loading="lazy"
 &lt;p>lock tables、start transcation命令可以隐式的释放之前持有的锁；&lt;/p>
 &lt;h4 id="查看锁情况">查看锁情况
 &lt;/h4>&lt;p>可通过下面的命令查看表是否上锁，name_locked为0表示上锁&lt;/p>
-&lt;div class="highlight">&lt;div class="chroma">
-&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
-&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
-&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code class="language-C" data-lang="C">&lt;span class="line">&lt;span class="cl">&lt;span class="n">show&lt;/span> &lt;span class="n">OPEN&lt;/span> &lt;span class="n">TABLES&lt;/span> &lt;span class="n">where&lt;/span> &lt;span class="n">In_use&lt;/span> &lt;span class="o">&amp;gt;&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">;&lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
-&lt;/div>
-&lt;/div>&lt;p>&lt;img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=ZjVlMjQyZTVjMTYxZmZjZjRkOTg0MjkwMmQyM2VhMGRfWUJBZE5IMnFlUzJtbnZTU3FRMHhYNGRmUWhxYlduZzlfVG9rZW46UU1yY2IyWmJPb0xmdjd4cko5b2NGQ1hubmtiXzE3MjMzNjUyOTQ6MTcyMzM2ODg5NF9WNA"
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-C" data-lang="C">&lt;span class="line">&lt;span class="cl">&lt;span class="n">show&lt;/span> &lt;span class="n">OPEN&lt;/span> &lt;span class="n">TABLES&lt;/span> &lt;span class="n">where&lt;/span> &lt;span class="n">In_use&lt;/span> &lt;span class="o">&amp;gt;&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>&lt;img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=ZjVlMjQyZTVjMTYxZmZjZjRkOTg0MjkwMmQyM2VhMGRfWUJBZE5IMnFlUzJtbnZTU3FRMHhYNGRmUWhxYlduZzlfVG9rZW46UU1yY2IyWmJPb0xmdjd4cko5b2NGQ1hubmtiXzE3MjMzNjUyOTQ6MTcyMzM2ODg5NF9WNA"
 loading="lazy"
 >&lt;/p>
 &lt;blockquote>
@@ -158,17 +131,9 @@ loading="lazy"
 &lt;p>DDL statements, &lt;u>&lt;code>&lt;a href="https://dev.mysql.com/doc/refman/8.0/en/lock-tables.html">LOCK TABLES&lt;/a>&lt;/code>&lt;/u>, and other similar statements try to reduce the number of possible deadlocks between concurrent DDL statements by acquiring locks on explicitly named tables in name order.&lt;/p>
 &lt;/blockquote>
 &lt;p>元数据锁是一个个获取的，DML和DDL通过不同的方式定义执行的顺序；官网提供了一个rename table的顺序例子，但那个例子挺迷的；&lt;/p>
-&lt;div class="highlight">&lt;div class="chroma">
-&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
-&lt;/span>&lt;span class="lnt">2
-&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
-&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code class="language-C" data-lang="C">&lt;span class="line">&lt;span class="cl">&lt;span class="c1">//可以通过这个表查看元数据锁的情况
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-C" data-lang="C">&lt;span class="line">&lt;span class="cl">&lt;span class="c1">//可以通过这个表查看元数据锁的情况
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="n">select&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="n">from&lt;/span> &lt;span class="n">performance_schema&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">metadata_locks&lt;/span>&lt;span class="p">;&lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
-&lt;/div>
-&lt;/div>&lt;blockquote>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;blockquote>
 &lt;p>To ensure transaction serializability, the server must not permit one session to perform a data definition language (DDL) statement on a table that is used in an uncompleted explicitly or implicitly started transaction in another session. The server achieves this by acquiring metadata locks on tables used within a transaction and deferring release of those locks until the transaction ends. A metadata lock on a table prevents changes to the table&amp;rsquo;s structure. This locking approach has the implication that a table that is being used by a transaction within one session cannot be used in DDL statements by other sessions until the transaction ends.&lt;/p>
 &lt;/blockquote>
 &lt;p>如果一个session或者一个事务持有某个表的元数据锁，那么另一个session或者事务就无法执行DDL操作；&lt;/p>
@@ -201,23 +166,12 @@ loading="lazy"
 &lt;/blockquote>
 &lt;p>临建锁=行锁+间隙锁，是innodb RR级别默认加的锁；由于锁定的是当前索引记录行和索引前的部分，所以一般总结为左开右闭；&lt;/p>
 &lt;p>假如存在索引10,11,13,20，那么就会存在以下几个区间，最后一个范围是mysql会假定一个非常大的supremum，但由于实际并不存在这个值，所以是左开右开。&lt;/p>
-&lt;div class="highlight">&lt;div class="chroma">
-&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
-&lt;/span>&lt;span class="lnt">2
-&lt;/span>&lt;span class="lnt">3
-&lt;/span>&lt;span class="lnt">4
-&lt;/span>&lt;span class="lnt">5
-&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
-&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code class="language-C" data-lang="C">&lt;span class="line">&lt;span class="cl">&lt;span class="p">(&lt;/span>&lt;span class="n">negative&lt;/span> &lt;span class="n">infinity&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="mi">10&lt;/span>&lt;span class="p">]&lt;/span>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-C" data-lang="C">&lt;span class="line">&lt;span class="cl">&lt;span class="p">(&lt;/span>&lt;span class="n">negative&lt;/span> &lt;span class="n">infinity&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="mi">10&lt;/span>&lt;span class="p">]&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">(&lt;/span>&lt;span class="mi">10&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="mi">11&lt;/span>&lt;span class="p">]&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">(&lt;/span>&lt;span class="mi">11&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="mi">13&lt;/span>&lt;span class="p">]&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">(&lt;/span>&lt;span class="mi">13&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="mi">20&lt;/span>&lt;span class="p">]&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">(&lt;/span>&lt;span class="mi">20&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">positive&lt;/span> &lt;span class="n">infinity&lt;/span>&lt;span class="p">)&lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
-&lt;/div>
-&lt;/div>&lt;h2 id="意向锁">意向锁
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="意向锁">意向锁
 &lt;/h2>&lt;h3 id="表意向锁">表意向锁
 &lt;/h3>&lt;p>innodb支持多粒度锁，即允许行锁和表锁同时存在，并且在加锁的时候需要进行冲突检测；&lt;/p>
 &lt;p>比如事务A已经持有了a表的一条记录索引的行锁，这个时候B事务想要给a表加表锁，就需要一行行查看是否存在行锁；为了优化这种情况，innodb引入了意向锁的概念。&lt;/p>
@@ -285,21 +239,11 @@ loading="lazy"
 &lt;h2 id="case">Case
 &lt;/h2>&lt;h3 id="case1表锁的读-写-读阻塞">case1（表锁的读-写-读阻塞）
 &lt;/h3>&lt;p>先看正常情况，表锁的读锁是可以加多个的，如下，通过两个查询命令也可以看到确实同时加上了，没有阻塞；&lt;/p>
-&lt;div class="highlight">&lt;div class="chroma">
-&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
-&lt;/span>&lt;span class="lnt">2
-&lt;/span>&lt;span class="lnt">3
-&lt;/span>&lt;span class="lnt">4
-&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
-&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code class="language-C" data-lang="C">&lt;span class="line">&lt;span class="cl">&lt;span class="c1">//console1
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-C" data-lang="C">&lt;span class="line">&lt;span class="cl">&lt;span class="c1">//console1
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="n">lock&lt;/span> &lt;span class="n">tables&lt;/span> &lt;span class="n">simple&lt;/span> &lt;span class="n">read&lt;/span>&lt;span class="p">;&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">//console2
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="n">lock&lt;/span> &lt;span class="n">tables&lt;/span> &lt;span class="n">simple&lt;/span> &lt;span class="n">read&lt;/span>&lt;span class="p">;&lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
-&lt;/div>
-&lt;/div>&lt;p>select * from performance_schema.metadata_locks;&lt;/p>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>select * from performance_schema.metadata_locks;&lt;/p>
 &lt;p>&lt;img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=MmI1YTQ5NzUxMGNjOGY5YWFkZWRkNDM2NDFmMWRiODFfbmRvTXhUZDcwQXFRQlE1cU0yZFcyVU5Xdm9EN0dRdUxfVG9rZW46RGpTRmI2RTBCbzl5Rjh4Zm1NUGNGeThPbjVkXzE3MjMzNjUyOTQ6MTcyMzM2ODg5NF9WNA"
 loading="lazy"
 >&lt;/p>
@@ -308,25 +252,13 @@ loading="lazy"
 loading="lazy"
 >&lt;/p>
 &lt;p>但是在两次读中间插入一次写锁的获取，后面的读锁也会同时被阻塞&lt;/p>
-&lt;div class="highlight">&lt;div class="chroma">
-&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
-&lt;/span>&lt;span class="lnt">2
-&lt;/span>&lt;span class="lnt">3
-&lt;/span>&lt;span class="lnt">4
-&lt;/span>&lt;span class="lnt">5
-&lt;/span>&lt;span class="lnt">6
-&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
-&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code class="language-C" data-lang="C">&lt;span class="line">&lt;span class="cl">&lt;span class="c1">//console1
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-C" data-lang="C">&lt;span class="line">&lt;span class="cl">&lt;span class="c1">//console1
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="n">lock&lt;/span> &lt;span class="n">tables&lt;/span> &lt;span class="n">simple&lt;/span> &lt;span class="n">read&lt;/span>&lt;span class="p">;&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">//console2
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="n">lock&lt;/span> &lt;span class="n">tables&lt;/span> &lt;span class="n">simple&lt;/span> &lt;span class="n">write&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="c1">//被console1阻塞
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">//console3
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="n">lock&lt;/span> &lt;span class="n">tables&lt;/span> &lt;span class="n">simple&lt;/span> &lt;span class="n">read&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="c1">//被console2阻塞
-&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
-&lt;/div>
-&lt;/div>&lt;p>实验证明确实如文档所说，但暂时没有分析原理；&lt;/p>
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>实验证明确实如文档所说，但暂时没有分析原理；&lt;/p>
 &lt;h3 id="case2元数据锁读-写-读">case2（元数据锁读-写-读）
 &lt;/h3>&lt;p>mysql45讲中提到的一个问题，具体分析见&lt;a class="link" href="https://blog.csdn.net/q2878948/article/details/96430129" target="_blank" rel="noopener"
 >mysql MDL读写锁阻塞，以及online ddl造成的“插队”现象_花落的速度的博客-CSDN博客&lt;/a>&lt;/p>
@@ -346,26 +278,7 @@ loading="lazy"
 &lt;p>一个 bug：唯一索引上的范围查询会访问到不满足条件的第一个值为止。&lt;/p>
 &lt;/blockquote>
 &lt;p>目前的数据&lt;/p>
-&lt;div class="highlight">&lt;div class="chroma">
-&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
-&lt;/span>&lt;span class="lnt"> 2
-&lt;/span>&lt;span class="lnt"> 3
-&lt;/span>&lt;span class="lnt"> 4
-&lt;/span>&lt;span class="lnt"> 5
-&lt;/span>&lt;span class="lnt"> 6
-&lt;/span>&lt;span class="lnt"> 7
-&lt;/span>&lt;span class="lnt"> 8
-&lt;/span>&lt;span class="lnt"> 9
-&lt;/span>&lt;span class="lnt">10
-&lt;/span>&lt;span class="lnt">11
-&lt;/span>&lt;span class="lnt">12
-&lt;/span>&lt;span class="lnt">13
-&lt;/span>&lt;span class="lnt">14
-&lt;/span>&lt;span class="lnt">15
-&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
-&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code class="language-C" data-lang="C">&lt;span class="line">&lt;span class="cl">&lt;span class="n">CREATE&lt;/span> &lt;span class="n">TABLE&lt;/span> &lt;span class="err">`&lt;/span>&lt;span class="n">simple&lt;/span>&lt;span class="err">`&lt;/span> &lt;span class="p">(&lt;/span>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-C" data-lang="C">&lt;span class="line">&lt;span class="cl">&lt;span class="n">CREATE&lt;/span> &lt;span class="n">TABLE&lt;/span> &lt;span class="err">`&lt;/span>&lt;span class="n">simple&lt;/span>&lt;span class="err">`&lt;/span> &lt;span class="p">(&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">`&lt;/span>&lt;span class="n">id&lt;/span>&lt;span class="err">`&lt;/span> &lt;span class="n">bigint&lt;/span> &lt;span class="n">NOT&lt;/span> &lt;span class="nb">NULL&lt;/span> &lt;span class="n">AUTO_INCREMENT&lt;/span> &lt;span class="n">COMMENT&lt;/span> &lt;span class="err">&amp;#39;主键&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">`&lt;/span>&lt;span class="n">name&lt;/span>&lt;span class="err">`&lt;/span> &lt;span class="nf">varchar&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">256&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="n">COLLATE&lt;/span> &lt;span class="n">utf8mb4_bin&lt;/span> &lt;span class="n">DEFAULT&lt;/span> &lt;span class="nb">NULL&lt;/span> &lt;span class="n">COMMENT&lt;/span> &lt;span class="err">&amp;#39;字符&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">`&lt;/span>&lt;span class="n">seq&lt;/span>&lt;span class="err">`&lt;/span> &lt;span class="n">bigint&lt;/span> &lt;span class="n">NOT&lt;/span> &lt;span class="nb">NULL&lt;/span> &lt;span class="n">COMMENT&lt;/span> &lt;span class="err">&amp;#39;消息序号&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>
@@ -380,45 +293,22 @@ loading="lazy"
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">UNIQUE&lt;/span> &lt;span class="n">KEY&lt;/span> &lt;span class="err">`&lt;/span>&lt;span class="n">unidx&lt;/span>&lt;span class="err">`&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="err">`&lt;/span>&lt;span class="n">uni&lt;/span>&lt;span class="err">`&lt;/span>&lt;span class="p">),&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">KEY&lt;/span> &lt;span class="err">`&lt;/span>&lt;span class="n">seqidx&lt;/span>&lt;span class="err">`&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="err">`&lt;/span>&lt;span class="n">seq&lt;/span>&lt;span class="err">`&lt;/span>&lt;span class="p">)&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">)&lt;/span> &lt;span class="n">ENGINE&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="n">InnoDB&lt;/span> &lt;span class="n">AUTO_INCREMENT&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="mi">301&lt;/span> &lt;span class="n">DEFAULT&lt;/span> &lt;span class="n">CHARSET&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="n">utf8mb4&lt;/span> &lt;span class="n">COLLATE&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="n">utf8mb4_bin&lt;/span> &lt;span class="n">COMMENT&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="err">&amp;#39;简单测试表&amp;#39;&lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
-&lt;/div>
-&lt;/div>&lt;p>&lt;img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=ZWM0YjI2MzBiMDNjZTAzYWFkMGRlNDkwMjViNzg2YzVfbDIzM0Y5bzdsbWpRY3poRWJXQWNrNFRtbmVUb2JWaFlfVG9rZW46RjJDWmJZZGl3b21aaHB4QmR6c2NDbmV6bnVkXzE3MjMzNjUyOTQ6MTcyMzM2ODg5NF9WNA"
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>&lt;img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=ZWM0YjI2MzBiMDNjZTAzYWFkMGRlNDkwMjViNzg2YzVfbDIzM0Y5bzdsbWpRY3poRWJXQWNrNFRtbmVUb2JWaFlfVG9rZW46RjJDWmJZZGl3b21aaHB4QmR6c2NDbmV6bnVkXzE3MjMzNjUyOTQ6MTcyMzM2ODg5NF9WNA"
 loading="lazy"
 >&lt;/p>
 &lt;h4 id="单一查询且查询结果存在id15">单一查询且查询结果存在(id=15)
 &lt;/h4>&lt;p>存在一个意向表锁和行级读锁，理论上锁住的应该是(5, 15]这部分，但是由于是主键索引（唯一），所以只会锁15这一行，没有必要锁前面的间隙；这是优化1的体现；&lt;/p>
 &lt;p>&lt;strong>LOCK_MODE为S,REC_NOT_GAP，我理解应该是说只有行锁，行锁类型是读锁；&lt;/strong>&lt;/p>
-&lt;div class="highlight">&lt;div class="chroma">
-&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
-&lt;/span>&lt;span class="lnt">2
-&lt;/span>&lt;span class="lnt">3
-&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
-&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code class="language-C" data-lang="C">&lt;span class="line">&lt;span class="cl">&lt;span class="n">start&lt;/span> &lt;span class="n">transaction&lt;/span> &lt;span class="p">;&lt;/span>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-C" data-lang="C">&lt;span class="line">&lt;span class="cl">&lt;span class="n">start&lt;/span> &lt;span class="n">transaction&lt;/span> &lt;span class="p">;&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">select&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="n">from&lt;/span> &lt;span class="n">simple&lt;/span> &lt;span class="n">where&lt;/span> &lt;span class="n">id&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="mi">15&lt;/span> &lt;span class="n">lock&lt;/span> &lt;span class="n">in&lt;/span> &lt;span class="n">share&lt;/span> &lt;span class="n">mode&lt;/span> &lt;span class="p">;&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">select&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="n">from&lt;/span> &lt;span class="n">performance_schema&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">data_locks&lt;/span>&lt;span class="p">;&lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
-&lt;/div>
-&lt;/div>&lt;p>&lt;img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=MWU4YmEzMzhiN2FmYjg5OGY4MTZkYjQ4ZWJkYmNiOThfd2hTc1d5a3ppdHJPQ0k2M1kzVnJmSGoxTXp1OUZaUDZfVG9rZW46T3VLaWJKNWtUb1dOM054WHpIT2NKdjRjbmViXzE3MjMzNjUyOTQ6MTcyMzM2ODg5NF9WNA"
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>&lt;img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=MWU4YmEzMzhiN2FmYjg5OGY4MTZkYjQ4ZWJkYmNiOThfd2hTc1d5a3ppdHJPQ0k2M1kzVnJmSGoxTXp1OUZaUDZfVG9rZW46T3VLaWJKNWtUb1dOM054WHpIT2NKdjRjbmViXzE3MjMzNjUyOTQ6MTcyMzM2ODg5NF9WNA"
 loading="lazy"
 >&lt;/p>
 &lt;h4 id="单一查询且结果不存在id16">单一查询且结果不存在(id=16）
 &lt;/h4>&lt;p>将查询条件从15换成了16，理论上锁住的是（15,20]这部分，但是实验表明，20这行不会加行锁，所以最终表现为(15,20)；这是优化2的体现；&lt;/p>
 &lt;p>LOCK_MODE为S,GAP，我理解应该是说只有间隙锁，即（15,20）；&lt;/p>
-&lt;div class="highlight">&lt;div class="chroma">
-&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
-&lt;/span>&lt;span class="lnt">2
-&lt;/span>&lt;span class="lnt">3
-&lt;/span>&lt;span class="lnt">4
-&lt;/span>&lt;span class="lnt">5
-&lt;/span>&lt;span class="lnt">6
-&lt;/span>&lt;span class="lnt">7
-&lt;/span>&lt;span class="lnt">8
-&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
-&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code class="language-C" data-lang="C">&lt;span class="line">&lt;span class="cl">&lt;span class="n">start&lt;/span> &lt;span class="n">transaction&lt;/span> &lt;span class="p">;&lt;/span>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-C" data-lang="C">&lt;span class="line">&lt;span class="cl">&lt;span class="n">start&lt;/span> &lt;span class="n">transaction&lt;/span> &lt;span class="p">;&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">select&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="n">from&lt;/span> &lt;span class="n">simple&lt;/span> &lt;span class="n">where&lt;/span> &lt;span class="n">id&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="mi">16&lt;/span> &lt;span class="n">lock&lt;/span> &lt;span class="n">in&lt;/span> &lt;span class="n">share&lt;/span> &lt;span class="n">mode&lt;/span> &lt;span class="p">;&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">select&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="n">from&lt;/span> &lt;span class="n">performance_schema&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">data_locks&lt;/span>&lt;span class="p">;&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">//console2
@@ -426,9 +316,7 @@ loading="lazy"
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">insert&lt;/span> &lt;span class="n">into&lt;/span> &lt;span class="nf">simple&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="n">id&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">name&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">type&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">seq&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="nf">value&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="mi">16&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">5&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">5&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">5&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="c1">//会被阻塞
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="n">select&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="n">from&lt;/span> &lt;span class="n">simple&lt;/span> &lt;span class="n">where&lt;/span> &lt;span class="n">id&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="mi">20&lt;/span> &lt;span class="k">for&lt;/span> &lt;span class="n">update&lt;/span> &lt;span class="p">;&lt;/span>&lt;span class="c1">//发现这行可以执行成功
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="err">既然可以成功，那就证明&lt;/span>&lt;span class="n">id&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="mi">16&lt;/span> &lt;span class="err">的查询并没有锁&lt;/span>&lt;span class="mi">20&lt;/span>&lt;span class="err">这一行，不然不可能加的上写锁&lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
-&lt;/div>
-&lt;/div>&lt;p>&lt;img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=YzhiY2ZhMjQ0OWJiZThjOTU3OWM5MzFjYzU4NGQ2NjVfbFR0T3RQRTVMd29zdm1xa0VrbHRQWERaYXFyUEZGeU1fVG9rZW46V0R3Y2JxYUpEb0gyZWV4TTB5QWNSWGZVbkNlXzE3MjMzNjUyOTQ6MTcyMzM2ODg5NF9WNA"
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>&lt;img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=YzhiY2ZhMjQ0OWJiZThjOTU3OWM5MzFjYzU4NGQ2NjVfbFR0T3RQRTVMd29zdm1xa0VrbHRQWERaYXFyUEZGeU1fVG9rZW46V0R3Y2JxYUpEb0gyZWV4TTB5QWNSWGZVbkNlXzE3MjMzNjUyOTQ6MTcyMzM2ODg5NF9WNA"
 loading="lazy"
 >&lt;/p>
 &lt;p>&lt;img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=NmU3OGU2Yjk1NjhkMGNjYjI0YjkwNjZiMzAwNTQ4OGZfbGNST0VFS1RNbHV1NzJtVUhEU1ZIRXdnSzR1R25FVjVfVG9rZW46UFhCaGJPMTBQb2ZSd2d4MHFBVWM1UzhtbnNmXzE3MjMzNjUyOTQ6MTcyMzM2ODg5NF9WNA"
@@ -443,19 +331,7 @@ loading="lazy"
 &lt;/h4>&lt;h5 id="id5">id&amp;gt;5
 &lt;/h5>&lt;p>按照理论，应该锁住的后5往后的所有范围，即(5,15],(15,20],(20,23],(23,super..];&lt;/p>
 &lt;p>所以我推测&lt;strong>LOCK_MODE只有一个S，代表加的是临键锁，类型是读锁&lt;/strong>，没有特殊表明缺少行锁或者间隙锁就是完整的临建锁，并且我在console2尝试插入id为6或者36的，都会被阻塞&lt;/p>
-&lt;div class="highlight">&lt;div class="chroma">
-&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
-&lt;/span>&lt;span class="lnt">2
-&lt;/span>&lt;span class="lnt">3
-&lt;/span>&lt;span class="lnt">4
-&lt;/span>&lt;span class="lnt">5
-&lt;/span>&lt;span class="lnt">6
-&lt;/span>&lt;span class="lnt">7
-&lt;/span>&lt;span class="lnt">8
-&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
-&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code class="language-C" data-lang="C">&lt;span class="line">&lt;span class="cl">&lt;span class="c1">//console1
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-C" data-lang="C">&lt;span class="line">&lt;span class="cl">&lt;span class="c1">//console1
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="n">start&lt;/span> &lt;span class="n">transaction&lt;/span> &lt;span class="p">;&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">select&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="n">from&lt;/span> &lt;span class="n">simple&lt;/span> &lt;span class="n">where&lt;/span> &lt;span class="n">id&lt;/span>&lt;span class="o">&amp;gt;&lt;/span>&lt;span class="mi">5&lt;/span> &lt;span class="n">lock&lt;/span> &lt;span class="n">in&lt;/span> &lt;span class="n">share&lt;/span> &lt;span class="n">mode&lt;/span> &lt;span class="p">;&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">select&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="n">from&lt;/span> &lt;span class="n">performance_schema&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">data_locks&lt;/span>&lt;span class="p">;&lt;/span>
@@ -463,44 +339,24 @@ loading="lazy"
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="err">都会被阻塞&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">insert&lt;/span> &lt;span class="n">into&lt;/span> &lt;span class="nf">simple&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="n">id&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">name&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">type&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">seq&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="nf">value&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="mi">6&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">5&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">5&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">5&lt;/span>&lt;span class="p">);&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">insert&lt;/span> &lt;span class="n">into&lt;/span> &lt;span class="nf">simple&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="n">id&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">name&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">type&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">seq&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="nf">value&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="mi">36&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">5&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">5&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">5&lt;/span>&lt;span class="p">);&lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
-&lt;/div>
-&lt;/div>&lt;p>&lt;img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=ZmVhOWRlZmVhZDNkNzRkODZlMGFkMzcyN2E2Yjk1ZDdfWnh1WXJOOHg4aXJMZTRDVzllZHZTS2g3bDlIWGk1dkFfVG9rZW46SkVDYmJOY0ZOb3hhTU94d0o1Q2NnekhtbmNlXzE3MjMzNjUyOTQ6MTcyMzM2ODg5NF9WNA"
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>&lt;img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=ZmVhOWRlZmVhZDNkNzRkODZlMGFkMzcyN2E2Yjk1ZDdfWnh1WXJOOHg4aXJMZTRDVzllZHZTS2g3bDlIWGk1dkFfVG9rZW46SkVDYmJOY0ZOb3hhTU94d0o1Q2NnekhtbmNlXzE3MjMzNjUyOTQ6MTcyMzM2ODg5NF9WNA"
 loading="lazy"
 >&lt;/p>
 &lt;h5 id="id5-1">id&amp;gt;=5
 &lt;/h5>&lt;p>和上面的唯一区别就是多了个等于5，那么5上是临键锁还是行锁呢？我觉得是行锁，因为优化1，而且这样和我们的认知也是比较符合的；&lt;/p>
 &lt;p>实际看到确实是这样；&lt;/p>
-&lt;div class="highlight">&lt;div class="chroma">
-&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
-&lt;/span>&lt;span class="lnt">2
-&lt;/span>&lt;span class="lnt">3
-&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
-&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code class="language-C" data-lang="C">&lt;span class="line">&lt;span class="cl">&lt;span class="n">start&lt;/span> &lt;span class="n">transaction&lt;/span> &lt;span class="p">;&lt;/span>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-C" data-lang="C">&lt;span class="line">&lt;span class="cl">&lt;span class="n">start&lt;/span> &lt;span class="n">transaction&lt;/span> &lt;span class="p">;&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">select&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="n">from&lt;/span> &lt;span class="n">simple&lt;/span> &lt;span class="n">where&lt;/span> &lt;span class="n">id&lt;/span>&lt;span class="o">&amp;gt;=&lt;/span>&lt;span class="mi">5&lt;/span> &lt;span class="n">lock&lt;/span> &lt;span class="n">in&lt;/span> &lt;span class="n">share&lt;/span> &lt;span class="n">mode&lt;/span> &lt;span class="p">;&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">select&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="n">from&lt;/span> &lt;span class="n">performance_schema&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">data_locks&lt;/span>&lt;span class="p">;&lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
-&lt;/div>
-&lt;/div>&lt;p>&lt;img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=MjNhODlkYTg5MzMwZjZlZjJmMTg4M2YwZWM3M2IwZjRfR1RmSFhSMkdTUHRnSFlUOFBiMkwxTTlFdlBkSUY1UzFfVG9rZW46VDY4TmJJUkRSbzcxYzh4cmowT2M1d2c2blZnXzE3MjMzNjUyOTQ6MTcyMzM2ODg5NF9WNA"
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>&lt;img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=MjNhODlkYTg5MzMwZjZlZjJmMTg4M2YwZWM3M2IwZjRfR1RmSFhSMkdTUHRnSFlUOFBiMkwxTTlFdlBkSUY1UzFfVG9rZW46VDY4TmJJUkRSbzcxYzh4cmowT2M1d2c2blZnXzE3MjMzNjUyOTQ6MTcyMzM2ODg5NF9WNA"
 loading="lazy"
 >&lt;/p>
 &lt;h5 id="id5-and-id20">id&amp;gt;5 and id&amp;lt;20
 &lt;/h5>&lt;p>首先5&amp;lt;x&amp;lt;20，那么正常情况应该是(5,15]和(15,20]，然后20因为不等于会被优化（触发了优化2)，所以是(5,20)&lt;/p>
-&lt;div class="highlight">&lt;div class="chroma">
-&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
-&lt;/span>&lt;span class="lnt">2
-&lt;/span>&lt;span class="lnt">3
-&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
-&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code class="language-C" data-lang="C">&lt;span class="line">&lt;span class="cl">&lt;span class="n">start&lt;/span> &lt;span class="n">transaction&lt;/span> &lt;span class="p">;&lt;/span>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-C" data-lang="C">&lt;span class="line">&lt;span class="cl">&lt;span class="n">start&lt;/span> &lt;span class="n">transaction&lt;/span> &lt;span class="p">;&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">select&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="n">from&lt;/span> &lt;span class="n">simple&lt;/span> &lt;span class="n">where&lt;/span> &lt;span class="n">id&lt;/span>&lt;span class="o">&amp;gt;&lt;/span>&lt;span class="mi">5&lt;/span> &lt;span class="n">and&lt;/span> &lt;span class="n">id&lt;/span>&lt;span class="o">&amp;lt;&lt;/span>&lt;span class="mi">20&lt;/span> &lt;span class="n">lock&lt;/span> &lt;span class="n">in&lt;/span> &lt;span class="n">share&lt;/span> &lt;span class="n">mode&lt;/span> &lt;span class="p">;&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">select&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="n">from&lt;/span> &lt;span class="n">performance_schema&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">data_locks&lt;/span>&lt;span class="p">;&lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
-&lt;/div>
-&lt;/div>&lt;p>&lt;img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=NjFjMzBlNDM2YWMxM2IwODYzZWM2MWU2MjU5YThlZTVfRVA1WlQ0UmlvcHdEWjFmQVBPSG9sV1o0anJNZkNLc05fVG9rZW46T3drMmJKVWxSb1pmenl4SXlmd2Mzb08zbmxnXzE3MjMzNjUyOTQ6MTcyMzM2ODg5NF9WNA"
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>&lt;img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=NjFjMzBlNDM2YWMxM2IwODYzZWM2MWU2MjU5YThlZTVfRVA1WlQ0UmlvcHdEWjFmQVBPSG9sV1o0anJNZkNLc05fVG9rZW46T3drMmJKVWxSb1pmenl4SXlmd2Mzb08zbmxnXzE3MjMzNjUyOTQ6MTcyMzM2ODg5NF9WNA"
 loading="lazy"
 >&lt;/p>
 &lt;h5 id="id5-and-id20-1">id&amp;gt;5 and id&amp;lt;=20
@@ -517,40 +373,20 @@ loading="lazy"
 &lt;h3 id="case4next-key-lock和-unique-key">case4(next-key lock和 unique key)
 &lt;/h3>&lt;p>和case3唯一的区别就是将主键索引换成了唯一索引，猜测应该是一模一样的，因为文档里的特殊规则说的也都是唯一索引，而没有限制到主键上；&lt;/p>
 &lt;h4 id="单一查询且查询结果存在uni15">单一查询且查询结果存在(uni=15)
-&lt;/h4>&lt;div class="highlight">&lt;div class="chroma">
-&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
-&lt;/span>&lt;span class="lnt">2
-&lt;/span>&lt;span class="lnt">3
-&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
-&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code class="language-C" data-lang="C">&lt;span class="line">&lt;span class="cl">&lt;span class="n">start&lt;/span> &lt;span class="n">transaction&lt;/span> &lt;span class="p">;&lt;/span>
+&lt;/h4>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-C" data-lang="C">&lt;span class="line">&lt;span class="cl">&lt;span class="n">start&lt;/span> &lt;span class="n">transaction&lt;/span> &lt;span class="p">;&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">select&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="n">from&lt;/span> &lt;span class="n">simple&lt;/span> &lt;span class="n">where&lt;/span> &lt;span class="n">uni&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="mi">15&lt;/span> &lt;span class="n">lock&lt;/span> &lt;span class="n">in&lt;/span> &lt;span class="n">share&lt;/span> &lt;span class="n">mode&lt;/span> &lt;span class="p">;&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">select&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="n">from&lt;/span> &lt;span class="n">performance_schema&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">data_locks&lt;/span>&lt;span class="p">;&lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
-&lt;/div>
-&lt;/div>&lt;p>&lt;img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=NDBhOGU3YjhiMzEwNjAzMzQ5MDFkZjBjMzQ1YTM3YTRfVDZjeWlHSDhhN3hjTzBEYjFaUXRPdXIyeld3b1VYV3pfVG9rZW46TFFBRmJ2SW00b0FMeXd4aHdtRWNlRGJ2blFBXzE3MjMzNjUyOTQ6MTcyMzM2ODg5NF9WNA"
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>&lt;img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=NDBhOGU3YjhiMzEwNjAzMzQ5MDFkZjBjMzQ1YTM3YTRfVDZjeWlHSDhhN3hjTzBEYjFaUXRPdXIyeld3b1VYV3pfVG9rZW46TFFBRmJ2SW00b0FMeXd4aHdtRWNlRGJ2blFBXzE3MjMzNjUyOTQ6MTcyMzM2ODg5NF9WNA"
 loading="lazy"
 >&lt;/p>
 &lt;p>理想很美好，现实很骨感；这是什么？？突然想到行锁和间隙锁都是锁在索引上的锁，由于我查询结果是所有字段，所以会发生回表查询；当命中到唯一索引的时候会锁一次，然后根据主键id再锁一次；&lt;/p>
 &lt;p>但是现在我的uni和id字段值是一样的，所以为了区分，我将uni这一列都加了100，然后执行下面的句子&lt;/p>
-&lt;div class="highlight">&lt;div class="chroma">
-&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
-&lt;/span>&lt;span class="lnt">2
-&lt;/span>&lt;span class="lnt">3
-&lt;/span>&lt;span class="lnt">4
-&lt;/span>&lt;span class="lnt">5
-&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
-&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code class="language-C" data-lang="C">&lt;span class="line">&lt;span class="cl">&lt;span class="n">start&lt;/span> &lt;span class="n">transaction&lt;/span> &lt;span class="p">;&lt;/span>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-C" data-lang="C">&lt;span class="line">&lt;span class="cl">&lt;span class="n">start&lt;/span> &lt;span class="n">transaction&lt;/span> &lt;span class="p">;&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">select&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="n">from&lt;/span> &lt;span class="n">simple&lt;/span> &lt;span class="n">where&lt;/span> &lt;span class="n">uni&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="mi">115&lt;/span> &lt;span class="n">lock&lt;/span> &lt;span class="n">in&lt;/span> &lt;span class="n">share&lt;/span> &lt;span class="n">mode&lt;/span> &lt;span class="p">;&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">select&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="n">from&lt;/span> &lt;span class="n">performance_schema&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">data_locks&lt;/span>&lt;span class="p">;&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">select&lt;/span> &lt;span class="n">id&lt;/span> &lt;span class="n">from&lt;/span> &lt;span class="n">simple&lt;/span> &lt;span class="n">where&lt;/span> &lt;span class="n">uni&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="mi">115&lt;/span> &lt;span class="n">lock&lt;/span> &lt;span class="n">in&lt;/span> &lt;span class="n">share&lt;/span> &lt;span class="n">mode&lt;/span> &lt;span class="p">;&lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
-&lt;/div>
-&lt;/div>&lt;p>&lt;img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=ODA3Y2YzNmEzOGUzOWM2MDBlN2M4NDNhOTRkYTA2NzlfZnlEcEd1Rmc1bmlvSnNqQWJOcDBjTHlURktycER0TE9fVG9rZW46WDFLRWJNSnc4b2VPa0N4bXlpYWNpcHNPbjVkXzE3MjMzNjUyOTQ6MTcyMzM2ODg5NF9WNA"
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>&lt;img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=ODA3Y2YzNmEzOGUzOWM2MDBlN2M4NDNhOTRkYTA2NzlfZnlEcEd1Rmc1bmlvSnNqQWJOcDBjTHlURktycER0TE9fVG9rZW46WDFLRWJNSnc4b2VPa0N4bXlpYWNpcHNPbjVkXzE3MjMzNjUyOTQ6MTcyMzM2ODg5NF9WNA"
 loading="lazy"
 >&lt;/p>
 &lt;p>可以看到primary那行应该是因为回表操作，而unidx那行应该则是对应唯一索引的查询，实际锁的范围和主键索引是一致的，只不过锁的内容我不理解，lock_data为115,15，为什么？&lt;/p>
@@ -559,81 +395,40 @@ loading="lazy"
 loading="lazy"
 >&lt;/p>
 &lt;h4 id="单一查询且结果不存在uni116">单一查询且结果不存在(uni=116）
-&lt;/h4>&lt;div class="highlight">&lt;div class="chroma">
-&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
-&lt;/span>&lt;span class="lnt">2
-&lt;/span>&lt;span class="lnt">3
-&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
-&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code class="language-C" data-lang="C">&lt;span class="line">&lt;span class="cl">&lt;span class="n">start&lt;/span> &lt;span class="n">transaction&lt;/span> &lt;span class="p">;&lt;/span>
+&lt;/h4>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-C" data-lang="C">&lt;span class="line">&lt;span class="cl">&lt;span class="n">start&lt;/span> &lt;span class="n">transaction&lt;/span> &lt;span class="p">;&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">select&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="n">from&lt;/span> &lt;span class="n">simple&lt;/span> &lt;span class="n">where&lt;/span> &lt;span class="n">uni&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="mi">116&lt;/span> &lt;span class="n">lock&lt;/span> &lt;span class="n">in&lt;/span> &lt;span class="n">share&lt;/span> &lt;span class="n">mode&lt;/span> &lt;span class="p">;&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">select&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="n">from&lt;/span> &lt;span class="n">performance_schema&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">data_locks&lt;/span>&lt;span class="p">;&lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
-&lt;/div>
-&lt;/div>&lt;p>&lt;img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=NTg0YmZhOTkzMzFiM2JiOGY3OWE1ZmQ1Yzk0MGU5YjJfbEIxMU5zN0h0dXpMWmlNRHZDMEY2TEFnbDNydWljSmNfVG9rZW46WVhDaGJZNGN6bzB6STF4RW5vNGNGYnFrblJjXzE3MjMzNjUyOTQ6MTcyMzM2ODg5NF9WNA"
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>&lt;img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=NTg0YmZhOTkzMzFiM2JiOGY3OWE1ZmQ1Yzk0MGU5YjJfbEIxMU5zN0h0dXpMWmlNRHZDMEY2TEFnbDNydWljSmNfVG9rZW46WVhDaGJZNGN6bzB6STF4RW5vNGNGYnFrblJjXzE3MjMzNjUyOTQ6MTcyMzM2ODg5NF9WNA"
 loading="lazy"
 >&lt;/p>
 &lt;p>由于查询不到，所以也不会回表查询，就不存在primary那行了&lt;/p>
 &lt;h4 id="uni105">uni&amp;gt;105
-&lt;/h4>&lt;div class="highlight">&lt;div class="chroma">
-&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
-&lt;/span>&lt;span class="lnt">2
-&lt;/span>&lt;span class="lnt">3
-&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
-&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code class="language-C" data-lang="C">&lt;span class="line">&lt;span class="cl">&lt;span class="n">start&lt;/span> &lt;span class="n">transaction&lt;/span> &lt;span class="p">;&lt;/span>
+&lt;/h4>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-C" data-lang="C">&lt;span class="line">&lt;span class="cl">&lt;span class="n">start&lt;/span> &lt;span class="n">transaction&lt;/span> &lt;span class="p">;&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">select&lt;/span> &lt;span class="n">id&lt;/span> &lt;span class="n">from&lt;/span> &lt;span class="n">simple&lt;/span> &lt;span class="n">where&lt;/span> &lt;span class="n">simple&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">uni&lt;/span>&lt;span class="o">&amp;gt;&lt;/span>&lt;span class="mi">105&lt;/span> &lt;span class="n">lock&lt;/span> &lt;span class="n">in&lt;/span> &lt;span class="n">share&lt;/span> &lt;span class="n">mode&lt;/span> &lt;span class="p">;&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">select&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="n">from&lt;/span> &lt;span class="n">performance_schema&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">data_locks&lt;/span>&lt;span class="p">;&lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
-&lt;/div>
-&lt;/div>&lt;p>&lt;img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=NmRiZTAyM2Q4Yzc5Njc2Y2IzYTIyYzlkNmVhZWVlNjJfT0VDcUlFTWZFaDFOaXlnZHlJOWxVRE43NWpDRjY5alZfVG9rZW46UmFHTWJFdkdib2pSa1V4MDVLYmNkSFB1bjhnXzE3MjMzNjUyOTQ6MTcyMzM2ODg5NF9WNA"
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>&lt;img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=NmRiZTAyM2Q4Yzc5Njc2Y2IzYTIyYzlkNmVhZWVlNjJfT0VDcUlFTWZFaDFOaXlnZHlJOWxVRE43NWpDRjY5alZfVG9rZW46UmFHTWJFdkdib2pSa1V4MDVLYmNkSFB1bjhnXzE3MjMzNjUyOTQ6MTcyMzM2ODg5NF9WNA"
 loading="lazy"
 >&lt;/p>
 &lt;p>我理解到每个索引节点的时候，都会执行一次select * from simple where id = x；所以会多出几行只有行锁primary的记录；&lt;/p>
 &lt;p>uni&amp;gt;=105只是会在unidx和primary上各多一个锁，但范围和唯一索引依然一致，就不贴了&lt;/p>
 &lt;h4 id="uni105-and-uni120">uni&amp;gt;105 and uni&amp;lt;120
-&lt;/h4>&lt;div class="highlight">&lt;div class="chroma">
-&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
-&lt;/span>&lt;span class="lnt">2
-&lt;/span>&lt;span class="lnt">3
-&lt;/span>&lt;span class="lnt">4
-&lt;/span>&lt;span class="lnt">5
-&lt;/span>&lt;span class="lnt">6
-&lt;/span>&lt;span class="lnt">7
-&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
-&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code class="language-C" data-lang="C">&lt;span class="line">&lt;span class="cl">&lt;span class="c1">//console1
+&lt;/h4>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-C" data-lang="C">&lt;span class="line">&lt;span class="cl">&lt;span class="c1">//console1
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="n">commit&lt;/span> &lt;span class="p">;&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">start&lt;/span> &lt;span class="n">transaction&lt;/span> &lt;span class="p">;&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">select&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="n">from&lt;/span> &lt;span class="n">simple&lt;/span> &lt;span class="n">where&lt;/span> &lt;span class="n">uni&lt;/span>&lt;span class="o">&amp;gt;&lt;/span>&lt;span class="mi">105&lt;/span> &lt;span class="n">and&lt;/span> &lt;span class="n">uni&lt;/span>&lt;span class="o">&amp;lt;&lt;/span>&lt;span class="mi">120&lt;/span> &lt;span class="n">lock&lt;/span> &lt;span class="n">in&lt;/span> &lt;span class="n">share&lt;/span> &lt;span class="n">mode&lt;/span> &lt;span class="p">;&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">select&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="n">from&lt;/span> &lt;span class="n">performance_schema&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">data_locks&lt;/span>&lt;span class="p">;&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">//console2
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="n">select&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="n">from&lt;/span> &lt;span class="n">simple&lt;/span> &lt;span class="n">where&lt;/span> &lt;span class="n">uni&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="mi">120&lt;/span> &lt;span class="k">for&lt;/span> &lt;span class="n">update&lt;/span> &lt;span class="p">;&lt;/span>&lt;span class="c1">//被阻塞
-&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
-&lt;/div>
-&lt;/div>&lt;p>&lt;img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=OTVmYjM4OGU1NGNhYzEyMDhkMTJhODk4MDIwNjg4NWZfVnc1VVdEWnp3MGtYWkhUWVhXWGJPT2l2ek1wMzJwelpfVG9rZW46V0c1WGI4V2Z4b3h6aE14WFdxa2NjNWlCbnpoXzE3MjMzNjUyOTQ6MTcyMzM2ODg5NF9WNA"
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>&lt;img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=OTVmYjM4OGU1NGNhYzEyMDhkMTJhODk4MDIwNjg4NWZfVnc1VVdEWnp3MGtYWkhUWVhXWGJPT2l2ek1wMzJwelpfVG9rZW46V0c1WGI4V2Z4b3h6aE14WFdxa2NjNWlCbnpoXzE3MjMzNjUyOTQ6MTcyMzM2ODg5NF9WNA"
 loading="lazy"
 >&lt;/p>
 &lt;p>这里和上面不一样的是，这里把120这行也锁上了，主键索引锁20是间隙锁，这里是临键锁；为什么这里会锁上呢？就很像是bug并没有修复，依然锁到了第一个不满足条件的，并且加了临键锁&lt;/p>
 &lt;h4 id="uni105-and-uni120-1">uni&amp;gt;105 and uni&amp;lt;=120
-&lt;/h4>&lt;div class="highlight">&lt;div class="chroma">
-&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
-&lt;/span>&lt;span class="lnt">2
-&lt;/span>&lt;span class="lnt">3
-&lt;/span>&lt;span class="lnt">4
-&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
-&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code class="language-C" data-lang="C">&lt;span class="line">&lt;span class="cl">&lt;span class="n">commit&lt;/span> &lt;span class="p">;&lt;/span>
+&lt;/h4>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-C" data-lang="C">&lt;span class="line">&lt;span class="cl">&lt;span class="n">commit&lt;/span> &lt;span class="p">;&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">start&lt;/span> &lt;span class="n">transaction&lt;/span> &lt;span class="p">;&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">select&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="n">from&lt;/span> &lt;span class="n">simple&lt;/span> &lt;span class="n">where&lt;/span> &lt;span class="n">uni&lt;/span>&lt;span class="o">&amp;gt;&lt;/span>&lt;span class="mi">105&lt;/span> &lt;span class="n">and&lt;/span> &lt;span class="n">uni&lt;/span>&lt;span class="o">&amp;lt;=&lt;/span>&lt;span class="mi">120&lt;/span> &lt;span class="n">lock&lt;/span> &lt;span class="n">in&lt;/span> &lt;span class="n">share&lt;/span> &lt;span class="n">mode&lt;/span> &lt;span class="p">;&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">select&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="n">from&lt;/span> &lt;span class="n">performance_schema&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">data_locks&lt;/span>&lt;span class="p">;&lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
-&lt;/div>
-&lt;/div>&lt;p>&lt;img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=ZGI3NTIyZWYxMDE1YjFlZTBiZWNhZDQzOWQ0YjQ0YmFfOEViNW4xQUlxcEw5YXROOVUzTUpEQXYzS0piV0dpb3pfVG9rZW46VGdtdWJ3RWx0b3g3Y1p4YXNMRGMzVnBubkxlXzE3MjMzNjUyOTQ6MTcyMzM2ODg5NF9WNA"
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>&lt;img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=ZGI3NTIyZWYxMDE1YjFlZTBiZWNhZDQzOWQ0YjQ0YmFfOEViNW4xQUlxcEw5YXROOVUzTUpEQXYzS0piV0dpb3pfVG9rZW46VGdtdWJ3RWx0b3g3Y1p4YXNMRGMzVnBubkxlXzE3MjMzNjUyOTQ6MTcyMzM2ODg5NF9WNA"
 loading="lazy"
 >&lt;/p>
 &lt;p>这里更离谱，这里为什么把123都给锁上了？？感觉bug依然存在，多锁了一个区间&lt;/p>
@@ -643,68 +438,30 @@ loading="lazy"
 &lt;/h3>&lt;p>&lt;img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=OGU4NzgzZWQ2MzJjZWQwN2ViOTA5ZTRmYjI3MzY2YTZfZ3cwRWxOeE1qTXRVT2x3aUM2VUdZQ29iR3U0aWZzSDJfVG9rZW46Q0xEMWJUUllUb1ZXMHZ4WlNVcmNJOWU5bnBjXzE3MjMzNjUyOTQ6MTcyMzM2ODg5NF9WNA"
 loading="lazy"
 >&lt;/p>
-&lt;div class="highlight">&lt;div class="chroma">
-&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
-&lt;/span>&lt;span class="lnt">2
-&lt;/span>&lt;span class="lnt">3
-&lt;/span>&lt;span class="lnt">4
-&lt;/span>&lt;span class="lnt">5
-&lt;/span>&lt;span class="lnt">6
-&lt;/span>&lt;span class="lnt">7
-&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
-&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code class="language-C" data-lang="C">&lt;span class="line">&lt;span class="cl">&lt;span class="c1">//console1
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-C" data-lang="C">&lt;span class="line">&lt;span class="cl">&lt;span class="c1">//console1
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="n">start&lt;/span> &lt;span class="n">transaction&lt;/span> &lt;span class="p">;&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">select&lt;/span> &lt;span class="n">id&lt;/span> &lt;span class="n">from&lt;/span> &lt;span class="n">simple&lt;/span> &lt;span class="n">where&lt;/span> &lt;span class="n">uni&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="mi">105&lt;/span> &lt;span class="n">lock&lt;/span> &lt;span class="n">in&lt;/span> &lt;span class="n">share&lt;/span> &lt;span class="n">mode&lt;/span> &lt;span class="p">;&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">select&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="n">from&lt;/span> &lt;span class="n">performance_schema&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">data_locks&lt;/span>&lt;span class="p">;&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">//console2
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="n">start&lt;/span> &lt;span class="n">transaction&lt;/span> &lt;span class="p">;&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">update&lt;/span> &lt;span class="n">simple&lt;/span> &lt;span class="n">set&lt;/span> &lt;span class="n">name&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="err">&amp;#39;&lt;/span>&lt;span class="n">new&lt;/span>&lt;span class="err">&amp;#39;&lt;/span> &lt;span class="n">where&lt;/span> &lt;span class="n">id&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="mi">5&lt;/span>&lt;span class="p">;&lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
-&lt;/div>
-&lt;/div>&lt;p>现在我们已经清楚，执行完console1之后，会给unidx加一个行锁，因为没有回表，所以主键上没有锁；那么console2能否成功执行呢？&lt;/p>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>现在我们已经清楚，执行完console1之后，会给unidx加一个行锁，因为没有回表，所以主键上没有锁；那么console2能否成功执行呢？&lt;/p>
 &lt;p>答案是，可以的；&lt;/p>
 &lt;p>我个人理解，是因为锁是加在索引上的，而索引是列维度的，不是行维度的；console2执行语句只会去判断id这个索引上，有没有5这个锁；&lt;/p>
 &lt;p>接下来我们反过来&lt;/p>
-&lt;div class="highlight">&lt;div class="chroma">
-&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
-&lt;/span>&lt;span class="lnt">2
-&lt;/span>&lt;span class="lnt">3
-&lt;/span>&lt;span class="lnt">4
-&lt;/span>&lt;span class="lnt">5
-&lt;/span>&lt;span class="lnt">6
-&lt;/span>&lt;span class="lnt">7
-&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
-&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code class="language-C" data-lang="C">&lt;span class="line">&lt;span class="cl">&lt;span class="c1">//console1
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-C" data-lang="C">&lt;span class="line">&lt;span class="cl">&lt;span class="c1">//console1
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="n">start&lt;/span> &lt;span class="n">transaction&lt;/span> &lt;span class="p">;&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">select&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="n">from&lt;/span> &lt;span class="n">simple&lt;/span> &lt;span class="n">where&lt;/span> &lt;span class="n">id&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="mi">5&lt;/span> &lt;span class="n">lock&lt;/span> &lt;span class="n">in&lt;/span> &lt;span class="n">share&lt;/span> &lt;span class="n">mode&lt;/span> &lt;span class="p">;&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">select&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="n">from&lt;/span> &lt;span class="n">performance_schema&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">data_locks&lt;/span>&lt;span class="p">;&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">//console2
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="n">start&lt;/span> &lt;span class="n">transaction&lt;/span> &lt;span class="p">;&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">update&lt;/span> &lt;span class="n">simple&lt;/span> &lt;span class="n">set&lt;/span> &lt;span class="n">name&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="err">&amp;#39;&lt;/span>&lt;span class="n">new&lt;/span>&lt;span class="err">&amp;#39;&lt;/span> &lt;span class="n">where&lt;/span> &lt;span class="n">uni&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="mi">105&lt;/span>&lt;span class="p">;&lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
-&lt;/div>
-&lt;/div>&lt;p>你试着一起敲一下就会发现，咦，console2怎么阻塞了呢？按上面所说的，不是不应该吗？&lt;/p>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>你试着一起敲一下就会发现，咦，console2怎么阻塞了呢？按上面所说的，不是不应该吗？&lt;/p>
 &lt;p>实际上console1的执行锁的确实是id；&lt;/p>
 &lt;p>但是你console2的执行，会回表啊，会尝试给id加写锁，但是id已经加了读锁了，所以自然不行了；&lt;/p>
 &lt;p>所以，不要盲目的只看查询条件，要理解当前语句都会加什么锁，是否和已经加的锁冲突；&lt;/p>
 &lt;p>最后，我们再来看一个附加题，下面两个语句加的锁是否一样呢？&lt;/p>
-&lt;div class="highlight">&lt;div class="chroma">
-&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
-&lt;/span>&lt;span class="lnt">2
-&lt;/span>&lt;span class="lnt">3
-&lt;/span>&lt;span class="lnt">4
-&lt;/span>&lt;span class="lnt">5
-&lt;/span>&lt;span class="lnt">6
-&lt;/span>&lt;span class="lnt">7
-&lt;/span>&lt;span class="lnt">8
-&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
-&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code class="language-C" data-lang="C">&lt;span class="line">&lt;span class="cl">&lt;span class="n">start&lt;/span> &lt;span class="n">transaction&lt;/span> &lt;span class="p">;&lt;/span>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-C" data-lang="C">&lt;span class="line">&lt;span class="cl">&lt;span class="n">start&lt;/span> &lt;span class="n">transaction&lt;/span> &lt;span class="p">;&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">select&lt;/span> &lt;span class="n">id&lt;/span> &lt;span class="n">from&lt;/span> &lt;span class="n">simple&lt;/span> &lt;span class="n">where&lt;/span> &lt;span class="n">uni&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="mi">105&lt;/span> &lt;span class="n">lock&lt;/span> &lt;span class="n">in&lt;/span> &lt;span class="n">share&lt;/span> &lt;span class="n">mode&lt;/span> &lt;span class="p">;&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">select&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="n">from&lt;/span> &lt;span class="n">performance_schema&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">data_locks&lt;/span>&lt;span class="p">;&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
@@ -712,9 +469,7 @@ loading="lazy"
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">start&lt;/span> &lt;span class="n">transaction&lt;/span> &lt;span class="p">;&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">select&lt;/span> &lt;span class="n">id&lt;/span> &lt;span class="n">from&lt;/span> &lt;span class="n">simple&lt;/span> &lt;span class="n">where&lt;/span> &lt;span class="n">uni&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="mi">105&lt;/span> &lt;span class="k">for&lt;/span> &lt;span class="n">update&lt;/span> &lt;span class="p">;&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">select&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="n">from&lt;/span> &lt;span class="n">performance_schema&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">data_locks&lt;/span>&lt;span class="p">;&lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
-&lt;/div>
-&lt;/div>&lt;p>在我没有尝试之前，我理解都没有回表，那么就应该一个是唯一索引加读锁，一个是唯一索引加写锁；&lt;/p>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>在我没有尝试之前，我理解都没有回表，那么就应该一个是唯一索引加读锁，一个是唯一索引加写锁；&lt;/p>
 &lt;p>但是实际结果却是lock in share mode是对的，for update会认为你要更新语句，自动给主键加锁了&lt;/p>
 &lt;p>&lt;img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=ZWQ0OWZhMTI0MzZiZWJmNzgxODI0YjcwYzAyNDQ1NWFfQXRuTGZzTnB3N3NCZjZtMjFOZlJEYm52eldRZWdEQU5fVG9rZW46R0Y0QWJCdHdIb3ZDWXN4TEl0V2NwWWxtbjZjXzE3MjMzNjUyOTQ6MTcyMzM2ODg5NF9WNA"
 loading="lazy"
@@ -725,19 +480,10 @@ loading="lazy"
 loading="lazy"
 >&lt;/p>
 &lt;h4 id="seq215">seq=215
-&lt;/h4>&lt;div class="highlight">&lt;div class="chroma">
-&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
-&lt;/span>&lt;span class="lnt">2
-&lt;/span>&lt;span class="lnt">3
-&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
-&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code class="language-C" data-lang="C">&lt;span class="line">&lt;span class="cl">&lt;span class="n">start&lt;/span> &lt;span class="n">transaction&lt;/span> &lt;span class="p">;&lt;/span>
+&lt;/h4>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-C" data-lang="C">&lt;span class="line">&lt;span class="cl">&lt;span class="n">start&lt;/span> &lt;span class="n">transaction&lt;/span> &lt;span class="p">;&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">select&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="n">from&lt;/span> &lt;span class="n">simple&lt;/span> &lt;span class="n">where&lt;/span> &lt;span class="n">seq&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="mi">215&lt;/span> &lt;span class="n">lock&lt;/span> &lt;span class="n">in&lt;/span> &lt;span class="n">share&lt;/span> &lt;span class="n">mode&lt;/span> &lt;span class="p">;&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">select&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="n">from&lt;/span> &lt;span class="n">performance_schema&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">data_locks&lt;/span>&lt;span class="p">;&lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
-&lt;/div>
-&lt;/div>&lt;p>&lt;img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=ZWNhMTEwODA3NGRkMDI5NTg5MTNkY2IwMWJkOWJkMWNfcFVDN2M1Zkl0SHV5bFNIcTNGTGJhNXFMTEtjSkN3bkFfVG9rZW46SWEzSWJySmozb0hvaHZ4TlBucWNLNnFHbk82XzE3MjMzNjUyOTQ6MTcyMzM2ODg5NF9WNA"
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>&lt;img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=ZWNhMTEwODA3NGRkMDI5NTg5MTNkY2IwMWJkOWJkMWNfcFVDN2M1Zkl0SHV5bFNIcTNGTGJhNXFMTEtjSkN3bkFfVG9rZW46SWEzSWJySmozb0hvaHZ4TlBucWNLNnFHbk82XzE3MjMzNjUyOTQ6MTcyMzM2ODg5NF9WNA"
 loading="lazy"
 >&lt;/p>
 &lt;p>除了意向锁，其他三个我们一个个看；&lt;/p>
@@ -745,70 +491,33 @@ loading="lazy"
 &lt;p>primary(S,REC_NOT_GAP)这是回表操作带来的&lt;/p>
 &lt;p>seqidx(S,GAP)这行是因为不是唯一索引，所以在查询到匹配的值之后不会立马停止（因为后面可能还存在相同的值），所以必须要到不符合条件的值为止，而所有查询过的都会加索引，所以存在一个间隙锁。&lt;/p>
 &lt;h4 id="seq216">seq=216
-&lt;/h4>&lt;div class="highlight">&lt;div class="chroma">
-&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
-&lt;/span>&lt;span class="lnt">2
-&lt;/span>&lt;span class="lnt">3
-&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
-&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code class="language-C" data-lang="C">&lt;span class="line">&lt;span class="cl">&lt;span class="n">start&lt;/span> &lt;span class="n">transaction&lt;/span> &lt;span class="p">;&lt;/span>
+&lt;/h4>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-C" data-lang="C">&lt;span class="line">&lt;span class="cl">&lt;span class="n">start&lt;/span> &lt;span class="n">transaction&lt;/span> &lt;span class="p">;&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">select&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="n">from&lt;/span> &lt;span class="n">simple&lt;/span> &lt;span class="n">where&lt;/span> &lt;span class="n">seq&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="mi">216&lt;/span> &lt;span class="n">lock&lt;/span> &lt;span class="n">in&lt;/span> &lt;span class="n">share&lt;/span> &lt;span class="n">mode&lt;/span> &lt;span class="p">;&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">select&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="n">from&lt;/span> &lt;span class="n">performance_schema&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">data_locks&lt;/span>&lt;span class="p">;&lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
-&lt;/div>
-&lt;/div>&lt;p>&lt;img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=MTJmYmFkNGQwMTY5Mjc5YjZhMWU4MTdkMmNhZGU2NTJfV0F6cHFnS1M1Mlh2V2RDMjZ1RWdnc2lPbnBJQUVCMGhfVG9rZW46QXh5RWJaMXJvbzU3Tk54dDU1S2NremVDbmlnXzE3MjMzNjUyOTQ6MTcyMzM2ODg5NF9WNA"
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>&lt;img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=MTJmYmFkNGQwMTY5Mjc5YjZhMWU4MTdkMmNhZGU2NTJfV0F6cHFnS1M1Mlh2V2RDMjZ1RWdnc2lPbnBJQUVCMGhfVG9rZW46QXh5RWJaMXJvbzU3Tk54dDU1S2NremVDbmlnXzE3MjMzNjUyOTQ6MTcyMzM2ODg5NF9WNA"
 loading="lazy"
 >&lt;/p>
 &lt;p>我理解，应该是从205开始查，查到第一个不符合条件的值是215，加上中间没有回表，所以就这一个锁；理论应该是(215,220]，但由于优化2，所以退化为间隙锁；&lt;/p>
 &lt;h4 id="seq215-and-seq220">seq&amp;gt;215 and seq&amp;lt;220
-&lt;/h4>&lt;div class="highlight">&lt;div class="chroma">
-&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
-&lt;/span>&lt;span class="lnt">2
-&lt;/span>&lt;span class="lnt">3
-&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
-&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code class="language-C" data-lang="C">&lt;span class="line">&lt;span class="cl">&lt;span class="n">start&lt;/span> &lt;span class="n">transaction&lt;/span> &lt;span class="p">;&lt;/span>
+&lt;/h4>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-C" data-lang="C">&lt;span class="line">&lt;span class="cl">&lt;span class="n">start&lt;/span> &lt;span class="n">transaction&lt;/span> &lt;span class="p">;&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">select&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="n">from&lt;/span> &lt;span class="n">simple&lt;/span> &lt;span class="n">where&lt;/span> &lt;span class="n">seq&lt;/span>&lt;span class="o">&amp;gt;&lt;/span>&lt;span class="mi">215&lt;/span> &lt;span class="n">and&lt;/span> &lt;span class="n">seq&lt;/span> &lt;span class="o">&amp;lt;&lt;/span>&lt;span class="mi">220&lt;/span> &lt;span class="n">lock&lt;/span> &lt;span class="n">in&lt;/span> &lt;span class="n">share&lt;/span> &lt;span class="n">mode&lt;/span> &lt;span class="p">;&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">select&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="n">from&lt;/span> &lt;span class="n">performance_schema&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">data_locks&lt;/span>&lt;span class="p">;&lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
-&lt;/div>
-&lt;/div>&lt;p>从215开始匹配，第一个不符合条件的是220，所以只能是（215,220]&lt;/p>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>从215开始匹配，第一个不符合条件的是220，所以只能是（215,220]&lt;/p>
 &lt;h4 id="seq215-and-seq-220">seq&amp;gt;215 and seq &amp;lt;=220
-&lt;/h4>&lt;div class="highlight">&lt;div class="chroma">
-&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
-&lt;/span>&lt;span class="lnt">2
-&lt;/span>&lt;span class="lnt">3
-&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
-&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code class="language-C" data-lang="C">&lt;span class="line">&lt;span class="cl">&lt;span class="n">start&lt;/span> &lt;span class="n">transaction&lt;/span> &lt;span class="p">;&lt;/span>
+&lt;/h4>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-C" data-lang="C">&lt;span class="line">&lt;span class="cl">&lt;span class="n">start&lt;/span> &lt;span class="n">transaction&lt;/span> &lt;span class="p">;&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">select&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="n">from&lt;/span> &lt;span class="n">simple&lt;/span> &lt;span class="n">where&lt;/span> &lt;span class="n">seq&lt;/span>&lt;span class="o">&amp;gt;&lt;/span>&lt;span class="mi">215&lt;/span> &lt;span class="n">and&lt;/span> &lt;span class="n">seq&lt;/span> &lt;span class="o">&amp;lt;=&lt;/span>&lt;span class="mi">220&lt;/span> &lt;span class="n">lock&lt;/span> &lt;span class="n">in&lt;/span> &lt;span class="n">share&lt;/span> &lt;span class="n">mode&lt;/span> &lt;span class="p">;&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">select&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="n">from&lt;/span> &lt;span class="n">performance_schema&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">data_locks&lt;/span>&lt;span class="p">;&lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
-&lt;/div>
-&lt;/div>&lt;p>&lt;img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=NWU1M2M3NjdkZDY3ZDY5M2NmMWEzNDI2ODI2ZDczYTdfZW5PRWlERDdVWVdwbzNpUEVzekJZUXlzY1BaQlpWNEpfVG9rZW46VFozRGJ0NUcyb3h4RWV4dFYzR2NDT293bnJiXzE3MjMzNjUyOTQ6MTcyMzM2ODg5NF9WNA"
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>&lt;img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=NWU1M2M3NjdkZDY3ZDY5M2NmMWEzNDI2ODI2ZDczYTdfZW5PRWlERDdVWVdwbzNpUEVzekJZUXlzY1BaQlpWNEpfVG9rZW46VFozRGJ0NUcyb3h4RWV4dFYzR2NDT293bnJiXzE3MjMzNjUyOTQ6MTcyMzM2ODg5NF9WNA"
 loading="lazy"
 >&lt;/p>
 &lt;p>这里和上面区别就是不符合条件的会到223为止，另外中间因为匹配成功会回一次表&lt;/p>
 &lt;h4 id="seq230和前面unidx130和id30都一样">seq&amp;gt;230和前面unidx&amp;gt;130和id&amp;gt;30都一样
 &lt;/h4>&lt;h3 id="case7next-key和没有索引">case7(next-key和没有索引）
-&lt;/h3>&lt;div class="highlight">&lt;div class="chroma">
-&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
-&lt;/span>&lt;span class="lnt">2
-&lt;/span>&lt;span class="lnt">3
-&lt;/span>&lt;span class="lnt">4
-&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
-&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code class="language-C" data-lang="C">&lt;span class="line">&lt;span class="cl">&lt;span class="n">alter&lt;/span> &lt;span class="n">table&lt;/span> &lt;span class="n">simple&lt;/span> &lt;span class="n">drop&lt;/span> &lt;span class="n">index&lt;/span> &lt;span class="n">seqidx&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/h3>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-C" data-lang="C">&lt;span class="line">&lt;span class="cl">&lt;span class="n">alter&lt;/span> &lt;span class="n">table&lt;/span> &lt;span class="n">simple&lt;/span> &lt;span class="n">drop&lt;/span> &lt;span class="n">index&lt;/span> &lt;span class="n">seqidx&lt;/span>&lt;span class="p">;&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">start&lt;/span> &lt;span class="n">transaction&lt;/span> &lt;span class="p">;&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">select&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="n">from&lt;/span> &lt;span class="n">simple&lt;/span> &lt;span class="n">where&lt;/span> &lt;span class="n">seq&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="mi">215&lt;/span> &lt;span class="n">lock&lt;/span> &lt;span class="n">in&lt;/span> &lt;span class="n">share&lt;/span> &lt;span class="n">mode&lt;/span> &lt;span class="p">;&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">select&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="n">from&lt;/span> &lt;span class="n">performance_schema&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">data_locks&lt;/span>&lt;span class="p">;&lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
-&lt;/div>
-&lt;/div>&lt;p>前面提到过，查询条件匹配不到索引或者只是索引的一部分，这个时候为了保证数据的准确性，会给整个表“加锁”，其实给表里所有的记录都加锁(这里我不知道描述的对不对，因为表锁！=所有记录加锁，虽然效果相似，但并不是一个东西）.&lt;/p>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>前面提到过，查询条件匹配不到索引或者只是索引的一部分，这个时候为了保证数据的准确性，会给整个表“加锁”，其实给表里所有的记录都加锁(这里我不知道描述的对不对，因为表锁！=所有记录加锁，虽然效果相似，但并不是一个东西）.&lt;/p>
 &lt;p>&lt;img src="https://l8ut65fgfc.feishu.cn/space/api/box/stream/download/asynccode/?code=ZjNiMmMzNzIzZTY2MWI1Y2QzNzU0Y2I1ZjU5NWU1N2JfbXJXYVZSMmg5WFlxMFlReDBOVXRJU1ZVaEpBREVhd2JfVG9rZW46S0dHdGJNUXZ2bzV4ZTJ4bkgxNmNyaWFablFkXzE3MjMzNjUyOTQ6MTcyMzM2ODg5NF9WNA"
 loading="lazy"
 >&lt;/p>
@@ -821,23 +530,12 @@ loading="lazy"
 &lt;ul>
 &lt;li>The correct way to use &lt;u>&lt;code>&lt;a href="https://dev.mysql.com/doc/refman/8.0/en/lock-tables.html">LOCK TABLES&lt;/a>&lt;/code>&lt;/u> and &lt;u>&lt;code>&lt;a href="https://dev.mysql.com/doc/refman/8.0/en/lock-tables.html">UNLOCK TABLES&lt;/a>&lt;/code>&lt;/u> with transactional tables, such as &lt;code>InnoDB&lt;/code> tables, is to begin a transaction with &lt;code>SET autocommit = 0&lt;/code> (not &lt;u>&lt;code>&lt;a href="https://dev.mysql.com/doc/refman/8.0/en/commit.html">START TRANSACTION&lt;/a>&lt;/code>&lt;/u>) followed by &lt;u>&lt;code>&lt;a href="https://dev.mysql.com/doc/refman/8.0/en/lock-tables.html">LOCK TABLES&lt;/a>&lt;/code>&lt;/u>, and to not call &lt;u>&lt;code>&lt;a href="https://dev.mysql.com/doc/refman/8.0/en/lock-tables.html">UNLOCK TABLES&lt;/a>&lt;/code>&lt;/u> until you commit the transaction explicitly. For example, if you need to write to table &lt;code>t1&lt;/code> and read from table &lt;code>t2&lt;/code>, you can do this:&lt;/li>
 &lt;/ul>
-&lt;div class="highlight">&lt;div class="chroma">
-&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
-&lt;/span>&lt;span class="lnt">2
-&lt;/span>&lt;span class="lnt">3
-&lt;/span>&lt;span class="lnt">4
-&lt;/span>&lt;span class="lnt">5
-&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
-&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code class="language-SQL" data-lang="SQL">&lt;span class="line">&lt;span class="cl">&lt;span class="k">SET&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">autocommit&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-SQL" data-lang="SQL">&lt;span class="line">&lt;span class="cl">&lt;span class="k">SET&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">autocommit&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">LOCK&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">TABLES&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">t1&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">WRITE&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">t2&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">READ&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">...;&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="p">...&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">do&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">something&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">with&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">tables&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">t1&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">and&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">t2&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">here&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="p">...&lt;/span>&lt;span class="k">COMMIT&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="n">UNLOCK&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">TABLES&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
-&lt;/div>
-&lt;/div>&lt;ul>
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;ul>
 &lt;li>When you call &lt;u>&lt;code>&lt;a href="https://dev.mysql.com/doc/refman/8.0/en/lock-tables.html">LOCK TABLES&lt;/a>&lt;/code>&lt;/u>, &lt;code>InnoDB&lt;/code> internally takes its own table lock, and MySQL takes its own table lock. &lt;code>InnoDB&lt;/code> releases its internal table lock at the next commit, but for MySQL to release its table lock, you have to call &lt;u>&lt;code>&lt;a href="https://dev.mysql.com/doc/refman/8.0/en/lock-tables.html">UNLOCK TABLES&lt;/a>&lt;/code>&lt;/u>. You should not have &lt;u>&lt;code>&lt;a href="https://dev.mysql.com/doc/refman/8.0/en/server-system-variables.html#sysvar_autocommit">autocommit = 1&lt;/a>&lt;/code>&lt;/u>, because then &lt;code>InnoDB&lt;/code> releases its internal table lock immediately after the call of &lt;u>&lt;code>&lt;a href="https://dev.mysql.com/doc/refman/8.0/en/lock-tables.html">LOCK TABLES&lt;/a>&lt;/code>&lt;/u>, and deadlocks can very easily happen. &lt;code>InnoDB&lt;/code> does not acquire the internal table lock at all if &lt;u>&lt;code>&lt;a href="https://dev.mysql.com/doc/refman/8.0/en/server-system-variables.html#sysvar_autocommit">autocommit = 1&lt;/a>&lt;/code>&lt;/u>, to help old applications avoid unnecessary deadlocks.&lt;/li>
 &lt;/ul>
 &lt;h2 id="参考文档">参考文档
@@ -940,39 +638,7 @@ loading="lazy"
 >&lt;/p>
 &lt;h3 id="可见性规则底层实现">可见性规则底层实现
 &lt;/h3>&lt;h4 id="readview类">ReadView类
-&lt;/h4>&lt;div class="highlight">&lt;div class="chroma">
-&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
-&lt;/span>&lt;span class="lnt"> 2
-&lt;/span>&lt;span class="lnt"> 3
-&lt;/span>&lt;span class="lnt"> 4
-&lt;/span>&lt;span class="lnt"> 5
-&lt;/span>&lt;span class="lnt"> 6
-&lt;/span>&lt;span class="lnt"> 7
-&lt;/span>&lt;span class="lnt"> 8
-&lt;/span>&lt;span class="lnt"> 9
-&lt;/span>&lt;span class="lnt">10
-&lt;/span>&lt;span class="lnt">11
-&lt;/span>&lt;span class="lnt">12
-&lt;/span>&lt;span class="lnt">13
-&lt;/span>&lt;span class="lnt">14
-&lt;/span>&lt;span class="lnt">15
-&lt;/span>&lt;span class="lnt">16
-&lt;/span>&lt;span class="lnt">17
-&lt;/span>&lt;span class="lnt">18
-&lt;/span>&lt;span class="lnt">19
-&lt;/span>&lt;span class="lnt">20
-&lt;/span>&lt;span class="lnt">21
-&lt;/span>&lt;span class="lnt">22
-&lt;/span>&lt;span class="lnt">23
-&lt;/span>&lt;span class="lnt">24
-&lt;/span>&lt;span class="lnt">25
-&lt;/span>&lt;span class="lnt">26
-&lt;/span>&lt;span class="lnt">27
-&lt;/span>&lt;span class="lnt">28
-&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
-&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code class="language-C" data-lang="C">&lt;span class="line">&lt;span class="cl">&lt;span class="n">storage&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="n">innobase&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="n">include&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="n">read0types&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nl">h&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">47&lt;/span>
+&lt;/h4>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-C" data-lang="C">&lt;span class="line">&lt;span class="cl">&lt;span class="n">storage&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="n">innobase&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="n">include&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="n">read0types&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nl">h&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">47&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">//ReadView类
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="n">class&lt;/span> &lt;span class="n">ReadView&lt;/span> &lt;span class="p">{&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">...&lt;/span>
@@ -1000,42 +666,8 @@ loading="lazy"
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="kt">trx_id_t&lt;/span> &lt;span class="n">m_up_limit_id&lt;/span>&lt;span class="p">;&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">....&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
-&lt;/div>
-&lt;/div>&lt;h4 id="初始化赋值的时候">初始化赋值的时候
-&lt;/h4>&lt;div class="highlight">&lt;div class="chroma">
-&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
-&lt;/span>&lt;span class="lnt"> 2
-&lt;/span>&lt;span class="lnt"> 3
-&lt;/span>&lt;span class="lnt"> 4
-&lt;/span>&lt;span class="lnt"> 5
-&lt;/span>&lt;span class="lnt"> 6
-&lt;/span>&lt;span class="lnt"> 7
-&lt;/span>&lt;span class="lnt"> 8
-&lt;/span>&lt;span class="lnt"> 9
-&lt;/span>&lt;span class="lnt">10
-&lt;/span>&lt;span class="lnt">11
-&lt;/span>&lt;span class="lnt">12
-&lt;/span>&lt;span class="lnt">13
-&lt;/span>&lt;span class="lnt">14
-&lt;/span>&lt;span class="lnt">15
-&lt;/span>&lt;span class="lnt">16
-&lt;/span>&lt;span class="lnt">17
-&lt;/span>&lt;span class="lnt">18
-&lt;/span>&lt;span class="lnt">19
-&lt;/span>&lt;span class="lnt">20
-&lt;/span>&lt;span class="lnt">21
-&lt;/span>&lt;span class="lnt">22
-&lt;/span>&lt;span class="lnt">23
-&lt;/span>&lt;span class="lnt">24
-&lt;/span>&lt;span class="lnt">25
-&lt;/span>&lt;span class="lnt">26
-&lt;/span>&lt;span class="lnt">27
-&lt;/span>&lt;span class="lnt">28
-&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
-&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code class="language-C" data-lang="C">&lt;span class="line">&lt;span class="cl">&lt;span class="c1">//read0read.cc
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h4 id="初始化赋值的时候">初始化赋值的时候
+&lt;/h4>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-C" data-lang="C">&lt;span class="line">&lt;span class="cl">&lt;span class="c1">//read0read.cc
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">//row_search_mvcc -&amp;gt; trx_assign_read_view -&amp;gt; MVCC::view_open -&amp;gt;
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kt">void&lt;/span> &lt;span class="n">ReadView&lt;/span>&lt;span class="o">::&lt;/span>&lt;span class="nf">prepare&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="kt">trx_id_t&lt;/span> &lt;span class="n">id&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
@@ -1063,42 +695,8 @@ loading="lazy"
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nf">ut_d&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">m_view_low_limit_no&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">m_low_limit_no&lt;/span>&lt;span class="p">);&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">m_closed&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nb">false&lt;/span>&lt;span class="p">;&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
-&lt;/div>
-&lt;/div>&lt;h4 id="判断某个版本的记录是否可见">判断某个版本的记录是否可见？
-&lt;/h4>&lt;div class="highlight">&lt;div class="chroma">
-&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
-&lt;/span>&lt;span class="lnt"> 2
-&lt;/span>&lt;span class="lnt"> 3
-&lt;/span>&lt;span class="lnt"> 4
-&lt;/span>&lt;span class="lnt"> 5
-&lt;/span>&lt;span class="lnt"> 6
-&lt;/span>&lt;span class="lnt"> 7
-&lt;/span>&lt;span class="lnt"> 8
-&lt;/span>&lt;span class="lnt"> 9
-&lt;/span>&lt;span class="lnt">10
-&lt;/span>&lt;span class="lnt">11
-&lt;/span>&lt;span class="lnt">12
-&lt;/span>&lt;span class="lnt">13
-&lt;/span>&lt;span class="lnt">14
-&lt;/span>&lt;span class="lnt">15
-&lt;/span>&lt;span class="lnt">16
-&lt;/span>&lt;span class="lnt">17
-&lt;/span>&lt;span class="lnt">18
-&lt;/span>&lt;span class="lnt">19
-&lt;/span>&lt;span class="lnt">20
-&lt;/span>&lt;span class="lnt">21
-&lt;/span>&lt;span class="lnt">22
-&lt;/span>&lt;span class="lnt">23
-&lt;/span>&lt;span class="lnt">24
-&lt;/span>&lt;span class="lnt">25
-&lt;/span>&lt;span class="lnt">26
-&lt;/span>&lt;span class="lnt">27
-&lt;/span>&lt;span class="lnt">28
-&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
-&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code class="language-C" data-lang="C">&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">//read0types.h
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h4 id="判断某个版本的记录是否可见">判断某个版本的记录是否可见？
+&lt;/h4>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-C" data-lang="C">&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">//read0types.h
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="kt">bool&lt;/span> &lt;span class="nf">changes_visible&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="kt">trx_id_t&lt;/span> &lt;span class="n">id&lt;/span>&lt;span class="p">,&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">const&lt;/span> &lt;span class="kt">table_name_t&lt;/span> &lt;span class="o">&amp;amp;&lt;/span>&lt;span class="n">name&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="k">const&lt;/span> &lt;span class="p">{&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nf">ut_ad&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">id&lt;/span> &lt;span class="o">&amp;gt;&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">);&lt;/span>
@@ -1126,9 +724,7 @@ loading="lazy"
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="c1">//所以就需要判断事务只要不是活跃的，那么就一定是已经提交的事务，那么就可读
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="k">return&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="o">!&lt;/span>&lt;span class="n">std&lt;/span>&lt;span class="o">::&lt;/span>&lt;span class="nf">binary_search&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">p&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">p&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="n">m_ids&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">size&lt;/span>&lt;span class="p">(),&lt;/span> &lt;span class="n">id&lt;/span>&lt;span class="p">));&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
-&lt;/div>
-&lt;/div>&lt;p>&lt;img src="http://picgo.qisiii.asia/post/w39dhfwj7v37x15wz_psyqmc0000gn/T/8eb5ad315ac2ebe605e451169ea0cf37.jpg"
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>&lt;img src="http://picgo.qisiii.asia/post/w39dhfwj7v37x15wz_psyqmc0000gn/T/8eb5ad315ac2ebe605e451169ea0cf37.jpg"
 loading="lazy"
 >&lt;/p>
 &lt;h3 id="事务的trx_id">事务的trx_id
@@ -1141,52 +737,8 @@ loading="lazy"
 &lt;p>&lt;strong>只读事务不会分配真正的事务id，他的值是0；&lt;/strong>&lt;/p>
 &lt;p>&lt;strong>只读事务参与change_visable的时候，create_trx_id也确实是0，是通过m_up_limit_id（低水位）来判断是否可见的，只有在变成读写事务是，create_trx_id才会起效并应用；&lt;/strong>&lt;/p>
 &lt;p>因为&lt;strong>值是0，在通过下面sql查询的时候，那串id只是展示的时候特殊处理的&lt;/strong>&lt;/p>
-&lt;div class="highlight">&lt;div class="chroma">
-&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
-&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
-&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code class="language-C" data-lang="C">&lt;span class="line">&lt;span class="cl">&lt;span class="n">select&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="n">from&lt;/span> &lt;span class="n">information_schema&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">INNODB_TRX&lt;/span>&lt;span class="p">;&lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
-&lt;/div>
-&lt;/div>&lt;div class="highlight">&lt;div class="chroma">
-&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
-&lt;/span>&lt;span class="lnt"> 2
-&lt;/span>&lt;span class="lnt"> 3
-&lt;/span>&lt;span class="lnt"> 4
-&lt;/span>&lt;span class="lnt"> 5
-&lt;/span>&lt;span class="lnt"> 6
-&lt;/span>&lt;span class="lnt"> 7
-&lt;/span>&lt;span class="lnt"> 8
-&lt;/span>&lt;span class="lnt"> 9
-&lt;/span>&lt;span class="lnt">10
-&lt;/span>&lt;span class="lnt">11
-&lt;/span>&lt;span class="lnt">12
-&lt;/span>&lt;span class="lnt">13
-&lt;/span>&lt;span class="lnt">14
-&lt;/span>&lt;span class="lnt">15
-&lt;/span>&lt;span class="lnt">16
-&lt;/span>&lt;span class="lnt">17
-&lt;/span>&lt;span class="lnt">18
-&lt;/span>&lt;span class="lnt">19
-&lt;/span>&lt;span class="lnt">20
-&lt;/span>&lt;span class="lnt">21
-&lt;/span>&lt;span class="lnt">22
-&lt;/span>&lt;span class="lnt">23
-&lt;/span>&lt;span class="lnt">24
-&lt;/span>&lt;span class="lnt">25
-&lt;/span>&lt;span class="lnt">26
-&lt;/span>&lt;span class="lnt">27
-&lt;/span>&lt;span class="lnt">28
-&lt;/span>&lt;span class="lnt">29
-&lt;/span>&lt;span class="lnt">30
-&lt;/span>&lt;span class="lnt">31
-&lt;/span>&lt;span class="lnt">32
-&lt;/span>&lt;span class="lnt">33
-&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
-&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code class="language-C" data-lang="C">&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">//trx0trx.cc#trx_start_low
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-C" data-lang="C">&lt;span class="line">&lt;span class="cl">&lt;span class="n">select&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="n">from&lt;/span> &lt;span class="n">information_schema&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">INNODB_TRX&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-C" data-lang="C">&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">//trx0trx.cc#trx_start_low
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="c1">//这里可以看到只有读写事务才真正分配了id
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="k">else&lt;/span> &lt;span class="p">{&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">trx&lt;/span>&lt;span class="o">-&amp;gt;&lt;/span>&lt;span class="n">id&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="c1">//开始是0
@@ -1219,34 +771,7 @@ loading="lazy"
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">trx&lt;/span>&lt;span class="o">-&amp;gt;&lt;/span>&lt;span class="n">state&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">store&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">TRX_STATE_ACTIVE&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">std&lt;/span>&lt;span class="o">::&lt;/span>&lt;span class="n">memory_order_relaxed&lt;/span>&lt;span class="p">);&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
-&lt;/div>
-&lt;/div>&lt;div class="highlight">&lt;div class="chroma">
-&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
-&lt;/span>&lt;span class="lnt"> 2
-&lt;/span>&lt;span class="lnt"> 3
-&lt;/span>&lt;span class="lnt"> 4
-&lt;/span>&lt;span class="lnt"> 5
-&lt;/span>&lt;span class="lnt"> 6
-&lt;/span>&lt;span class="lnt"> 7
-&lt;/span>&lt;span class="lnt"> 8
-&lt;/span>&lt;span class="lnt"> 9
-&lt;/span>&lt;span class="lnt">10
-&lt;/span>&lt;span class="lnt">11
-&lt;/span>&lt;span class="lnt">12
-&lt;/span>&lt;span class="lnt">13
-&lt;/span>&lt;span class="lnt">14
-&lt;/span>&lt;span class="lnt">15
-&lt;/span>&lt;span class="lnt">16
-&lt;/span>&lt;span class="lnt">17
-&lt;/span>&lt;span class="lnt">18
-&lt;/span>&lt;span class="lnt">19
-&lt;/span>&lt;span class="lnt">20
-&lt;/span>&lt;span class="lnt">21
-&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
-&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code class="language-C" data-lang="C">&lt;span class="line">&lt;span class="cl">&lt;span class="c1">//trx0trx.ic
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-C" data-lang="C">&lt;span class="line">&lt;span class="cl">&lt;span class="c1">//trx0trx.ic
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">//这里是在展示的时候对只读事务的id做了处理
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="err">@&lt;/span>&lt;span class="k">return&lt;/span> &lt;span class="n">transaction&lt;/span> &lt;span class="n">id&lt;/span> &lt;span class="err">*/&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">static&lt;/span> &lt;span class="kr">inline&lt;/span> &lt;span class="kt">trx_id_t&lt;/span> &lt;span class="nf">trx_get_id_for_print&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="k">const&lt;/span> &lt;span class="kt">trx_t&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="n">trx&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
@@ -1267,30 +792,9 @@ loading="lazy"
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="o">?&lt;/span> &lt;span class="n">trx&lt;/span>&lt;span class="o">-&amp;gt;&lt;/span>&lt;span class="nl">id&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">:&lt;/span> &lt;span class="kt">trx_id_t&lt;/span>&lt;span class="p">{&lt;/span>&lt;span class="n">reinterpret_cast&lt;/span>&lt;span class="o">&amp;lt;&lt;/span>&lt;span class="kt">uintptr_t&lt;/span>&lt;span class="o">&amp;gt;&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">trx&lt;/span>&lt;span class="p">)}&lt;/span> &lt;span class="o">|&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="n">max_trx_id&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="mi">1&lt;/span>&lt;span class="p">));&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
-&lt;/div>
-&lt;/div>&lt;h3 id="生成快照时机不太确定">生成快照时机（不太确定）
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="生成快照时机不太确定">生成快照时机（不太确定）
 &lt;/h3>&lt;p>可重复读：只生成一次，后面继续使用&lt;/p>
-&lt;div class="highlight">&lt;div class="chroma">
-&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
-&lt;/span>&lt;span class="lnt"> 2
-&lt;/span>&lt;span class="lnt"> 3
-&lt;/span>&lt;span class="lnt"> 4
-&lt;/span>&lt;span class="lnt"> 5
-&lt;/span>&lt;span class="lnt"> 6
-&lt;/span>&lt;span class="lnt"> 7
-&lt;/span>&lt;span class="lnt"> 8
-&lt;/span>&lt;span class="lnt"> 9
-&lt;/span>&lt;span class="lnt">10
-&lt;/span>&lt;span class="lnt">11
-&lt;/span>&lt;span class="lnt">12
-&lt;/span>&lt;span class="lnt">13
-&lt;/span>&lt;span class="lnt">14
-&lt;/span>&lt;span class="lnt">15
-&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
-&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code class="language-C" data-lang="C">&lt;span class="line">&lt;span class="cl">&lt;span class="n">ReadView&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="nf">trx_assign_read_view&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="kt">trx_t&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="n">trx&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="cm">/*!&amp;lt; in/out: active transaction */&lt;/span>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-C" data-lang="C">&lt;span class="line">&lt;span class="cl">&lt;span class="n">ReadView&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="nf">trx_assign_read_view&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="kt">trx_t&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="n">trx&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="cm">/*!&amp;lt; in/out: active transaction */&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">{&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nf">ut_ad&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nf">trx_can_be_handled_by_current_thread_or_is_hp_victim&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">trx&lt;/span>&lt;span class="p">));&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nf">ut_ad&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">trx&lt;/span>&lt;span class="o">-&amp;gt;&lt;/span>&lt;span class="n">state&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">load&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">std&lt;/span>&lt;span class="o">::&lt;/span>&lt;span class="n">memory_order_relaxed&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="n">TRX_STATE_ACTIVE&lt;/span>&lt;span class="p">);&lt;/span>
@@ -1305,31 +809,9 @@ loading="lazy"
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="n">trx&lt;/span>&lt;span class="o">-&amp;gt;&lt;/span>&lt;span class="n">read_view&lt;/span>&lt;span class="p">);&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
-&lt;/div>
-&lt;/div>&lt;p>读已提交：好像是用完就关，所以每次再获取就得新开，但是这里的关有两个地方调，不太确定上层是不是sql执行完的方法&lt;/p>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>读已提交：好像是用完就关，所以每次再获取就得新开，但是这里的关有两个地方调，不太确定上层是不是sql执行完的方法&lt;/p>
 &lt;p>ha_innodb.cc#store_lock 和ha_innodb.cc#external_lock&lt;/p>
-&lt;div class="highlight">&lt;div class="chroma">
-&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
-&lt;/span>&lt;span class="lnt"> 2
-&lt;/span>&lt;span class="lnt"> 3
-&lt;/span>&lt;span class="lnt"> 4
-&lt;/span>&lt;span class="lnt"> 5
-&lt;/span>&lt;span class="lnt"> 6
-&lt;/span>&lt;span class="lnt"> 7
-&lt;/span>&lt;span class="lnt"> 8
-&lt;/span>&lt;span class="lnt"> 9
-&lt;/span>&lt;span class="lnt">10
-&lt;/span>&lt;span class="lnt">11
-&lt;/span>&lt;span class="lnt">12
-&lt;/span>&lt;span class="lnt">13
-&lt;/span>&lt;span class="lnt">14
-&lt;/span>&lt;span class="lnt">15
-&lt;/span>&lt;span class="lnt">16
-&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
-&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code class="language-C" data-lang="C">&lt;span class="line">&lt;span class="cl">&lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="n">lock_type&lt;/span> &lt;span class="o">!=&lt;/span> &lt;span class="n">TL_IGNORE&lt;/span> &lt;span class="o">&amp;amp;&amp;amp;&lt;/span> &lt;span class="n">trx&lt;/span>&lt;span class="o">-&amp;gt;&lt;/span>&lt;span class="n">n_mysql_tables_in_use&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-C" data-lang="C">&lt;span class="line">&lt;span class="cl">&lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="n">lock_type&lt;/span> &lt;span class="o">!=&lt;/span> &lt;span class="n">TL_IGNORE&lt;/span> &lt;span class="o">&amp;amp;&amp;amp;&lt;/span> &lt;span class="n">trx&lt;/span>&lt;span class="o">-&amp;gt;&lt;/span>&lt;span class="n">n_mysql_tables_in_use&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">trx&lt;/span>&lt;span class="o">-&amp;gt;&lt;/span>&lt;span class="n">isolation_level&lt;/span> &lt;span class="o">=&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nf">innobase_trx_map_isolation_level&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nf">thd_get_trx_isolation&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">thd&lt;/span>&lt;span class="p">));&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
@@ -1345,9 +827,7 @@ loading="lazy"
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nf">mutex_exit&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="o">&amp;amp;&lt;/span>&lt;span class="n">trx_sys&lt;/span>&lt;span class="o">-&amp;gt;&lt;/span>&lt;span class="n">mutex&lt;/span>&lt;span class="p">);&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
-&lt;/div>
-&lt;/div>&lt;h3 id="快照读和当前读">快照读和当前读
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="快照读和当前读">快照读和当前读
 &lt;/h3>&lt;p>快照读：当前执行的sql如果不存在锁，那么默认读到的就是readview里的快照，这种情况称之为快照读；&lt;/p>
 &lt;p>当前读：如果当前执行的sql存在锁，比如使用了lock in share mode,for update，或者是insert、update、delete操作，对于这种需要锁的sql，必须读取最新的视图，这种行为称之为当前读；&lt;/p>
 &lt;p>我个人理解只有在RR级别才需要区分对待，RC级别都是当前读；而且我认为二者的区别就只有加锁和不加锁这一个点&lt;/p>
@@ -1385,20 +865,7 @@ loading="lazy"
 &lt;p>&lt;img src="http://picgo.qisiii.asia/post/w39dhfwj7v37x15wz_psyqmc0000gn/T/510fd3bda9179c530cc27d8f0375c748.jpg"
 loading="lazy"
 >&lt;/p>
-&lt;div class="highlight">&lt;div class="chroma">
-&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
-&lt;/span>&lt;span class="lnt">2
-&lt;/span>&lt;span class="lnt">3
-&lt;/span>&lt;span class="lnt">4
-&lt;/span>&lt;span class="lnt">5
-&lt;/span>&lt;span class="lnt">6
-&lt;/span>&lt;span class="lnt">7
-&lt;/span>&lt;span class="lnt">8
-&lt;/span>&lt;span class="lnt">9
-&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
-&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code class="language-Bash" data-lang="Bash">&lt;span class="line">&lt;span class="cl">//console1
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-Bash" data-lang="Bash">&lt;span class="line">&lt;span class="cl">//console1
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">select&lt;/span> * from simple&lt;span class="p">;&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">select&lt;/span> * from simple where id &amp;lt;&lt;span class="m">10&lt;/span> lock in share mode &lt;span class="p">;&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">//console2
@@ -1407,9 +874,7 @@ loading="lazy"
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">这个时候理论上事务2应该可以顺利插入id为6的记录，毕竟我们虽然加了读锁；但是记录都不存在必然也锁不住；
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">但是我们会发现insert这条语句被阻塞了，在等待一会之后会报下面的错
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Lock &lt;span class="nb">wait&lt;/span> timeout exceeded&lt;span class="p">;&lt;/span> try restarting transaction
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
-&lt;/div>
-&lt;/div>&lt;p>既然锁等待了，就必然存在一个锁，不过锁的部分我还需要再研究研究。&lt;/p>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>既然锁等待了，就必然存在一个锁，不过锁的部分我还需要再研究研究。&lt;/p>
 &lt;p>预计将在下一篇文章中介绍，敬请期待&amp;hellip;&lt;/p>
 &lt;h1 id="参考资料">参考资料：
 &lt;/h1>&lt;p>&lt;a class="link" href="https://juejin.cn/post/6949909210339639326" target="_blank" rel="noopener"
@@ -1425,24 +890,7 @@ loading="lazy"
 &lt;/h2>&lt;p>读未提交、读已提交、可重复读、串行化&lt;/p>
 &lt;h3 id="串行化">串行化
 &lt;/h3>&lt;p>对事务中所有读写的数据加上读锁、写锁、范围锁。所以冲突的事务必须同步执行。&lt;/p>
-&lt;div class="highlight">&lt;div class="chroma">
-&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
-&lt;/span>&lt;span class="lnt"> 2
-&lt;/span>&lt;span class="lnt"> 3
-&lt;/span>&lt;span class="lnt"> 4
-&lt;/span>&lt;span class="lnt"> 5
-&lt;/span>&lt;span class="lnt"> 6
-&lt;/span>&lt;span class="lnt"> 7
-&lt;/span>&lt;span class="lnt"> 8
-&lt;/span>&lt;span class="lnt"> 9
-&lt;/span>&lt;span class="lnt">10
-&lt;/span>&lt;span class="lnt">11
-&lt;/span>&lt;span class="lnt">12
-&lt;/span>&lt;span class="lnt">13
-&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
-&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code class="language-SQL" data-lang="SQL">&lt;span class="line">&lt;span class="cl">&lt;span class="o">//&lt;/span>&lt;span class="n">console1&lt;/span>&lt;span class="w">
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-SQL" data-lang="SQL">&lt;span class="line">&lt;span class="cl">&lt;span class="o">//&lt;/span>&lt;span class="n">console1&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">start&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">transaction&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">select&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">from&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">transaction_test&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">where&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">`&lt;/span>&lt;span class="k">key&lt;/span>&lt;span class="o">`=&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">update&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">transaction_test&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">set&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">name&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s1">&amp;#39;newTest&amp;#39;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">where&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">`&lt;/span>&lt;span class="k">key&lt;/span>&lt;span class="o">`=&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
@@ -1455,34 +903,10 @@ loading="lazy"
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">commit&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">;(&lt;/span>&lt;span class="err">提交完之后如果事务&lt;/span>&lt;span class="mi">2&lt;/span>&lt;span class="err">没有等待超时，那么会立即执行&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="o">//&lt;/span>&lt;span class="n">console2&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">commit&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
-&lt;/div>
-&lt;/div>&lt;h3 id="可重复读">可重复读
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="可重复读">可重复读
 &lt;/h3>&lt;p>核心是只对事务中所有读写的数据加上读锁、写锁，不加范围锁。本应该如此，但是有mvcc优化。&lt;/p>
 &lt;p>相比于读已提交，由于对整个事务都加上了读锁，避免其他事务可以进行更新，进而保证同一个事务多次读到的数据都是没有被修改过的数据。&lt;/p>
-&lt;div class="highlight">&lt;div class="chroma">
-&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
-&lt;/span>&lt;span class="lnt"> 2
-&lt;/span>&lt;span class="lnt"> 3
-&lt;/span>&lt;span class="lnt"> 4
-&lt;/span>&lt;span class="lnt"> 5
-&lt;/span>&lt;span class="lnt"> 6
-&lt;/span>&lt;span class="lnt"> 7
-&lt;/span>&lt;span class="lnt"> 8
-&lt;/span>&lt;span class="lnt"> 9
-&lt;/span>&lt;span class="lnt">10
-&lt;/span>&lt;span class="lnt">11
-&lt;/span>&lt;span class="lnt">12
-&lt;/span>&lt;span class="lnt">13
-&lt;/span>&lt;span class="lnt">14
-&lt;/span>&lt;span class="lnt">15
-&lt;/span>&lt;span class="lnt">16
-&lt;/span>&lt;span class="lnt">17
-&lt;/span>&lt;span class="lnt">18
-&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
-&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code class="language-SQL" data-lang="SQL">&lt;span class="line">&lt;span class="cl">&lt;span class="c1">----避免可重复读----
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-SQL" data-lang="SQL">&lt;span class="line">&lt;span class="cl">&lt;span class="c1">----避免可重复读----
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="n">name初始值为init&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="o">//&lt;/span>&lt;span class="n">console1&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">start&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">transaction&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
@@ -1500,32 +924,9 @@ loading="lazy"
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">commit&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="o">//&lt;/span>&lt;span class="n">console2&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">commit&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
-&lt;/div>
-&lt;/div>&lt;p>相比于串行化，由于没有加范围锁，会引发一种叫幻读的情况&lt;/p>
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>相比于串行化，由于没有加范围锁，会引发一种叫幻读的情况&lt;/p>
 &lt;p>所谓幻读是指在同一个事务中，第一次查询id&amp;lt;10的假定有1条，第二次查询可能会有2条，原因是在两次查询的中间，存在别的事务插入或者删除了数据，由于事务A只加了读锁或者写锁，只能防止其他事务对已经加锁的这几条数据进行修改，但避免不了插入和删除，所以才会出现这个问题。&lt;/p>
-&lt;div class="highlight">&lt;div class="chroma">
-&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
-&lt;/span>&lt;span class="lnt"> 2
-&lt;/span>&lt;span class="lnt"> 3
-&lt;/span>&lt;span class="lnt"> 4
-&lt;/span>&lt;span class="lnt"> 5
-&lt;/span>&lt;span class="lnt"> 6
-&lt;/span>&lt;span class="lnt"> 7
-&lt;/span>&lt;span class="lnt"> 8
-&lt;/span>&lt;span class="lnt"> 9
-&lt;/span>&lt;span class="lnt">10
-&lt;/span>&lt;span class="lnt">11
-&lt;/span>&lt;span class="lnt">12
-&lt;/span>&lt;span class="lnt">13
-&lt;/span>&lt;span class="lnt">14
-&lt;/span>&lt;span class="lnt">15
-&lt;/span>&lt;span class="lnt">16
-&lt;/span>&lt;span class="lnt">17
-&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
-&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code class="language-SQL" data-lang="SQL">&lt;span class="line">&lt;span class="cl">&lt;span class="c1">----幻读----
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-SQL" data-lang="SQL">&lt;span class="line">&lt;span class="cl">&lt;span class="c1">----幻读----
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="err">初始是&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">name&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="o">//&lt;/span>&lt;span class="n">console1&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">start&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">transaction&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
@@ -1542,47 +943,13 @@ loading="lazy"
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="n">MVCC的优化&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">commit&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">select&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">from&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">transaction_test&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">where&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">`&lt;/span>&lt;span class="k">key&lt;/span>&lt;span class="o">`&amp;lt;&lt;/span>&lt;span class="mi">10&lt;/span>&lt;span class="p">;(&lt;/span>&lt;span class="err">提交之后再次查询就有新结果了）&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
-&lt;/div>
-&lt;/div>&lt;h3 id="读已提交">读已提交
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="读已提交">读已提交
 &lt;/h3>&lt;p>核心是对事务中需要更新的操作行加写锁，直到事务结束，但对&lt;strong>查询的操作行加读锁，但在查询完之后立即释放，即不是在整个事务范围锁定&lt;/strong>。&lt;/p>
 &lt;p>读已提交通过对查询操作加锁来避免读未提交，在事务B修改数据时因为其在事务结束之前一直持有写锁，事务A无法对数据加读锁，只能等待事务B提交事务才可以读取，这也是读已提交的名称的由来。&lt;/p>
 &lt;p>虽然解决了读未提交的问题，但是由于只在查询的时候短暂加了读锁，引发了另一个不可重复读的问题；&lt;/p>
 &lt;p>所谓不可重复读是指在同一个事务中，对于同样一条数据的两次查询结果不一样，那么这个和幻读有什么区别呢？幻读整个事务中都存在读锁或者写锁，其他事务无法修改，只能增删；但是不可重复读，则是指当前已经查到的结果被更新了。&lt;/p>
 &lt;p>原因是假如同一个事务两次查询中间，别的事务进行了修改，由于事务A没有加整个事务范围的读锁，所以事务B是可以成功获取写锁的，进而修改数据，最终导致了不可重复读。&lt;/p>
-&lt;div class="highlight">&lt;div class="chroma">
-&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
-&lt;/span>&lt;span class="lnt"> 2
-&lt;/span>&lt;span class="lnt"> 3
-&lt;/span>&lt;span class="lnt"> 4
-&lt;/span>&lt;span class="lnt"> 5
-&lt;/span>&lt;span class="lnt"> 6
-&lt;/span>&lt;span class="lnt"> 7
-&lt;/span>&lt;span class="lnt"> 8
-&lt;/span>&lt;span class="lnt"> 9
-&lt;/span>&lt;span class="lnt">10
-&lt;/span>&lt;span class="lnt">11
-&lt;/span>&lt;span class="lnt">12
-&lt;/span>&lt;span class="lnt">13
-&lt;/span>&lt;span class="lnt">14
-&lt;/span>&lt;span class="lnt">15
-&lt;/span>&lt;span class="lnt">16
-&lt;/span>&lt;span class="lnt">17
-&lt;/span>&lt;span class="lnt">18
-&lt;/span>&lt;span class="lnt">19
-&lt;/span>&lt;span class="lnt">20
-&lt;/span>&lt;span class="lnt">21
-&lt;/span>&lt;span class="lnt">22
-&lt;/span>&lt;span class="lnt">23
-&lt;/span>&lt;span class="lnt">24
-&lt;/span>&lt;span class="lnt">25
-&lt;/span>&lt;span class="lnt">26
-&lt;/span>&lt;span class="lnt">27
-&lt;/span>&lt;span class="lnt">28
-&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
-&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code class="language-SQL" data-lang="SQL">&lt;span class="line">&lt;span class="cl">&lt;span class="c1">---避免读未提交----
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-SQL" data-lang="SQL">&lt;span class="line">&lt;span class="cl">&lt;span class="c1">---避免读未提交----
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="n">name初始值是init&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="o">//&lt;/span>&lt;span class="n">console1&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">start&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">transaction&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
@@ -1610,9 +977,7 @@ loading="lazy"
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="o">//&lt;/span>&lt;span class="n">console1&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">select&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">from&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">transaction_test&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">where&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">`&lt;/span>&lt;span class="k">key&lt;/span>&lt;span class="o">`=&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">;(&lt;/span>&lt;span class="err">第二次查询是&lt;/span>&lt;span class="n">test&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">commit&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
-&lt;/div>
-&lt;/div>&lt;h3 id="读未提交">读未提交
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="读未提交">读未提交
 &lt;/h3>&lt;p>核心是对事务中需要更新的操作行加写锁，直到事务结束，但对&lt;strong>查询的操作行不加锁&lt;/strong>。&lt;/p>
 &lt;p>引发的问题是脏读，其实就是读到了其他事务还没有提交的数据；那么为什么事务A可以读到事务B还没有提交的数据？&lt;/p>
 &lt;p>分为两步理解:&lt;/p>
@@ -1621,41 +986,7 @@ loading="lazy"
 &lt;p>2.为什么可以读到已经加了写锁的数据&lt;/p>
 &lt;p>原因是读未提交读取数据是不加读锁的，而写锁只能防止其他事物不能加读锁和写锁，而不能防止没有锁 也可以看一下&lt;a class="link" href="https://www.cnblogs.com/henuqin/articles/16533094.html" target="_blank" rel="noopener"
 >这篇博客&lt;/a>的解释&lt;/p>
-&lt;div class="highlight">&lt;div class="chroma">
-&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
-&lt;/span>&lt;span class="lnt"> 2
-&lt;/span>&lt;span class="lnt"> 3
-&lt;/span>&lt;span class="lnt"> 4
-&lt;/span>&lt;span class="lnt"> 5
-&lt;/span>&lt;span class="lnt"> 6
-&lt;/span>&lt;span class="lnt"> 7
-&lt;/span>&lt;span class="lnt"> 8
-&lt;/span>&lt;span class="lnt"> 9
-&lt;/span>&lt;span class="lnt">10
-&lt;/span>&lt;span class="lnt">11
-&lt;/span>&lt;span class="lnt">12
-&lt;/span>&lt;span class="lnt">13
-&lt;/span>&lt;span class="lnt">14
-&lt;/span>&lt;span class="lnt">15
-&lt;/span>&lt;span class="lnt">16
-&lt;/span>&lt;span class="lnt">17
-&lt;/span>&lt;span class="lnt">18
-&lt;/span>&lt;span class="lnt">19
-&lt;/span>&lt;span class="lnt">20
-&lt;/span>&lt;span class="lnt">21
-&lt;/span>&lt;span class="lnt">22
-&lt;/span>&lt;span class="lnt">23
-&lt;/span>&lt;span class="lnt">24
-&lt;/span>&lt;span class="lnt">25
-&lt;/span>&lt;span class="lnt">26
-&lt;/span>&lt;span class="lnt">27
-&lt;/span>&lt;span class="lnt">28
-&lt;/span>&lt;span class="lnt">29
-&lt;/span>&lt;span class="lnt">30
-&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
-&lt;td class="lntd">
-&lt;pre tabindex="0" class="chroma">&lt;code class="language-SQL" data-lang="SQL">&lt;span class="line">&lt;span class="cl">&lt;span class="k">show&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">variables&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">like&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;transaction%&amp;#39;&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-SQL" data-lang="SQL">&lt;span class="line">&lt;span class="cl">&lt;span class="k">show&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">variables&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">like&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;transaction%&amp;#39;&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">set&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">global&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">transaction&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">isolation&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">level&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">read&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">uncommitted&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="o">//&lt;/span>&lt;span class="err">设置完之后要重新登录&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">CREATE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">TABLE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">`&lt;/span>&lt;span class="n">transaction_test&lt;/span>&lt;span class="o">`&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="o">`&lt;/span>&lt;span class="k">key&lt;/span>&lt;span class="o">`&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">int&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">11&lt;/span>&lt;span class="p">),&lt;/span>&lt;span class="w">
@@ -1685,9 +1016,7 @@ loading="lazy"
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">commit&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="err">（在事务&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="err">提交成功后，事务&lt;/span>&lt;span class="mi">2&lt;/span>&lt;span class="err">的更新立马就成功了&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="o">//&lt;/span>&lt;span class="n">console2&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">commit&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
-&lt;/div>
-&lt;/div>&lt;h2 id="参考资料">参考资料：
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="参考资料">参考资料：
 &lt;/h2>&lt;p>&lt;a class="link" href="https://time.geekbang.org/column/article/319988" target="_blank" rel="noopener"
 >12 | 本地事务如何实现隔离性？-极客时间&lt;/a>&lt;/p>
 &lt;p>&lt;a class="link" href="https://time.geekbang.org/column/article/68963" target="_blank" rel="noopener"
