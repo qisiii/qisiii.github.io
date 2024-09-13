@@ -1522,14 +1522,20 @@ loading="lazy"
 >hugo-comments&lt;/a>|&lt;a class="link" href="https://stack.jimmycai.com/config/comments" target="_blank" rel="noopener"
 >Comments | Stack&lt;/a>，我选择的是&lt;/p>
 &lt;ul>
-&lt;li>&lt;a class="link" href="https://twikoo.js.org/" target="_blank" rel="noopener"
->Twikoo&lt;/a>&lt;/li>
+&lt;li>&lt;del>&lt;a class="link" href="https://twikoo.js.org/" target="_blank" rel="noopener"
+>Twikoo&lt;/a>&lt;/del>&lt;/li>
 &lt;/ul>
-&lt;p>建议跟着&lt;a class="link" href="https://twikoo.js.org/quick-start.html" target="_blank" rel="noopener"
+&lt;p>&lt;del>建议跟着&lt;a class="link" href="https://twikoo.js.org/quick-start.html" target="_blank" rel="noopener"
 >快速上手 | Twikoo 文档&lt;/a>去部署一遍，我这里选用的是&lt;a class="link" href="https://twikoo.js.org/backend.html#hugging-face-%E9%83%A8%E7%BD%B2" target="_blank" rel="noopener"
->Hugging Face&lt;/a>免费部署的方案。&lt;/p>
-&lt;p>部署主要有两部分：一部分是生成一个mogodb的密钥串，二部分则是在hugging face上新建空间和项目，最终获得envId&lt;/p>
-&lt;p>然后修改站点配置文件&lt;/p>
+>Hugging Face&lt;/a>免费部署的方案。&lt;/del>&lt;/p>
+&lt;p>&lt;del>部署主要有两部分：一部分是生成一个mogodb的密钥串，二部分则是在hugging face上新建空间和项目，最终获得envId&lt;/del>&lt;/p>
+&lt;p>&lt;del>然后修改站点配置文件&lt;/del>&lt;/p>
+&lt;p>Gitalk&lt;/p>
+&lt;p>Gitalk本身就依赖的是github的issue功能，因此不需要额外部署；但是需要&lt;a class="link" href="https://github.com/settings/applications/new" target="_blank" rel="noopener"
+>创建一个OAuthApp&lt;/a>&lt;/p>
+&lt;p>&lt;img src="http://picgo.qisiii.asia/post/w39dhfwj7v37x15wz_psyqmc0000gn/T/b93cbeb90b75ad006cdb23c2575d8113.jpg"
+loading="lazy"
+>&lt;/p>
 &lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl"> comments:
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> enabled: true
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> provider: twikoo
@@ -1538,6 +1544,12 @@ loading="lazy"
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> region:
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> path:
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> lang:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> gitalk:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> owner: github用户名
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> admin: github用户名
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> repo: 建议填博客项目，比如我的是qisiii.github.io
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> clientID: OAuthApp创建得到
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> clientSecret: OAuthApp创建得到
 &lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="自定义博客的路径名">自定义博客的路径名：
 &lt;/h2>&lt;h3 id="slug">slug:
 &lt;/h3>&lt;p>一个正常的网址格式是下面这样的，其中路径的最后一段就是slug。&lt;/p>
