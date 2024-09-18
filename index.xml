@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>起司的博客</title><link>https://qisiii.github.io/</link><description>Recent content on 起司的博客</description><generator>Hugo -- gohugo.io</generator><language>zh-cn</language><copyright>起司</copyright><lastBuildDate>Fri, 13 Sep 2024 23:10:22 +0800</lastBuildDate><atom:link href="https://qisiii.github.io/index.xml" rel="self" type="application/rss+xml"/><item><title>其他算法</title><link>https://qisiii.github.io/post/algorithm/other/</link><pubDate>Thu, 12 Sep 2024 20:07:49 +0800</pubDate><guid>https://qisiii.github.io/post/algorithm/other/</guid><description>&lt;h2 id="哈希表">哈希表
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>起司的博客</title><link>https://qisiii.github.io/</link><description>Recent content on 起司的博客</description><generator>Hugo -- gohugo.io</generator><language>zh-cn</language><copyright>起司</copyright><lastBuildDate>Sat, 14 Sep 2024 21:09:08 +0800</lastBuildDate><atom:link href="https://qisiii.github.io/index.xml" rel="self" type="application/rss+xml"/><item><title>其他算法</title><link>https://qisiii.github.io/post/algorithm/other/</link><pubDate>Thu, 12 Sep 2024 20:07:49 +0800</pubDate><guid>https://qisiii.github.io/post/algorithm/other/</guid><description>&lt;h2 id="哈希表">哈希表
 &lt;/h2>&lt;h3 id="快乐数">快乐数
 &lt;/h3>&lt;p>编写一个算法来判断一个数 &lt;code>n&lt;/code> 是不是快乐数。&lt;/p>
 &lt;p>&lt;strong>「快乐数」&lt;/strong> 定义为：&lt;/p>
@@ -1538,7 +1538,7 @@ loading="lazy"
 >&lt;/p>
 &lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl"> comments:
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> enabled: true
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> provider: twikoo
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> provider: gitalk
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">     twikoo:
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> envId: https://你的项目空间.hf.space
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> region:
