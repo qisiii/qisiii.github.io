@@ -1,7 +1,7 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Zookeeper on 起司的博客</title><link>https://qisiii.github.io/tags/zookeeper/</link><description>Recent content in Zookeeper on 起司的博客</description><generator>Hugo -- gohugo.io</generator><language>zh-cn</language><copyright>起司</copyright><lastBuildDate>Sat, 28 Sep 2024 15:30:04 +0800</lastBuildDate><atom:link href="https://qisiii.github.io/tags/zookeeper/index.xml" rel="self" type="application/rss+xml"/><item><title>AccpetEpoch和CurrentEpoch区别</title><link>https://qisiii.github.io/post/tech/distributed/zookeeper/diff_accpetepoch_currentepoch/</link><pubDate>Sat, 28 Sep 2024 15:30:04 +0800</pubDate><guid>https://qisiii.github.io/post/tech/distributed/zookeeper/diff_accpetepoch_currentepoch/</guid><description>&lt;p>最近在看&lt;a class="link" href="%22https://raft.github.io/raft.pdf%22" >Raft算法&lt;/a>，在看到一些文档说Zab和Raft区别时总觉得我看源码了解到的不同，但也不知道是不是版本的问题。保险起见，我去读了一下&lt;a class="link" href="http://www.tcs.hut.fi/Studies/T-79.5001/reports/2012-deSouzaMedeiros.pdf" target="_blank" rel="noopener"
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Zookeeper on 起司的博客</title><link>https://qisiii.github.io/tags/zookeeper/</link><description>Recent content in Zookeeper on 起司的博客</description><generator>Hugo -- gohugo.io</generator><language>zh-cn</language><copyright>起司</copyright><lastBuildDate>Sat, 28 Sep 2024 15:30:04 +0800</lastBuildDate><atom:link href="https://qisiii.github.io/tags/zookeeper/index.xml" rel="self" type="application/rss+xml"/><item><title>AcceptEpoch和CurrentEpoch区别</title><link>https://qisiii.github.io/post/tech/distributed/zookeeper/diff_acceptepoch_currentepoch/</link><pubDate>Sat, 28 Sep 2024 15:30:04 +0800</pubDate><guid>https://qisiii.github.io/post/tech/distributed/zookeeper/diff_acceptepoch_currentepoch/</guid><description>&lt;p>最近在看&lt;a class="link" href="%22https://raft.github.io/raft.pdf%22" >Raft算法&lt;/a>，在看到一些文档说Zab和Raft区别时总觉得我看源码了解到的不同，但也不知道是不是版本的问题。保险起见，我去读了一下&lt;a class="link" href="http://www.tcs.hut.fi/Studies/T-79.5001/reports/2012-deSouzaMedeiros.pdf" target="_blank" rel="noopener"
 >Zab论文&lt;/a>。在论文最后一部分，有提到&lt;a class="link" href="https://issues.apache.org/jira/browse/ZOOKEEPER-335" target="_blank" rel="noopener"
 >ZOOKEEPER-335&lt;/a>，让我想起了当时看源码时选举之后那多个&amp;quot;countdown机制&amp;quot;的waitfor方法，当时也觉得云里雾里，于是借着论文理解一下这个issue，顺带再理清一下Zab。&lt;/p>
-&lt;h2 id="accpetepoch和currentepoch是个啥">AccpetEpoch和currentEpoch是个啥？
+&lt;h2 id="acceptepoch和currentepoch是个啥">AcceptEpoch和currentEpoch是个啥？
 &lt;/h2>&lt;blockquote>
 &lt;p>As mentioned, the implementation up to version 3.3.3 has not included epoch vari-ables acceptedEpoch and currentEpoch. This omission has generated problems [5] (issue ZOOKEEPER-335 in Apache’s issue tracking system) in a production version and was noticed by many ZooKeeper clients. The origin of this problem is at the beginning of Recovery Phase (Algorithm 4 line 2), when the leader increments its epoch (contained in lastZxid) even before acquiring a quorum of successfully connected followers (such leader is called false leader). Since a follower goes back to FLE if its epoch is larger than the leader’s epoch (line 25), when a false leader drops leadership and becomes a follower of a leader from a previous epoch, it finds a smaller epoch (line 25 )and goes back to FLE. This behavior can loop, switching from Recovery Phase to FLE.&lt;/p>
 &lt;/blockquote>
@@ -14,14 +14,14 @@
 &lt;p>但是在B和C建立连接之前，B收到了来自A的消息，回归了A的怀抱，C无法和B建立连接了，因为B已经不是Looking状态了。C只能放弃这个Leader身份（超时异常），然后再次进入FLE阶段并接受到了来自A的消息，然后发现自己的Epoch(2)大于Leader的Epoch(1)，于是又进入了FLE阶段，如此循环。&lt;/p>
 &lt;hr>
 &lt;p>在A的角度来看，自己并没有挂掉，不存在让出Leader的可能，在C的角度来看，自己明明是靠大多数节点的选择当选的Leader且自己的Epoch就是更大，但是现在就是联系不上其他节点，且还有一个存活的Leader把持着大部分节点。&lt;/p>
-&lt;p>如果想要破局，只有A承认C和C承认A这两种情况，相比之下第一种更合理，因为此时A占有大多数节点的连接（投票），是大多数认可的Leader，C只有口头投票，没有持有他们的连接。总结发现，只有拥有大多数投票，且持有大多数连接的才是真正的Leader，AccpetEpoch和CurrentEpoch就是这样一种方案。&lt;/p>
-&lt;p>CurrentEpoch还是Zxid里的那个概念，主要是AccpetEpoch。&lt;/p>
-&lt;p>本来两个节点比较的是由zxid取到的Epoch，可以理解为是当前节点自己所认为的周期。但是这个无法证明谁是持有了大多数，因此多增加了一个AccpetEpoch，表示的是大多数节点共识的周期，它的赋值是在Leader和Follwer建立连接之后。&lt;/p>
+&lt;p>如果想要破局，只有A承认C和C承认A这两种情况，相比之下第一种更合理，因为此时A占有大多数节点的连接（投票），是大多数认可的Leader，C只有口头投票，没有持有他们的连接。总结发现，只有拥有大多数投票，且持有大多数连接的才是真正的Leader，AcceptEpoch和CurrentEpoch就是这样一种方案。&lt;/p>
+&lt;p>CurrentEpoch还是Zxid里的那个概念，主要是AcceptEpoch。&lt;/p>
+&lt;p>本来两个节点比较的是由zxid取到的Epoch，可以理解为是当前节点自己所认为的周期。但是这个无法证明谁是持有了大多数，因此多增加了一个AcceptEpoch，表示的是大多数节点共识的周期，它的赋值是在Leader和Follwer建立连接之后。&lt;/p>
 &lt;p>流程是口头投票（预备Leader)&amp;ndash;和其他节点建立连接&amp;mdash;商讨并确认最新的Epoch。&lt;/p>
 &lt;p>&lt;img src="http://picgo.qisiii.asia/post/w39dhfwj7v37x15wz_psyqmc0000gn/T/f67beb0ade6d6246792b5d30926b5391.jpg"
 loading="lazy"
 >&lt;/p>
-&lt;p>新的Follower节点加入的时候要比的就是这个AccpetEpoch，小于等于Leader都是正常，只有大于才是异常，因为大于代表着该节点持有大部分节点的连接，那老的Leader就肯定只有少部分节点甚至挂掉了。&lt;/p>
+&lt;p>新的Follower节点加入的时候要比的就是这个AcceptEpoch，小于等于Leader都是正常，只有大于才是异常，因为大于代表着该节点持有大部分节点的连接，那老的Leader就肯定只有少部分节点甚至挂掉了。&lt;/p>
 &lt;p>&lt;img src="http://picgo.qisiii.asia/post/w39dhfwj7v37x15wz_psyqmc0000gn/T/1886dc66cced7efa86a9e4e0b3c3c4bc.jpg"
 loading="lazy"
 >&lt;/p>

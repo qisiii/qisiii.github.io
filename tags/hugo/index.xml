@@ -115,8 +115,8 @@ loading="lazy"
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> owner: github用户名
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> admin: github用户名
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> repo: 建议填博客项目，比如我的是qisiii.github.io
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> clientID: OAuthApp创建得到
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> clientSecret: OAuthApp创建得到
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> clientID: OAuthApp创建得到
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> clientSecret: OAuthApp创建得到
 &lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="自定义博客的路径名">自定义博客的路径名：
 &lt;/h2>&lt;h3 id="slug">slug:
 &lt;/h3>&lt;p>一个正常的网址格式是下面这样的，其中路径的最后一段就是slug。&lt;/p>
