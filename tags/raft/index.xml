@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Raft on 起司的博客</title><link>https://qisiii.github.io/tags/raft/</link><description>Recent content in Raft on 起司的博客</description><generator>Hugo -- gohugo.io</generator><language>zh-cn</language><copyright>起司</copyright><lastBuildDate>Sat, 28 Sep 2024 15:30:04 +0800</lastBuildDate><atom:link href="https://qisiii.github.io/tags/raft/index.xml" rel="self" type="application/rss+xml"/><item><title>AccpetEpoch和CurrentEpoch区别</title><link>https://qisiii.github.io/post/tech/distributed/zookeeper/diff_accpetepoch_currentepoch/</link><pubDate>Sat, 28 Sep 2024 15:30:04 +0800</pubDate><guid>https://qisiii.github.io/post/tech/distributed/zookeeper/diff_accpetepoch_currentepoch/</guid><description>&lt;p>最近在看&lt;a class="link" href="%22https://raft.github.io/raft.pdf%22" >Raft算法&lt;/a>，在看到一些文档说Zab和Raft区别时总觉得我看源码了解到的不同，但也不知道是不是版本的问题。保险起见，我去读了一下&lt;a class="link" href="http://www.tcs.hut.fi/Studies/T-79.5001/reports/2012-deSouzaMedeiros.pdf" target="_blank" rel="noopener"
+>Zab论文&lt;/a>。在论文最后一部分，有提到&lt;a class="link" href="https://issues.apache.org/jira/browse/ZOOKEEPER-335" target="_blank" rel="noopener"
+>ZOOKEEPER-335&lt;/a>，让我想起了当时看源码时选举之后那多个&amp;quot;countdown机制&amp;quot;的waitfor方法，当时也觉得云里雾里，于是借着论文理解一下这个issue，顺带再理清一下Zab。&lt;/p>
+&lt;h2 id="accpetepoch和currentepoch是个啥">AccpetEpoch和currentEpoch是个啥？
+&lt;/h2>&lt;blockquote>
+&lt;p>As mentioned, the implementation up to version 3.3.3 has not included epoch vari-ables acceptedEpoch and currentEpoch. This omission has generated problems [5] (issue ZOOKEEPER-335 in Apache’s issue tracking system) in a production version and was noticed by many ZooKeeper clients. The origin of this problem is at the beginning of Recovery Phase (Algorithm 4 line 2), when the leader increments its epoch (contained in lastZxid) even before acquiring a quorum of successfully connected followers (such leader is called false leader). Since a follower goes back to FLE if its epoch is larger than the leader’s epoch (line 25), when a false leader drops leadership and becomes a follower of a leader from a previous epoch, it finds a smaller epoch (line 25 )and goes back to FLE. This behavior can loop, switching from Recovery Phase to FLE.&lt;/p>
+&lt;/blockquote>
+&lt;p>原文的大致意思是，当一个集群出现一个假Leader（单是选举阶段得到了票数并Epoch+1但是后面没有和自己的Follower建立连接），在假Leader执行到Recovery（崩溃恢复）阶段时失败会重回FLE（快速选举阶段），然后作为真Leader的一个Follower，但此时由于假Leader的Epoch要更高，会再次回到FLE，如此循环。&lt;/p>
+&lt;h3 id="模拟过程">模拟过程
+&lt;/h3>&lt;p>首先，我们通过一个场景模拟并理解一下里面的假Leader，在这种场景中Epoch是从Zxid获取的。&lt;/p>
+&lt;p>假如集群现在是ABC三个节点，A节点是Leader，BC是Follower（且C的事务ID比B大），假设此时的Epoch是1。&lt;/p>
+&lt;p>此时BC因为网络问题重启了会尝试再次选举，假设此时BC的投票信息要快于A节点的正常消息（不然收到A的消息就加入A成为Follower了），那么C获得两票成为新的Leader，此时C的Epoch为2，A的Epoch为1。&lt;/p>
+&lt;p>接下来正常的流程应该是C和B建立连接作为大多数活下去，A由于联系不上其他节点超时之后重新进入选举流程。&lt;/p>
+&lt;p>但是在B和C建立连接之前，B收到了来自A的消息，回归了A的怀抱，C无法和B建立连接了，因为B已经不是Looking状态了。C只能放弃这个Leader身份（超时异常），然后再次进入FLE阶段并接受到了来自A的消息，然后发现自己的Epoch(2)大于Leader的Epoch(1)，于是又进入了FLE阶段，如此循环。&lt;/p>
+&lt;hr>
+&lt;p>在A的角度来看，自己并没有挂掉，不存在让出Leader的可能，在C的角度来看，自己明明是靠大多数节点的选择当选的Leader且自己的Epoch就是更大，但是现在就是联系不上其他节点，且还有一个存活的Leader把持着大部分节点。&lt;/p>
+&lt;p>如果想要破局，只有A承认C和C承认A这两种情况，相比之下第一种更合理，因为此时A占有大多数节点的连接（投票），是大多数认可的Leader，C只有口头投票，没有持有他们的连接。总结发现，只有拥有大多数投票，且持有大多数连接的才是真正的Leader，AccpetEpoch和CurrentEpoch就是这样一种方案。&lt;/p>
+&lt;p>CurrentEpoch还是Zxid里的那个概念，主要是AccpetEpoch。&lt;/p>
+&lt;p>本来两个节点比较的是由zxid取到的Epoch，可以理解为是当前节点自己所认为的周期。但是这个无法证明谁是持有了大多数，因此多增加了一个AccpetEpoch，表示的是大多数节点共识的周期，它的赋值是在Leader和Follwer建立连接之后。&lt;/p>
+&lt;p>流程是口头投票（预备Leader)&amp;ndash;和其他节点建立连接&amp;mdash;商讨并确认最新的Epoch。&lt;/p>
+&lt;p>&lt;img src="http://picgo.qisiii.asia/post/w39dhfwj7v37x15wz_psyqmc0000gn/T/f67beb0ade6d6246792b5d30926b5391.jpg"
+loading="lazy"
+>&lt;/p>
+&lt;p>新的Follower节点加入的时候要比的就是这个AccpetEpoch，小于等于Leader都是正常，只有大于才是异常，因为大于代表着该节点持有大部分节点的连接，那老的Leader就肯定只有少部分节点甚至挂掉了。&lt;/p>
+&lt;p>&lt;img src="http://picgo.qisiii.asia/post/w39dhfwj7v37x15wz_psyqmc0000gn/T/1886dc66cced7efa86a9e4e0b3c3c4bc.jpg"
+loading="lazy"
+>&lt;/p>
+&lt;h3 id="理解过程中的一些问题">理解过程中的一些问题
+&lt;/h3>&lt;ol>
+&lt;li>
+&lt;p>会不会出现假Leader的情况？&lt;/p>
+&lt;p>非常有可能，只要半数以上节点重新发起投票，必然会选出一个Leader&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>为什么半数节点都重新选举了，原来的Leader没有&amp;quot;挂掉&amp;quot;呢？&lt;/p>
+&lt;p>因为Leader不会每时每刻都检测，而是tickTime或者tickTime/2的间隔下检查。tickTime默认值是2000ms&lt;/p>
+&lt;p>在下面的代码中，跳出条件是三个&lt;/p>
+&lt;ol>
+&lt;li>
+&lt;p>tickSkip为Fasle&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>Leader少于半数票&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>处理一种特殊情况，节点等于2，且主节点发起了提案，但Follower挂掉，这里我们先不关注这种很特殊的情况&lt;/p>
+&lt;/li>
+&lt;/ol>
+&lt;p>tickSkip是每次循环变动的，因此每两次循环才会检查一次，每次循环还要等tickTime/2的时间，理想的话可能刚好是节点失效的时候是只等待了[0,tickTime/2]时间，且tickSkip刚好是false，最慢的情况是tickSkip为True，那表示要等[tickTime/2,tickTime]时间才能校验。&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-java" data-lang="java">&lt;span class="line">&lt;span class="cl">&lt;span class="kt">boolean&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">tickSkip&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="kc">true&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="c1">//保持法定人数的统计和ping&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">while&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="kc">true&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">{&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="kd">synchronized&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="k">this&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">{&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="kt">long&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">start&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">Time&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">currentElapsedTime&lt;/span>&lt;span class="p">();&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="kt">long&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">cur&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">start&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="kt">long&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">end&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">start&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">self&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">tickTime&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">2&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="c1">//等待tickTime时间&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">while&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">cur&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">&amp;lt;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">end&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">{&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">wait&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">end&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">cur&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">cur&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">Time&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">currentElapsedTime&lt;/span>&lt;span class="p">();&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">}&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">if&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="o">!&lt;/span>&lt;span class="n">tickSkip&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">{&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">self&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">tick&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">incrementAndGet&lt;/span>&lt;span class="p">();&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">}&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">syncedAckSet&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">addAck&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">self&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">getMyId&lt;/span>&lt;span class="p">());&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="c1">//Learner表示Leader和Follower的连接，因此有几个Learner就有几票&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">for&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">LearnerHandler&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">f&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">getLearners&lt;/span>&lt;span class="p">())&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">{&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">if&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">f&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">synced&lt;/span>&lt;span class="p">())&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">{&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">syncedAckSet&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">addAck&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">f&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">getSid&lt;/span>&lt;span class="p">());&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">}&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">}&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="c1">//tickSkip为false才会进检查，也就是说两次循环只有一次会进&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">if&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="o">!&lt;/span>&lt;span class="n">tickSkip&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">&amp;amp;&amp;amp;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">!&lt;/span>&lt;span class="n">syncedAckSet&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">hasAllQuorums&lt;/span>&lt;span class="p">()&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">&amp;amp;&amp;amp;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="o">!&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">self&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">getQuorumVerifier&lt;/span>&lt;span class="p">().&lt;/span>&lt;span class="na">overrideQuorumDecision&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">getForwardingFollowers&lt;/span>&lt;span class="p">())&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">&amp;amp;&amp;amp;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">self&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">getQuorumVerifier&lt;/span>&lt;span class="p">().&lt;/span>&lt;span class="na">revalidateOutstandingProp&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="k">this&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">new&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">ArrayList&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">&amp;lt;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">&amp;gt;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">outstandingProposals&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">values&lt;/span>&lt;span class="p">()),&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">lastCommitted&lt;/span>&lt;span class="p">)))&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">{&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">break&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">}&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="c1">//每次循环变动&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">tickSkip&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">!&lt;/span>&lt;span class="n">tickSkip&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">}&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">for&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">LearnerHandler&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">f&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">getLearners&lt;/span>&lt;span class="p">())&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">{&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">f&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">ping&lt;/span>&lt;span class="p">();&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">}&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="p">}&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="p">}&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/li>
+&lt;/ol>
+&lt;h2 id="zookeeper-1154">ZOOKEEPER-1154
+&lt;/h2>&lt;p>论文中还提交了一个&lt;a class="link" href="https://issues.apache.org/jira/browse/ZOOKEEPER-1154" target="_blank" rel="noopener"
+>ISSUE&lt;/a>，讲的是Recovery阶段的一个问题。是说假设有ABC三个节点，周期为1，Commit进度都是3，表示为（1,3），其中A是Leader；此时LeaderA发起提案（1,4），但是B和C还没收到提案就重启了（进入FLE阶段)，而A也恰好挂掉了。此时B和C经过重新选举定为周期是（2，0），再经过几次提案之后变为（2，n)，&lt;strong>最小提交进度&lt;/strong>（所有节点都确定提交的进度）此时为（1,3），此时A恢复成为B的Follwer，在补足数据的时候因为(1,3)处于(1,1)和(2,n)之间，那么会收到Leader的SNAP或者DIFF，并不会对A节点的(1,4)处理，但是(1,4)其实应该丢弃的。&lt;/p>
+&lt;p>&lt;img src="http://picgo.qisiii.asia/post/w39dhfwj7v37x15wz_psyqmc0000gn/T/19302b7361348dfd5ebd5e0f4792a3de.jpg"
+loading="lazy"
+>&lt;/p>
+&lt;p>这个问题其实已经修复了，在同步的时候特殊处理&lt;/p>
+&lt;p>&lt;img src="http://picgo.qisiii.asia/post/w39dhfwj7v37x15wz_psyqmc0000gn/T/87279c7252409d631c6ca496ae2cc8fc.jpg"
+loading="lazy"
+>&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-java" data-lang="java">&lt;span class="line">&lt;span class="cl">&lt;span class="kd">protected&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="kt">long&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nf">queueCommittedProposals&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">xxxxx&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">{&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="kt">long&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">prevProposalZxid&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="n">1&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">while&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">itr&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">hasNext&lt;/span>&lt;span class="p">())&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">{&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">Proposal&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">propose&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">itr&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">next&lt;/span>&lt;span class="p">();&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="kt">long&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">packetZxid&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">propose&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">packet&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">getZxid&lt;/span>&lt;span class="p">();&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="c1">//跳过已经有的，且将prevProposalZxid指针指向该条，比如这个例子最多指到（1,3)&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">if&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">packetZxid&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">&amp;lt;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">peerLastZxid&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">{&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">prevProposalZxid&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">packetZxid&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">continue&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">}&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">if&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">needOpPacket&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">{&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">if&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">packetZxid&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">==&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">peerLastZxid&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">{&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">queueOpPacket&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">Leader&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">DIFF&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">lastCommittedZxid&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">needOpPacket&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="kc">false&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">continue&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">}&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="c1">//同属于一个周期不存在这种情况&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">if&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">isPeerNewEpochZxid&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">{&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">queueOpPacket&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">Leader&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">DIFF&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">lastCommittedZxid&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">needOpPacket&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="kc">false&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="c1">//这里应该是论文中说的ZOOKEEPER-1154&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="c1">//会在指针首次超过peerLastZxid时，通知Follower丢弃prevProposalZxid到peerLastZxid的数据&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">}&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">else&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">if&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">packetZxid&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">&amp;gt;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">peerLastZxid&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">{&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">queueOpPacket&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">Leader&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">TRUNC&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">prevProposalZxid&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">needOpPacket&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="kc">false&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">}&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">}&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">}&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="p">}&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="raft算法有没有这种情况呢">Raft算法有没有这种情况呢？
+&lt;/h2>&lt;p>需要考虑Raft会不会有假Leader这种情况，通过官网动画构造这么一种情况，&lt;/p>
+&lt;p>S4是Leader，在发出第二个提案之后只有S2收到了，旨在让S2的commit进度比较靠前。然后让S2和S1几乎同时（但要让S1先超时）超时触发下一个周期的选举，且让S5投给S1，S3给S2，这样各有两票，观察S4的投票情况。&lt;/p>
+&lt;video src="https://qisiii.github.io/videos/raft_false_leader.mp4" autoplay="false" controls="controls" width="800" height="600">
+raft投票&lt;/video>
+&lt;p>当S4收到S1的投票提案时，就从Leader转变为了Follower，但是给S1的答复确实拒绝，原因是S1的commit进度要小于S4（这是raft投票规则中的一个条件），当收到S2的投票提案后，给出的答案是同意，因为S2的commit的进度是等于S4的，最终S2成为新的Leader。&lt;/p>
+&lt;p>因此Raft算法不会出现这个Zab的假Leader情况。&lt;/p>
+&lt;p>借此，也可以看出几点Raft算法和Zab的区别：&lt;/p>
+&lt;ol>
+&lt;li>
+&lt;p>Raft的投票流程是比Zab要简单的，其投票只会一进一出，且比较逻辑是周期大&amp;amp;commitId大；Zab的投票则是类似于水波，节点在收到投票后不是单独回复给发送方，而是转发给所有节点。&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>Raft的选举成功就是真的成功了，Zab的FLE阶段选出的Leader只是一个预备Leader，还要和其他节点同步并确定Epoch之后才算是真的Leader&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>Raft的Leader收到消息后立马变为Follower，而Zab的Leader只有真正自己挂了或者节点少于半数了才会重新进入选举阶段。&lt;/p>
+&lt;/li>
+&lt;/ol>
+&lt;h2 id="一种有趣的说法">一种有趣的说法
+&lt;/h2>&lt;p>Raft就好像混帮派，只要你枪大粮多小弟多，你就可以成为新老大，旧老大也会承认你的。&lt;/p>
+&lt;p>Zab更像封建皇权，要么等老皇帝死（挂掉），要么等他失去民心（持有链接少于一半节点），不然其他节点就算竞选也没有机会。&lt;/p>
+&lt;h2 id="参考文档">参考文档：
+&lt;/h2>&lt;p>&lt;a class="link" href="https://cloud.tencent.com/developer/article/1552055" target="_blank" rel="noopener"
+>ZOOKEEPER335 为什么要区分acceptedEpoch 和 currentEpoch-腾讯云开发者社区-腾讯云&lt;/a>&lt;/p>
+&lt;p>&lt;a class="link" href="http://www.tcs.hut.fi/Studies/T-79.5001/reports/2012-deSouzaMedeiros.pdf" target="_blank" rel="noopener"
+>ZAB算法&lt;/a>&lt;/p></description></item></channel></rss>
