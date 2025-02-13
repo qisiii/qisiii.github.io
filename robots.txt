@@ -2,3 +2,4 @@ User-agent: *
 Allow:/post
 Disallow:/tags/
 Disallow:/categories/
+Disallow:/leetcode/
